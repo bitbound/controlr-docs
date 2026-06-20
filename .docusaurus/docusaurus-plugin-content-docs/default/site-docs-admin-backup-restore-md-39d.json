@@ -1,0 +1,28 @@
+{
+  "id": "admin/backup-restore",
+  "title": "Backup & Restore",
+  "description": "Database Backup",
+  "source": "@site/docs/admin/backup-restore.md",
+  "sourceDirName": "admin",
+  "slug": "/admin/backup-restore",
+  "permalink": "/docs/admin/backup-restore",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/bitbound/ControlR/tree/main/docs/docs/admin/backup-restore.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "Backup & Restore"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Upgrading",
+    "permalink": "/docs/admin/upgrading"
+  },
+  "next": {
+    "title": "API Reference",
+    "permalink": "/docs/category/api-reference"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "features/terminal",
+  "title": "Terminal",
+  "description": "Overview",
+  "source": "@site/docs/features/terminal.md",
+  "sourceDirName": "features",
+  "slug": "/features/terminal",
+  "permalink": "/docs/features/terminal",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/bitbound/ControlR/tree/main/docs/docs/features/terminal.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Terminal"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "File Transfer",
+    "permalink": "/docs/features/file-transfer"
+  },
+  "next": {
+    "title": "Screen Sharing",
+    "permalink": "/docs/features/screen-sharing"
+  }
+}

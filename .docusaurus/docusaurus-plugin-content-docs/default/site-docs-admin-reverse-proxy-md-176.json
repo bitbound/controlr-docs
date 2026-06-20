@@ -1,0 +1,28 @@
+{
+  "id": "admin/reverse-proxy",
+  "title": "Reverse Proxy",
+  "description": "Some ControlR features require forwarded headers. These concepts are not unique to ASP.NET Core, so it's important to understand them when self-hosting.",
+  "source": "@site/docs/admin/reverse-proxy.md",
+  "sourceDirName": "admin",
+  "slug": "/admin/reverse-proxy",
+  "permalink": "/docs/admin/reverse-proxy",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/bitbound/ControlR/tree/main/docs/docs/admin/reverse-proxy.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "Reverse Proxy"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Docker Setup",
+    "permalink": "/docs/admin/docker-setup"
+  },
+  "next": {
+    "title": "Upgrading",
+    "permalink": "/docs/admin/upgrading"
+  }
+}

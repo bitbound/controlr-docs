@@ -1,0 +1,28 @@
+{
+  "id": "features/file-transfer",
+  "title": "File Transfer",
+  "description": "Overview",
+  "source": "@site/docs/features/file-transfer.md",
+  "sourceDirName": "features",
+  "slug": "/features/file-transfer",
+  "permalink": "/docs/features/file-transfer",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/bitbound/ControlR/tree/main/docs/docs/features/file-transfer.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "File Transfer"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Device Management",
+    "permalink": "/docs/features/device-management"
+  },
+  "next": {
+    "title": "Terminal",
+    "permalink": "/docs/features/terminal"
+  }
+}
