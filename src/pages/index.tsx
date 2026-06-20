@@ -4,14 +4,23 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
+import {useColorMode} from '@docusaurus/theme-common';
 
 import styles from './index.module.css';
 
 function HomepageHeader() {
   const {siteConfig} = useDocusaurusContext();
+  const {colorMode} = useColorMode();
+  const logoSrc = colorMode === 'dark' ? '/img/logo-transparent-dark.png' : '/img/logo-transparent-light.png';
+
   return (
-    <header className={clsx('hero hero--primary', styles.heroBanner)}>
-      <div className="container">
+    <header className={styles.heroBanner}>
+      <div className={styles.container}>
+        <img
+          src={logoSrc}
+          alt="ControlR Logo"
+          style={{width: '80px', height: '80px', marginBottom: '1.5rem'}}
+        />
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
         </Heading>
@@ -19,8 +28,8 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/intro">
-            Tutorial - 5min ⏱️
+            to="/docs/getting-started">
+            Getting Started
           </Link>
           {' '}
           <Link

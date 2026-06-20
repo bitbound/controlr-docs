@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'ControlR Docs',
-  tagline: 'Cross-platform remote control made simple',
+  tagline: 'Open-source remote control and remote access',
   favicon: 'img/favicon.ico',
 
   future: {
@@ -84,7 +84,7 @@ const config: Config = {
       ],
     },
     footer: {
-      style: 'dark',
+      style: 'light',
       links: [
         {
           title: 'Docs',
