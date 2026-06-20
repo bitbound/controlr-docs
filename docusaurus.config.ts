@@ -130,7 +130,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Bitbound.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Bitbound. | Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
