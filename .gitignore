@@ -11,6 +11,9 @@
 # production
 /build
 
+# Docusaurus build cache
+/.docusaurus
+
 # misc
 .DS_Store
 .env.local
