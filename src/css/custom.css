@@ -1,13 +1,24 @@
 /**
- * CSS files can be added here. They are appended after the default CSS.
+ * Any custom CSS overrides for ControlR documentation.
+ * Based on ControlR brand colors from BrandingConstants.cs.
  */
 
 :root {
-  --ifm-color-primary: #2563eb;
-  --ifm-color-primary-dark: #1d4ed8;
-  --ifm-color-primary-darker: #1e40af;
-  --ifm-color-primary-darkest: #1e3a8a;
-  --ifm-color-primary-light: #3b82f6;
-  --ifm-color-primary-lighter: #60a5fa;
-  --ifm-color-primary-lightest: #93c5fd;
+  /* ControlR Primary Blue (#2196F3 from BrandingConstants.PrimaryColorLight/PrimaryColorDark) */
+  --ifm-color-primary: #2196f3;
+  --ifm-color-primary-dark: #1a88e8;
+  --ifm-color-primary-darker: #177cdb;
+  --ifm-color-primary-darkest: #1265b8;
+  --ifm-color-primary-light: #35a2f5;
+  --ifm-color-primary-lighter: #5eb5f7;
+  --ifm-color-primary-lightest: #8dcef9;
+
+  /* ControlR Secondary Teal (#008c7a from BrandingConstants.SecondaryColorLight) */
+  --ifm-color-secondary: #008c7a;
+  --ifm-color-secondary-dark: #007a69;
+  --ifm-color-secondary-darker: #006e5e;
+  --ifm-color-secondary-darkest: #005a4d;
+  --ifm-color-secondary-light: #009e8b;
+  --ifm-color-secondary-lighter: #02b09a;
+  --ifm-color-secondary-lightest: #0dd0b8;
 }

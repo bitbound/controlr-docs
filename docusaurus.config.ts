@@ -47,10 +47,11 @@ const config: Config = {
   ],
 
   themeConfig: {
-    // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    // Social card image - use the ControlR logo
+    image: 'img/controlr-logo-flat.png',
     colorMode: {
       respectPrefersColorScheme: true,
+      defaultMode: 'dark'
     },
     navbar: {
       title: 'ControlR',
@@ -129,7 +130,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Bitbound. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Bitbound.`,
     },
     prism: {
       theme: prismThemes.github,

@@ -1,0 +1,6 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "commit_message": {
+    "prompt": "Generate a concise, single-sentence commit message for the uncommitted changes. Use proper sentence capitalization and punctuation.  You **MUST** add a period at the end! \n\nExample: \"Refactor ViewerRegistry to consolidate instance tracking and fix MainWindowViewModel null check."
+  }
+}
