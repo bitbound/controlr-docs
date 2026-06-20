@@ -5,11 +5,7 @@ title: Installation
 
 The recommended way to install ControlR is using Docker Compose.
 
-## Prerequisites
-
-- **Docker** and **Docker Compose** installed on your server
-- At least 1 GB of RAM available
-- An open network port (default host port: `5120`, container port: `8080`)
+Prerequisites are listed in the [Getting Started guide](/docs/getting-started).
 
 ## Quick Start
 

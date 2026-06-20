@@ -3,10 +3,6 @@ sidebar_position: 2
 title: Architecture
 ---
 
-## Overview
-
-ControlR is a distributed system composed of several interconnected components. This page describes the high-level architecture and how data flows between components.
-
 ## Component Overview
 
 ```
@@ -40,7 +36,7 @@ ControlR is a distributed system composed of several interconnected components. 
 
 **Project:** `ControlR.Web.Server`
 
-The server is the central hub of ControlR, built on ASP.NET Core with the following responsibilities:
+The server orchestrates all ControlR components, built on ASP.NET Core with the following responsibilities:
 
 | Responsibility | Technology |
 |---------------|------------|

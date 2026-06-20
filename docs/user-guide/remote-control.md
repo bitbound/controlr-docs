@@ -5,7 +5,7 @@ title: Remote Control
 
 ## Overview
 
-Remote Control lets you stream and control the screen of any connected device in real time. It uses WebSocket-based screen capture and input forwarding for low-latency remote access.
+Remote Control streams and controls the screen of any connected device. It uses WebSocket-based screen capture and input forwarding for low-latency remote access.
 
 ## Accessing Remote Control
 

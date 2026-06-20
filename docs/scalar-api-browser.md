@@ -5,7 +5,7 @@ title: Scalar API Browser
 
 ## Overview
 
-ControlR includes the [Scalar](https://scalar.com) API reference UI, which provides an interactive, browsable view of all available API endpoints. It's the easiest way to explore, understand, and test the ControlR API.
+ControlR includes the [Scalar](https://scalar.com) API reference UI, which provides an interactive, browsable view of all available API endpoints. It lets you explore, understand, and test the ControlR API interactively.
 
 ## Enabling the Scalar UI
 

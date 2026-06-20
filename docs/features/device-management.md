@@ -5,7 +5,7 @@ title: Device Management
 
 ## Overview
 
-ControlR provides comprehensive device management, allowing you to monitor, control, and organize connected devices from the web interface.
+Monitor and manage connected devices from the ControlR web interface.
 
 ## Device Information
 

@@ -80,15 +80,6 @@ sudo docker run --rm \
 sudo docker compose start
 ```
 
-## Best Practices
-
-- Schedule regular backups (daily recommended)
-- Store backups off-site or in a separate location
-- Test restore procedures periodically
-- Keep at least 3 backup versions
-- Encrypt backup files at rest
-- Document your restore procedure for your team
-
 ## Next
 
 - **[Docker Setup](/docs/admin/docker-setup)** — Container configuration

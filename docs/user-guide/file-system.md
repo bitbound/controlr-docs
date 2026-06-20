@@ -5,7 +5,7 @@ title: File System
 
 ## Overview
 
-The File System browser lets you browse, upload, download, and manage files on remote devices directly from your browser.
+The File System browser manages remote device files through a split-pane interface with tree navigation and a sortable data grid.
 
 ## Accessing the File System
 

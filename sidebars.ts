@@ -64,7 +64,7 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'faq',
-    'contributing',
+    // 'contributing', // Hidden — re-enable when ready to accept community contributions
   ],
 };
 

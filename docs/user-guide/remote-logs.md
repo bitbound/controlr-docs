@@ -5,7 +5,7 @@ title: Remote Logs
 
 ## Overview
 
-The Remote Logs page lets you view, search, and download log files from connected agents. This is essential for troubleshooting agent issues.
+The Remote Logs page lets you view, search, and download log files from connected agents.
 
 ## Accessing Remote Logs
 

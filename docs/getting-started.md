@@ -8,7 +8,7 @@ title: Getting Started
 ControlR is a self-hosted, cross-platform remote control system that lets you manage and control devices over a network. It consists of three main components:
 
 - **Server** — A web-based application (ASP.NET Core) that manages connections, authentication, and device communication
-- **Agent** — A headless service installed on target devices that enables remote control, file access, and terminal sessions
+- **Agent** — A headless service installed on target devices that provides remote control, file access, and terminal sessions
 - **Desktop Client** — A live GUI application (Avalonia-based) that runs on target devices, giving local users visibility into remote sessions
 
 ## Core Concepts
@@ -32,7 +32,7 @@ The agent is installed on each device you want to manage. It:
 ### Desktop Client
 
 The desktop client runs on the target device and:
-- Provides a live GUI for the local user to see when remote sessions are active
+- Provides a live GUI for the local user, showing when remote sessions are active
 - Can be configured to notify users before sessions start
 - Runs alongside the agent on the same machine
 

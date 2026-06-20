@@ -7,7 +7,7 @@ title: FAQ
 
 ### Is ControlR free to use?
 
-Yes! ControlR is open source and MIT licensed. You can use it freely for personal or commercial purposes.
+Yes. ControlR is MIT licensed.
 
 ### Can I use ControlR without Docker?
 
@@ -19,22 +19,16 @@ ControlR clients can run on Windows, macOS, and Linux. The web interface works i
 
 ### How many devices can ControlR handle?
 
-ControlR can manage hundreds of devices per server instance depending on your hardware. For very large deployments, consult the architecture documentation.
+The number of devices per instance depends on the server's available resources.
 
 ### Is data encrypted in transit?
 
-Yes, all communications between clients and the server are encrypted using TLS/SSL.
+Yes. All communications between clients and the server are encrypted using TLS/SSL.
 
 ### Can I run ControlR on a Raspberry Pi?
 
-Yes! ControlR can run on ARM-based devices including Raspberry Pi, though performance depends on the model.
+Yes. ControlR can run on ARM-based devices including Raspberry Pi, though performance depends on the model.
 
 ### How do I upgrade ControlR?
 
 See the [Upgrading guide](/docs/admin/upgrading) for step-by-step instructions.
-
-### Where can I get help?
-
-- [Discord community](https://discord.gg/JWJmMPc72H)
-- [GitHub Discussions](https://github.com/bitbound/ControlR/discussions)
-- [File an issue](https://github.com/bitbound/ControlR/issues)

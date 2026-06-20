@@ -19,7 +19,7 @@ The Terminal provides remote shell access on any connected device. ControlR uses
 | **PowerShell** | Cross-platform PowerShell (PowerShell Core) on all platforms |
 | **Command Completions** | Tab-completion for commands, parameters, and file paths |
 | **Multiline Input** | Toggle multiline mode for complex commands |
-| **Keyboard Shortcuts** | Full keyboard integration for efficient command entry |
+| **Keyboard Shortcuts** | Full keyboard integration |
 
 ## Usage
 
@@ -31,7 +31,7 @@ The Terminal provides remote shell access on any connected device. ControlR uses
 
 ## Output Display
 
-Terminal output is rendered with syntax highlighting for improved readability. Scroll through the output history to review previous commands.
+Terminal output displays scrollable command history. Scroll through the output history to review previous commands.
 
 ## Next
 

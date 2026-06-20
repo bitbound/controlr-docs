@@ -5,7 +5,7 @@ title: Dashboard
 
 ## Overview
 
-The Dashboard is the main landing page when you log into ControlR. It provides an at-a-glance view of all your connected devices.
+The Dashboard is the main landing page when you log into ControlR. It shows all connected devices, with filters for online/offline status and tags.
 
 ## Device Grid
 
