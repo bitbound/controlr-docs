@@ -11,7 +11,7 @@ Yes! ControlR is open source and MIT licensed. You can use it freely for persona
 
 ### Can I use ControlR without Docker?
 
-Docker is the recommended and easiest deployment method. Native installations may be possible but are not officially supported.
+Docker is the recommended and easiest deployment method. However, native installation is also supported — the server is published as a ZIP archive with each release and can be deployed directly on Linux using systemd. See the [Native Installation](/docs/admin/native-installation) guide for details.
 
 ### What platforms are supported for clients?
 

@@ -19,9 +19,10 @@ We welcome contributions from the community! Here's how you can help.
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download) (latest LTS)
-- [Node.js](https://nodejs.org/) (for web client)
-- [Docker](https://www.docker.com/) (for server)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download) (ControlR targets .NET 10.0)
+- [Node.js](https://nodejs.org/) (for web client build)
+- [Docker](https://www.docker.com/) (for PostgreSQL and Aspire during local development)
+- [Aspire Dashboard](https://learn.microsoft.com/dotnet/aspnetcore/fundamentals/aspirer) (for telemetry during local development)
 
 ### Building
 
@@ -33,9 +34,24 @@ dotnet build
 
 ### Running Locally
 
+The recommended way to run locally is through the Aspire AppHost, which orchestrates the server, PostgreSQL, and Aspire Dashboard:
+
+```bash
+dotnet run --project ControlR.Web.AppHost
+```
+
+This starts:
+- **ControlR Web Server** on `http://localhost:5120`
+- **PostgreSQL** on port 5432
+- **Aspire Dashboard** on `http://localhost:18888`
+
+For direct server-only development:
+
 ```bash
 dotnet run --project ControlR.Web.Server
 ```
+
+Note: Running the server directly requires PostgreSQL to be available separately.
 
 ## Pull Request Guidelines
 

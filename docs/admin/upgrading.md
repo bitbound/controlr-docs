@@ -24,6 +24,8 @@ title: Upgrading
    curl http://127.0.0.1:5120/health
    ```
 
+You should receive: `"Healthy."`
+
 ## Rollback
 
 If the new version causes issues:

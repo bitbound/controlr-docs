@@ -36,6 +36,60 @@ controlr.example.com {
 }
 ```
 
-## Important
+## Apache Configuration
+
+```apache
+<VirtualHost *:443>
+    ServerName controlr.example.com
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/controlr.example.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/controlr.example.com/privkey.pem
+
+    ProxyPreserveHost On
+    ProxyPass / http://localhost:5120/
+    ProxyPassReverse / http://localhost:5120/
+
+    RewriteEngine on
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule ^/(.*) "ws://localhost:5120/$1" [P,L]
+</VirtualHost>
+```
+
+## Cloudflare
+
+If you're using Cloudflare's proxy service, enable the **Cloudflare Proxy Support** option on your server:
+
+```yaml
+ControlR_AppOptions__EnableCloudflareProxySupport: true
+```
+
+This automatically fetches Cloudflare's IP ranges (`ips-v4` and `ips-v6`) and adds them to the `KnownNetworks` list, so forwarded headers from Cloudflare are trusted.
+
+## Network Trust
+
+If your service is guaranteed to only receive traffic from a trusted reverse proxy (e.g., behind a firewall), you can trust all forwarded headers by setting:
+
+```yaml
+ControlR_AppOptions__EnableNetworkTrust: true
+```
+
+**Warning:** Only enable this if untrusted clients cannot connect directly to your service.
+
+## Additional Proxy IPs
+
+If you have multiple proxy servers in the chain, add each to the `KnownProxies` list:
+
+```yaml
+ControlR_AppOptions__KnownProxies__0: "203.0.113.1"
+ControlR_AppOptions__KnownProxies__1: "198.51.100.1"
+```
+
+Or add CIDR ranges via `KnownNetworks`:
+
+```yaml
+ControlR_AppOptions__KnownNetworks__0: "10.0.0.0/8"
+```
 
 When using a reverse proxy, ensure the `ForwardedHeaders` are configured correctly in ControlR. Check the [configuration guide](/docs/configuration) for environment variable settings.

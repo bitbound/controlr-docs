@@ -26,7 +26,7 @@ services:
 services:
   controlr:
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5120/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
