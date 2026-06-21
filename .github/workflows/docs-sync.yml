@@ -1,0 +1,337 @@
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      report_only:
+        description: 'Report-only (files issue). Set false to generate a PR with changes.'
+        type: boolean
+        default: true
+        required: false
+      target_version:
+        description: 'Target version tag (omit to auto-detect latest release)'
+        type: string
+        required: false
+      last_synced_version:
+        description: 'Last synced version (omit to read from .github/docs-sync-version.txt)'
+        type: string
+        required: false
+      model:
+        description: 'Model to use for analysis (e.g., sonnet, opus, haiku)'
+        type: string
+        default: sonnet
+        required: false
+      max_wall_time:
+        description: 'Max wall time for the analysis run (e.g., 5m, 10m)'
+        type: string
+        default: 10m
+        required: false
+
+name: Docs Sync Check
+
+jobs:
+  docs-sync:
+    runs-on: self-hosted
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    steps:
+      - name: Checkout docs repo
+        uses: actions/checkout@v4
+
+      - name: Read last synced version
+        id: versions
+        run: |
+          LAST_SYNCED=$(cat .github/docs-sync-version.txt 2>/dev/null || echo "0.0.0.0")
+          echo "last_synced=$LAST_SYNCED" >> $GITHUB_OUTPUT
+
+          TARGET="${{ inputs.target_version }}"
+          if [ -z "$TARGET" ]; then
+            TARGET=$(curl -s https://api.github.com/repos/bitbound/ControlR/releases/latest | jq -r '.tag_name')
+          fi
+          echo "target=$TARGET" >> $GITHUB_OUTPUT
+
+      - name: Skip if no changes
+        if: ${{ steps.versions.outputs.last_synced == steps.versions.outputs.target }}
+        run: |
+          echo "Already synced to ${{ steps.versions.outputs.target }}. Nothing to do."
+          echo "## Skip" >> $GITHUB_STEP_SUMMARY
+          echo "Last synced version matches target — no changes needed." >> $GITHUB_STEP_SUMMARY
+
+      - name: Clone ControlR source repo
+        if: ${{ steps.versions.outputs.last_synced != steps.versions.outputs.target }}
+        uses: actions/checkout@v4
+        with:
+          repository: bitbound/ControlR
+          path: controlr-src
+          fetch-depth: 0
+
+      - name: Generate diff
+        if: ${{ steps.versions.outputs.last_synced != steps.versions.outputs.target }}
+        id: diff
+        working-directory: controlr-src
+        run: |
+          LAST="${{ steps.versions.outputs.last_synced }}"
+          TARGET="${{ steps.versions.outputs.target }}"
+          echo "Diffing $LAST..$TARGET"
+
+          # Save full diff for Qwen analysis
+          git diff "$LAST..$TARGET" > /tmp/docs-diff.txt
+
+          # Save file-level diff for routing
+          git diff "$LAST..$TARGET" --name-only > /tmp/docs-changed-files.txt
+
+          # Save summary
+          git diff "$LAST..$TARGET" --stat > /tmp/docs-diff-stat.txt
+
+          # Identify changed categories
+          API_CHANGES=$(grep -E '(Controllers|Api)/' /tmp/docs-changed-files.txt || true)
+          CONFIG_CHANGES=$(grep -iE '(Options|Config)/' /tmp/docs-changed-files.txt || true)
+          INSTALLER_CHANGES=$(grep -i 'Installer' /tmp/docs-changed-files.txt || true)
+          DOCS_CHANGES=$(grep -iE '\.md' /tmp/docs-changed-files.txt || true)
+
+          if [ -n "$API_CHANGES" ]; then
+            echo "has_api_changes=true" >> $GITHUB_OUTPUT
+            echo "$API_CHANGES" >> /tmp/docs-api-changes.txt
+          fi
+          if [ -n "$CONFIG_CHANGES" ]; then
+            echo "has_config_changes=true" >> $GITHUB_OUTPUT
+            echo "$CONFIG_CHANGES" >> /tmp/docs-config-changes.txt
+          fi
+          if [ -n "$INSTALLER_CHANGES" ]; then
+            echo "has_installer_changes=true" >> $GITHUB_OUTPUT
+            echo "$INSTALLER_CHANGES" >> /tmp/docs-installer-changes.txt
+          fi
+          if [ -n "$DOCS_CHANGES" ]; then
+            echo "has_docs_changes=true" >> $GITHUB_OUTPUT
+            echo "$DOCS_CHANGES" >> /tmp/docs-docs-changes.txt
+          fi
+
+          echo "=== Changed Categories ===" >> $GITHUB_STEP_SUMMARY
+          [ -n "$API_CHANGES" ] && echo "- **API changes**: $(echo "$API_CHANGES" | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          [ -n "$CONFIG_CHANGES" ] && echo "- **Config changes**: $(echo "$CONFIG_CHANGES" | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          [ -n "$INSTALLER_CHANGES" ] && echo "- **Installer changes**: $(echo "$INSTALLER_CHANGES" | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          [ -n "$DOCS_CHANGES" ] && echo "- **Doc changes** (existing docs, may indicate doc-related source changes): $(echo "$DOCS_CHANGES" | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          [ -z "$API_CHANGES" ] && [ -z "$CONFIG_CHANGES" ] && [ -z "$INSTALLER_CHANGES" ] && echo "- No source changes that typically affect docs." >> $GITHUB_STEP_SUMMARY
+
+      - name: Prepare diff for Qwen
+        if: ${{ steps.diff.outputs.has_api_changes == 'true' || steps.diff.outputs.has_config_changes == 'true' || steps.diff.outputs.has_installer_changes == 'true' }}
+        run: |
+          echo "Preparing diff files for Qwen analysis..."
+
+      - name: Run Qwen analysis (report-only mode)
+        if: ${{ inputs.report_only == true && (steps.diff.outputs.has_api_changes == 'true' || steps.diff.outputs.has_config_changes == 'true' || steps.diff.outputs.has_installer_changes == 'true') }}
+        run: |
+          LAST="${{ steps.versions.outputs.last_synced }}"
+          TARGET="${{ steps.versions.outputs.target }}"
+          DOCS_DIR="${{ github.workspace }}/docs"
+
+          cat > /tmp/qwen-prompt.md << 'ENDPROMPT'
+          You are analyzing docs update recommendations for ControlR.
+
+          The ControlR source code diff is at /tmp/docs-diff.txt.
+          The list of changed files is at /tmp/docs-changed-files.txt.
+          The stats are at /tmp/docs-diff-stat.txt.
+
+          The current docs are at /home/runner/work/controlr-docs/controlr-docs/docs/.
+
+          Your job:
+
+          1. Read the diff files to understand what changed between the last synced version and the target version.
+          2. For each changed category (API, config, installer), identify which docs pages need updating.
+          3. Check the actual source code in the diff to determine what changed (new endpoints, renamed options, new installer args, etc.).
+          4. Produce a structured report in the format below.
+
+          IMPORTANT:
+          - Be precise. Only recommend changes that are actually supported by the diff.
+          - Don't recommend changes for things that didn't change.
+          - If a config option was renamed, recommend updating the old name to the new name.
+          - If a new API endpoint was added, recommend adding it to the endpoints reference.
+          - If a config option was added, recommend adding it to the configuration reference.
+
+          Output format (use exactly this structure):
+
+          ## Version X → Y: Docs Update Recommendations
+
+          ### Overview
+          - N files changed, N additions, N deletions
+          - Changed categories: API, Config, Installer (only list which actually changed)
+
+          ### Pages Needing Updates
+
+          #### `{page-title}` (`{relative-path}`)
+          **What changed:** Brief description of the relevant source changes.
+          - [ ] `{specific change 1}`
+          - [ ] `{specific change 2}`
+
+          ---
+
+          Repeat the "Pages Needing Updates" section for each page that needs changes.
+          If no pages need changes, output: "No documentation updates needed for this release."
+          ENDPROMPT
+
+          cat > /tmp/qwen-system-prompt.md << 'ENDSYSTEM'
+          You are a documentation specialist for ControlR, a self-hosted remote control application.
+          Your job is to analyze source code diffs and identify what documentation pages need updating.
+          You have access to both the diff and the current docs.
+          Be thorough, precise, and actionable.
+          ENDSYSTEM
+
+          # Run Qwen in headless mode
+          qwen -p "$(cat /tmp/qwen-prompt.md)" \
+            --system-prompt "$(cat /tmp/qwen-system-prompt.md)" \
+            --yolo \
+            --max-wall-time "${{ inputs.max_wall_time || '10m' }}" \
+            --output-format text \
+            --max-tool-calls 50 \
+            -m "${{ inputs.model || 'sonnet' }}"
+
+      - name: Save analysis output
+        if: ${{ inputs.report_only == true && (steps.diff.outputs.has_api_changes == 'true' || steps.diff.outputs.has_config_changes == 'true' || steps.diff.outputs.has_installer_changes == 'true') }}
+        id: analysis
+        run: |
+          echo "Analysis output:"
+          # Output will be in the step log. Capture it for the issue creation step.
+          echo "Analysis complete." >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Qwen analysis (PR mode)
+        if: ${{ inputs.report_only == false && (steps.diff.outputs.has_api_changes == 'true' || steps.diff.outputs.has_config_changes == 'true' || steps.diff.outputs.has_installer_changes == 'true') }}
+        run: |
+          LAST="${{ steps.versions.outputs.last_synced }}"
+          TARGET="${{ steps.versions.outputs.target }}"
+          DOCS_DIR="${{ github.workspace }}/docs"
+
+          cat > /tmp/qwen-prompt-pr.md << 'ENDPROMPT'
+          You are a documentation specialist for ControlR. You need to actually UPDATE the docs files based on the source code diff.
+
+          The ControlR source code diff is at /tmp/docs-diff.txt.
+          The list of changed files is at /tmp/docs-changed-files.txt.
+          The stats are at /tmp/docs-diff-stat.txt.
+
+          The current docs are at ${DOCS_DIR}/.
+
+          Your job:
+
+          1. Read the diff files to understand what changed between $LAST and $TARGET.
+          2. For each changed category (API, config, installer), identify which docs pages need updating.
+          3. ACTUALLY EDIT the docs files to reflect the changes. Use the edit tool to make precise changes.
+          4. After making all edits, produce a summary of what you changed.
+
+          IMPORTANT:
+          - Be precise. Only edit what needs editing based on the diff.
+          - Don't recommend changes — actually make them.
+          - If a config option was renamed, update the old name to the new name in the config reference.
+          - If a new API endpoint was added, add it to the endpoints reference.
+          - If a config option was added, add it to the configuration reference with its type, default, and description.
+          - If installer arguments changed, update the installer args table.
+          - Preserve existing doc formatting and structure.
+          - If a page doesn't need changes, don't touch it.
+
+          After all edits, output a summary:
+          ## Edits Summary for $TARGET
+          - {page-path}: {brief description of changes}
+          ---
+          (one section per page edited)
+          ENDPROMPT
+
+          cat > /tmp/qwen-system-prompt-pr.md << 'ENDSYSTEM'
+          You are a documentation specialist for ControlR, a self-hosted remote control application.
+          You have direct access to edit files in the docs/ directory.
+          Your job is to analyze source code diffs and actually UPDATE the documentation files to match.
+          Be thorough, precise, and make complete edits — don't just suggest changes.
+          Use the edit tool for file modifications.
+          ENDSYSTEM
+
+          # Run Qwen in headless mode to actually edit files
+          qwen -p "$(cat /tmp/qwen-prompt-pr.md)" \
+            --system-prompt "$(cat /tmp/qwen-system-prompt-pr.md)" \
+            --yolo \
+            --max-wall-time "${{ inputs.max_wall_time || '10m' }}" \
+            --output-format text \
+            --max-tool-calls 100 \
+            -m "${{ inputs.model || 'sonnet' }}"
+
+      - name: Create PR with doc updates
+        if: ${{ inputs.report_only == false && (steps.diff.outputs.has_api_changes == 'true' || steps.diff.outputs.has_config_changes == 'true' || steps.diff.outputs.has_installer_changes == 'true') }}
+        id: create-pr
+        run: |
+          # Check if there are any changes
+          CHANGES=$(git status --porcelain docs/ || true)
+          if [ -z "$CHANGES" ]; then
+            echo "No documentation changes to commit."
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Documentation changes found:"
+            git status -- docs/
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+
+            # Commit changes
+            git add docs/
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -m "docs: update for ${{ steps.versions.outputs.target }}"
+
+            # Create branch and push
+            BRANCH="docs-sync/${{ steps.versions.outputs.target }}"
+            git checkout -b "$BRANCH"
+            git push origin "$BRANCH"
+
+            # Create PR
+            PR_URL=$(gh pr create \
+              --title "docs: update for ${{ steps.versions.outputs.target }}" \
+              --body "This PR updates the documentation for ${{ steps.versions.outputs.target }}.
+
+            Changes were generated automatically based on source code diffs between ${{ steps.versions.outputs.last_synced }} and ${{ steps.versions.outputs.target }}.
+
+            **What changed:**
+            - API endpoints (if applicable)
+            - Configuration options (if applicable)
+            - Installer arguments (if applicable)
+
+            Please review and merge if the changes look correct." \
+              --base main \
+              --label "docs,automated" 2>&1)
+            echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create issue with recommendations
+        if: ${{ inputs.report_only == true && (steps.diff.outputs.has_api_changes == 'true' || steps.diff.outputs.has_config_changes == 'true' || steps.diff.outputs.has_installer_changes == 'true') }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const target = '${{ steps.versions.outputs.target }}';
+            const lastSynced = '${{ steps.versions.outputs.last_synced }}';
+
+            // Get step summary content
+            const summary = process.env.GITHUB_STEP_SUMMARY || '';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Docs update recommendations for ${target}`,
+              body: `This issue was automatically generated for the ${target} release.\n\n` +
+                `**Last synced version:** ${lastSynced}\n\n` +
+                `---\n` +
+                `See the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for analysis details.\n\n` +
+                `### Summary of recommended changes\n\n` +
+                `_(The Qwen analysis identified changes that may require documentation updates. Review and apply as needed.)_`,
+              labels: ['docs', 'automated'],
+            });
+
+      - name: Update synced version
+        if: ${{ steps.diff.outputs.has_api_changes == 'true' || steps.diff.outputs.has_config_changes == 'true' || steps.diff.outputs.has_installer_changes == 'true' }}
+        run: |
+          echo "${{ steps.versions.outputs.target }}" > .github/docs-sync-version.txt
+          git add .github/docs-sync-version.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: sync version to ${{ steps.versions.outputs.target }}"
+
+      - name: Push version update (report-only mode)
+        if: ${{ inputs.report_only == true && (steps.diff.outputs.has_api_changes == 'true' || steps.diff.outputs.has_config_changes == 'true' || steps.diff.outputs.has_installer_changes == 'true') }}
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "docs: sync version to ${{ steps.versions.outputs.target }}"
+          file_pattern: .github/docs-sync-version.txt

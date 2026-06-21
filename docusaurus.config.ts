@@ -46,6 +46,16 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    [
+      'docusaurus-lunr-search',
+      {
+        languages: ['en'],
+        excludeRoutes: ['**/scalar-api-browser', '**/api-reference/endpoints'],
+      },
+    ],
+  ],
+
   themeConfig: {
     // Social card image - use the ControlR logo
     image: 'img/controlr-logo-flat.png',
@@ -136,7 +146,6 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
     },
-    algolia: undefined, // Can add later if desired
   } satisfies Preset.ThemeConfig,
 };
 
