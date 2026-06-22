@@ -22,7 +22,7 @@ With Docker Secrets, you create files whose names map to configuration keys (min
 - A file named `AppOptions__SmtpPassword` overrides `ControlR_AppOptions__SmtpPassword`
 - A file named `KeyProtectionOptions__CertificatePassword` overrides `ControlR_AppOptions__KeyProtectionOptions__CertificatePassword`
 
-The PostgreSQL credentials (`POSTGRES_USER`, `POSTGRES_PASSWORD`, etc.) use the `_FILE` suffix convention when sourced from Docker secrets (e.g., `ControlR_POSTGRES_USER_FILE: /run/secrets/POSTGRES_USER`).
+For configuration keys that do **not** use the `ControlR_` prefix (such as `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`), create files with those exact names in `/run/secrets/`. `AddKeyPerFile` reads the file contents directly, so a file named `POSTGRES_USER` containing `admin` sets the config value to `admin`.
 
 ## PostgreSQL Configuration
 
@@ -66,7 +66,7 @@ The main application settings section:
 | `ControlR_AppOptions__InteractiveRefreshTokenExpirationDays` | int | `30` | Refresh token lifetime for interactive bearer logins. |
 | `ControlR_AppOptions__KnownNetworks__N` | string[] | `[]` | CIDR ranges trusted for forwarded headers. Index by `N`. |
 | `ControlR_AppOptions__KnownProxies__N` | string[] | `[]` | Specific proxy IP addresses trusted for forwarded headers. Index by `N`. |
-| `ControlR_AppOptions__MaxFileTransferSize` | long | `104857600` | Max file transfer size in bytes (100 MB default). `<= 0` for no limit. |
+| `ControlR_AppOptions__MaxFileTransferSize` | long | `104857600` | Max file transfer size in bytes (100 MiB default). `<= 0` for no limit. |
 | `ControlR_AppOptions__MicrosoftClientId` | string? | — | Microsoft OAuth client ID. |
 | `ControlR_AppOptions__MicrosoftClientSecret` | string? | — | Microsoft OAuth client secret. |
 | `ControlR_AppOptions__PersistPasskeyLogin` | bool | `false` | Makes passkey login equivalent to "remember me". |

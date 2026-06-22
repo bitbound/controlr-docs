@@ -42,5 +42,5 @@ Chat provides real-time messaging between you and a connected device. It works a
 
 ## Next
 
-- **[Remote Control](/docs/user-guide/remote-control)** — Screen streaming and control
+- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)** — Screen streaming and control
 - **[File System](/docs/user-guide/file-system)** — Remote file management

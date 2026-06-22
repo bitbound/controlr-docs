@@ -1,16 +1,11 @@
 ---
-sidebar_position: 3
+sidebar_position: 1
 title: Remote Control
 ---
 
 ## Overview
 
-Remote Control lets you stream and control the screen of any connected device in real time. It uses WebSocket-based screen capture and input forwarding for low-latency remote access.
-
-## Accessing Remote Control
-
-1. Navigate to a device's page
-2. Click **Remote Control** in the device access menu (or go to `/device-access/remote-control?deviceId={id}`)
+Remote Control streams and controls the screen of any connected device. It uses WebSocket-based screen capture and input forwarding for low-latency remote access.
 
 ## Session Select (Windows)
 
@@ -62,33 +57,51 @@ Remote control settings are configured in **Settings** (`/settings`):
 ### Quality Settings
 
 | Setting | Description |
-|---------|-------------|
-| **Auto Quality** | Automatically adjusts quality based on network conditions |
-| **Manual Quality** | Fixed quality level |
+|---------|--------|
+| **Auto Quality** | Automatically adjusts quality based on network conditions (default) |
+| **Manual Quality** | Fixed quality level with configurable threshold |
 | **Max Bandwidth** | Cap for maximum bandwidth usage |
 
 ### Capture Settings
 
 | Setting | Description |
-|---------|-------------|
+|---------|--------|
 | **Show Cursor** | Display the remote cursor in the stream |
-| **DirectX Capture** | Use DirectX for screen capture (Windows, better performance) |
+| **DirectX Capture** | Use DirectX for screen capture (Windows only, better performance) |
 
 ## Connection States
 
 | State | Description |
 |-------|-------------|
 | **Connecting** | Establishing the WebSocket connection |
-| **Active** | Remote control session is active |
-| **Loading** | Loading the session |
-| **Reconnecting** | Attempting to reconnect after a disruption |
+| **Active** | Remote control session is active and streaming |
+| **Loading** | Loading the session resources |
+| **Reconnecting** | Attempting to reconnect after a network disruption |
 | **Alert** | An error or warning has occurred |
-| **Session Select** | Waiting for the user to select a session |
-| **Unsupported OS** | The remote OS is not supported for remote control |
+| **Session Select** | Waiting for the user to select a desktop session |
+| **Unsupported OS** | The remote OS is not supported for native remote control |
+
+## Keyboard Input Modes
+
+Keyboard input can be configured in Settings:
+
+| Mode | Description |
+|------|-------------|
+| **Auto** | Automatically detects the correct input mode |
+| **Physical** | Sends physical key events |
+| **Virtual** | Sends virtual key events (better compatibility with some applications) |
+
+## Server Notifications
+
+When a remote session starts, the remote user can be notified. This behavior is controlled by the tenant setting `notify-user-on-session-start` (configurable at `/tenant-settings`) or the user's individual notification preference.
+
+## Invoke Ctrl+Alt+Del (Windows)
+
+On Windows devices, you can invoke Ctrl+Alt+Del through the remote control interface. This is useful for unlocking locked sessions or accessing the security screen.
 
 ## VNC Relay (Experimental)
 
-For Mac and Linux devices, ControlR supports experimental VNC relay:
+For Mac and Linux devices, ControlR supports experimental VNC relay via noVNC:
 
 1. Navigate to **VNC Relay** in the device access menu
 2. Specify the VNC server port on the remote device
@@ -96,13 +109,3 @@ For Mac and Linux devices, ControlR supports experimental VNC relay:
 4. Click **Connect** to start the session
 
 The VNC connection is streamed through a noVNC iframe via WebSockets, so the VNC server can bind to localhost for security.
-
-## Server Notifications
-
-When a remote session starts, the remote user can be notified. This behavior is controlled by the tenant setting `notify-user-on-session-start` (configurable at `/tenant-settings`) or the user's individual notification preference.
-
-## Next
-
-- **[Device Management](/docs/features/device-management)** — Monitor and organize devices
-- **[File System](/docs/user-guide/file-system)** — Remote file management
-- **[Terminal](/docs/user-guide/terminal)** — Remote terminal access

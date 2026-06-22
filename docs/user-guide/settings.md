@@ -74,4 +74,4 @@ The Settings page also displays:
 ## Next
 
 - **[Dashboard](/docs/user-guide/dashboard)** — Overview of all devices
-- **[Remote Control](/docs/user-guide/remote-control)** — Screen streaming and control
+- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)** — Screen streaming and control

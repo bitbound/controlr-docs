@@ -108,7 +108,7 @@ sudo ./ControlR.Agent.Installer install \
 ```
 
 This will:
-1. Install the app bundle to `/Applications/ControlR.app`
+1. Install the desktop client bundle to `/Applications/ControlR.app`
 2. Install launchd daemons for the agent, desktop client, and self-updater
 3. Start the agent service automatically
 4. Create the device registration on the server
@@ -129,7 +129,7 @@ Invoke-WebRequest -Uri "https://your-server/downloads/win-x64/ControlR.Agent.Ins
   -ServerUri "https://your-server.example.com" `
   -TenantId "<your-tenant-guid>" `
   [-InstanceId "my-pc"] `
-  [-DeviceTags "tag-guid1","tag-guid2"] `
+  [-DeviceTags "tag-guid1,tag-guid2"] `
   [-InstallerKeySecret "<key-secret>"] `
   [-InstallerKeyId "<key-guid>"] `
   [-DeviceId "<existing-device-guid>"]

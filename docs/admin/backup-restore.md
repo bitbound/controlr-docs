@@ -16,7 +16,7 @@ The recommended approach is to use `pg_dump` against the PostgreSQL container:
 sudo docker compose stop controlr
 
 # Run pg_dump against the PostgreSQL container
-sudo docker compose exec postgres pg_dump -U controlr_admin controlr > controlr-backup-$(date +%Y%m%d).sql
+sudo docker compose exec postgres pg_dump -U postgres controlr > controlr-backup-$(date +%Y%m%d).sql
 
 # Start ControlR again
 sudo docker compose start controlr
@@ -46,7 +46,7 @@ Set up a cron job for regular backups:
 
 ```bash
 # Example: daily backup at 2 AM
-0 2 * * * sudo docker compose exec postgres pg_dump -U controlr_admin controlr > /backups/controlr-$(date +\%Y\%m\%d).sql
+0 2 * * * sudo docker compose exec postgres pg_dump -U postgres controlr > /backups/controlr-$(date +\%Y\%m\%d).sql
 ```
 
 ## Restoring from Backup
@@ -58,7 +58,7 @@ Set up a cron job for regular backups:
 sudo docker compose stop controlr
 
 # Restore the database
-cat controlr-backup-20250101.sql | sudo docker compose exec -T postgres psql -U controlr_admin controlr
+cat controlr-backup-20250101.sql | sudo docker compose exec -T postgres psql -U postgres controlr
 
 # Start ControlR
 sudo docker compose start controlr

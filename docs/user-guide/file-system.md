@@ -59,5 +59,5 @@ The maximum file transfer size is configurable via `ControlR_AppOptions__MaxFile
 ## Next
 
 - **[Dashboard](/docs/user-guide/dashboard)** — Overview of all devices
-- **[Remote Control](/docs/user-guide/remote-control)** — Screen streaming and control
+- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)** — Screen streaming and control
 - **[Terminal](/docs/user-guide/terminal)** — Remote terminal access

@@ -11,10 +11,37 @@ ControlR can be deployed natively on Linux without Docker. The server is publish
 
 - **Linux** — AMD64 (Ubuntu, Debian, or similar)
 - **.NET 10 Runtime** — Install from [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/10.0)
-- **PostgreSQL 18** — Install from your package manager or PostgreSQL repository
+- **PostgreSQL 18** — Install via Docker (recommended) or your package manager
 - **Reverse Proxy** — Nginx or Caddy for HTTPS termination (optional but recommended)
 
 ## Step 1: Install PostgreSQL
+
+### Option A: Docker (Recommended)
+
+```bash
+# Install Docker if not already installed
+sudo apt update
+sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+# Create the PostgreSQL container
+sudo docker run -d \
+  --name controlr-postgres \
+  -e POSTGRES_DB=controlr \
+  -e POSTGRES_USER=controlr_admin \
+  -e POSTGRES_PASSWORD=your-strong-password \
+  -p 5432:5432 \
+  -v controlr-postgres-data:/var/lib/postgresql/data \
+  postgres:18
+
+# Create a named volume for data persistence
+sudo docker volume create controlr-postgres-data
+```
+
+### Option B: Native PostgreSQL
 
 ```bash
 # Ubuntu/Debian
@@ -32,50 +59,61 @@ sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE controlr TO controlr_
 ```bash
 # Download from GitHub Releases
 wget https://github.com/bitbound/ControlR/releases/download/v1.0.0/server-linux-amd64.zip
-mkdir -p /opt/controlr
-unzip server-linux-amd64.zip -d /opt/controlr
-cd /opt/controlr
+mkdir -p /var/www/dev.controlr.app
+unzip server-linux-amd64.zip -d /var/www/dev.controlr.app
+cd /var/www/dev.controlr.app
 ```
 
-## Step 3: Create the Systemd Service
+## Step 3: Configure the Server
+
+Copy the configuration file and update it for production:
+
+```bash
+cp appsettings.json appsettings.Production.json
+```
+
+Edit `appsettings.Production.json` with your production settings:
+
+```json
+{
+  "POSTGRES_USER": "controlr_admin",
+  "POSTGRES_PASSWORD": "your-strong-password",
+  "POSTGRES_HOST": "localhost",
+  "POSTGRES_PORT": 5432,
+  "POSTGRES_DB": "controlr",
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.AspNetCore.HttpLogging": "Information",
+      "Microsoft.AspNetCore.HttpOverrides": "Debug",
+      "Microsoft.EntityFrameworkCore.Database": "Warning",
+      "System.Net.Http.HttpClient": "Warning",
+      "Polly": "Warning"
+    }
+  }
+}
+```
+
+> **Tip:** Other configuration options (SMTP, Bootstrap, KeyProtection, AppOptions, etc.) are configured the same way. See the [Configuration Guide](/docs/configuration) for the full list. You only need to override what you change from the defaults.
+
+## Step 4: Create the Systemd Service
 
 ```bash
 sudo tee /etc/systemd/system/controlr.service > /dev/null <<EOF
 [Unit]
-Description=ControlR Web Server
+Description=ControlR Server
 After=network.target postgresql.service
 Wants=postgresql.service
 
 [Service]
-Type=simple
-User=controlr
-Group=controlr
-WorkingDirectory=/opt/controlr
-ExecStart=/usr/bin/dotnet ControlR.Web.Server.dll
+WorkingDirectory=/var/www/dev.controlr.app
+ExecStart=/usr/bin/dotnet /var/www/dev.controlr.app/ControlR.Web.Server.dll --urls "http://*:5002"
 Restart=always
 RestartSec=10
+SyslogIdentifier=dev.controlr.app
 Environment=ASPNETCORE_ENVIRONMENT=Production
-Environment=ASPNETCORE_HTTP_PORTS=5120
-
-# PostgreSQL connection (or use a config file)
-Environment=ControlR_POSTGRES_HOST=localhost
-Environment=ControlR_POSTGRES_PORT=5432
-Environment=ControlR_POSTGRES_USER=controlr_admin
-Environment=ControlR_POSTGRES_PASSWORD=your-strong-password
-Environment=ControlR_POSTGRES_DB=controlr
-
-# Admin bootstrap (optional, only on first startup)
-# Environment=ControlR_Bootstrap__AdminEmail=admin@example.com
-# Environment=ControlR_Bootstrap__AdminPassword=SecureP@ssw0rd
-
-# Aspire Dashboard (optional)
-Environment=ControlR_AspireDashboard__PublicWebUrl=http://localhost:18888
-
-# Logging
-Environment=ControlR_Logging__LogLevel__Default=Information
-Environment=ControlR_Logging__LogLevel__Microsoft.AspNetCore=Warning
-
-LimitNOFILE=65536
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 
 [Install]
 WantedBy=multi-user.target
@@ -86,10 +124,10 @@ EOF
 
 ```bash
 sudo useradd --system --no-create-home --shell /usr/sbin/nologin controlr
-sudo chown -R controlr:controlr /opt/controlr
+sudo chown -R controlr:controlr /var/www/dev.controlr.app
 ```
 
-## Step 4: Enable and Start the Service
+## Step 5: Enable and Start the Service
 
 ```bash
 sudo systemctl daemon-reload
@@ -98,14 +136,14 @@ sudo systemctl start controlr
 sudo systemctl status controlr
 ```
 
-## Step 5: Verify Installation
+## Step 6: Verify Installation
 
 ```bash
-curl http://127.0.0.1:5120/health
+curl http://127.0.0.1:5002/health
 # Should return: "Healthy."
 ```
 
-## Step 6: Configure a Reverse Proxy (Recommended)
+## Step 7: Configure a Reverse Proxy (Recommended)
 
 ### Nginx
 
@@ -118,7 +156,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/controlr.example.com/privkey.pem;
 
     location / {
-        proxy_pass http://localhost:5120;
+        proxy_pass http://localhost:5002;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection upgrade;
@@ -134,51 +172,56 @@ server {
 
 ```caddy
 controlr.example.com {
-    reverse_proxy localhost:5120
+    reverse_proxy localhost:5002
 }
 ```
 
-## Step 7: Configure the Server
+## Step 8: Apply Database Migrations
 
-Server configuration is done through environment variables in the systemd service file or via a configuration file. See the [Configuration Guide](/docs/configuration) for the full list of options.
-
-Common configuration additions to the service file:
+ControlR applies EF Core migrations automatically at startup. When you start the service for the first time, migrations run before the app becomes available:
 
 ```bash
-# SMTP settings (for email confirmation)
-Environment=ControlR_AppOptions__SmtpHost=smtp.gmail.com
-Environment=ControlR_AppOptions__SmtpPort=587
-Environment=ControlR_AppOptions__SmtpEmail=noreply@example.com
-Environment=ControlR_AppOptions__SmtpDisplayName=ControlR
-Environment=ControlR_AppOptions__SmtpUserName=noreply@example.com
-Environment=ControlR_AppOptions__SmtpPassword=smtp-password
-
-# Enable public registration (optional)
-# Environment=ControlR_AppOptions__EnablePublicRegistration=true
-
-# CORS (optional)
-# Environment=ControlR_AppOptions__EnableCors=true
-# Environment=ControlR_AppOptions__CorsAllowedOrigins__0=https://app.example.com
+sudo systemctl start controlr
 ```
 
-After changing the service file:
+Verify migrations applied successfully:
+
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl restart controlr
+sudo journalctl -u controlr -n 50 --no-pager
+# Look for "Applying migrations..." and "Migrations applied successfully" in the output
 ```
 
-## Step 8: Set Up Database Migrations
-
-ControlR uses EF Core migrations. Run migrations on first deployment:
+If you need to manually run migrations (e.g., for debugging), install the EF Core CLI tools:
 
 ```bash
-cd /opt/controlr
-sudo -u controlr dotnet ControlR.Web.Server.dll db-migrate
+dotnet tool install --global dotnet-ef
+cd /var/www/dev.controlr.app
+sudo -u controlr dotnet ef database update
 ```
 
 ## Step 9: Backups
 
 Set up regular PostgreSQL backups:
+
+### For Docker PostgreSQL
+
+```bash
+# Create backup script
+sudo tee /usr/local/bin/controlr-backup > /dev/null <<'EOF'
+#!/bin/bash
+DATE=$(date +%Y%m%d)
+sudo docker exec controlr-postgres pg_dump -U controlr_admin controlr | gzip > /var/backups/controlr-$DATE.sql.gz
+find /var/backups -name "controlr-*.sql.gz" -mtime +30 -delete
+EOF
+
+sudo chmod +x /usr/local/bin/controlr-backup
+
+# Add to crontab (daily at 2 AM)
+sudo crontab -e
+# Add: 0 2 * * * /usr/local/bin/controlr-backup
+```
+
+### For Native PostgreSQL
 
 ```bash
 # Create backup script
@@ -186,7 +229,6 @@ sudo tee /usr/local/bin/controlr-backup > /dev/null <<'EOF'
 #!/bin/bash
 DATE=$(date +%Y%m%d)
 PGPASSWORD=your-strong-password pg_dump -h localhost -U controlr_admin controlr | gzip > /var/backups/controlr-$DATE.sql.gz
-# Keep only last 30 days
 find /var/backups -name "controlr-*.sql.gz" -mtime +30 -delete
 EOF
 
@@ -209,27 +251,31 @@ sudo journalctl -u controlr -n 50 --no-pager
 dotnet --info
 
 # Test the DLL directly (as the service user)
-sudo -u controlr dotnet /opt/controlr/ControlR.Web.Server.dll
+sudo -u controlr dotnet /var/www/dev.controlr.app/ControlR.Web.Server.dll
 ```
 
 ### Database connection errors
 
 ```bash
 # Verify PostgreSQL is running
-sudo systemctl status postgresql
+sudo systemctl status postgresql   # Native
+sudo docker ps | grep controlr-postgres   # Docker
 
-# Test connection
+# Test connection (native)
 psql -h localhost -U controlr_admin -d controlr
+
+# Test connection (Docker)
+sudo docker exec -it controlr-postgres psql -U controlr_admin controlr
 ```
 
 ### Port conflicts
 
 ```bash
-# Check what's using port 5120
-sudo lsof -i :5120
+# Check what's using port 5002
+sudo lsof -i :5002
 
 # Change the port in the service file
-# Environment=ASPNETCORE_HTTP_PORTS=5121
+# ExecStart=... --urls "http://*:5003"
 ```
 
 ## Next

@@ -44,5 +44,6 @@ Toggle between dark and light mode using the theme button in the navigation bar.
 
 ## Next
 
-- **[Remote Control](/docs/user-guide/remote-control)** — Stream and control device screens
-- **[Device Management](/docs/features/device-management)** — Monitor and organize devices
+- **[Device Overview](/docs/user-guide/overview)** — View device details and manage actions
+- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)** — Stream and control device screens
+- **[Devices & Tags](/docs/user-guide/devices)** — Organize devices with tags
