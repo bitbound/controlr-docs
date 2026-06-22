@@ -7,6 +7,8 @@ const config: Config = {
   tagline: 'Open-source remote control and remote access',
   favicon: 'img/favicon.ico',
 
+  themes: ['@docusaurus/theme-mermaid'],
+
   future: {
     v4: true,
   },
@@ -22,6 +24,10 @@ const config: Config = {
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
+
+  markdown: {
+    mermaid: true,
+  },
 
   i18n: {
     defaultLocale: 'en',

@@ -3,144 +3,230 @@ sidebar_position: 2
 title: Architecture
 ---
 
-## Component Overview
+## Architecture
 
+ControlR follows a hub-and-spoke architecture with the server acting as the central control plane. Communication is split across three transports: **SignalR** for real-time command and status, **REST** for resource operations, and **WebSockets** for high-bandwidth remote control streaming.
+
+### High-Level Flow
+
+```mermaid
+graph LR
+    WebUI[("Web UI<br/>(Blazor WASM)")] -->|SignalR + REST| Server
+    Server -->|SignalR| Agent
+    Agent -.->|IPC| Desktop
+    Desktop -->|WebSocket Relay| Server
 ```
-┌──────────────┐     ┌──────────────────────────────┐     ┌──────────────────┐
-│  Web Viewer   │────▶│        ControlR Server        │◀────│    Agent         │
-│  (Browser)   │     │  (ASP.NET Core + SignalR)     │     │  (Headless Svc)  │
-│              │     │                               │     │                  │
-└──────────────┘     │  ├── Auth (Identity + PAT)    │     │  ├── Remote Ctrl  │
-                     │  ├── SignalR Hubs             │     │  ├── File System  │
-                     │  ├── REST API                 │     │  ├── Terminal     │
-                     │  ├── Data (PostgreSQL)        │     │  ├── Chat         │
-                     │  └── Telemetry (OTLP)         │     │  └── Log Stream  │
-                     └──────────────────────────────┘     └──────────────────┘
-                            ▲                                    ▲
-                            │                                    │
-                     ┌──────┴──────┐                     ┌──────┴──────┐
-                     │  Aspire     │                     │  Desktop    │
-                     │  Dashboard  │◀───────────────────▶│  Client     │
-                     │  (Telemetry)│                     │  (Avalonia) │
-                     └─────────────┘                     └─────────────┘
-                            ▲
-                            │
-                     ┌──────┴──────┐
-                     │ WebSocket   │
-                     │  Relay      │
-                     │  (Optional) │
-                     └─────────────┘
+
+### Detailed Architecture
+
+```mermaid
+flowchart TD
+    subgraph Browser["Browser"]
+        Viewer["Web UI<br/>(Blazor WASM)"]
+    end
+
+    subgraph Server["ControlR Server<br/>ASP.NET Core"]
+        direction TB
+        VHub["ViewerHub<br/>/hubs/viewer"]
+        AHub["AgentHub<br/>/hubs/agent"]
+        REST["REST API"]
+        DB[("PostgreSQL")]
+        Relay["WebSocket Relay"]
+    end
+
+    subgraph Device["Target Device"]
+        Agent["Agent<br/>(Background Service)"]
+        Desktop["Desktop Client<br/>(Avalonia GUI)"]
+
+        Agent -.->|"IPC (Named Pipes)"| Desktop
+    end
+
+    subgraph Telemetry["Telemetry Collectors"]
+        Aspire["Aspire Dashboard"]
+        Azure["Azure Monitor"]
+        OTLP["OTLP Endpoint"]
+    end
+
+    Viewer -->|"SignalR"| VHub
+    Viewer -->|"REST"| REST
+    VHub -->|"Relay commands"| AHub
+    AHub -->|"SignalR"| Agent
+    Agent -->|"REST"| REST
+
+    Desktop -->|"WebSocket (screen + input)"| Relay
+    Relay -->|"WebSocket (screen + input)"| Viewer
+
+    Agent -.->|"OTLP"| Telemetry
+    Server -.->|"OTLP"| Telemetry
 ```
+
+### How the Pieces Fit Together
+
+| Component | Talks To | Transport | Purpose |
+|-----------|----------|-----------|---------|
+| **Web UI** | Server | SignalR (ViewerHub) | Send commands, receive device updates & streaming data |
+| **Web UI** | Server | REST | CRUD operations on devices, users, settings, etc. |
+| **Web UI** | Server | WebSocket (Relay) | Receive remote control screen frames, send input events |
+| **Agent** | Server | SignalR (AgentHub) | Register device, receive commands, send heartbeats & status |
+| **Agent** | Server | REST | Device registration and configuration |
+| **Agent** | Desktop Client | IPC (Named Pipes) | Delegate OS-level operations: screen capture, input, permissions |
+| **Desktop Client** | Server | WebSocket (Relay) | Stream screen captures, receive remote input events |
+
+---
 
 ## Server Component
 
-**Project:** `ControlR.Web.Server`
+**Projects:** `ControlR.Web.Server`, `ControlR.Web.Client`
 
-The server orchestrates all ControlR components, built on ASP.NET Core with the following responsibilities:
+The server is an ASP.NET Core application that orchestrates all ControlR communication. It hosts the web UI (Blazor WASM), both SignalR hubs, the REST API, and the built-in WebSocket relay.
 
 | Responsibility | Technology |
 |---------------|------------|
-| **REST API** | ASP.NET Core Minimal API / Controllers |
-| **Real-time communication** | SignalR (MessagePack protocol) |
-| **Authentication** | ASP.NET Core Identity + custom schemes |
+| **Web UI hosting** | Blazor WASM (served as static assets) |
+| **REST API** | ASP.NET Core controllers |
+| **Real-time commands** | SignalR with MessagePack protocol |
+| **Remote control streaming** | Built-in WebSocket relay |
+| **Authentication** | ASP.NET Core Identity with dynamic policy scheme |
 | **Authorization** | Role-based + resource-based (tags) |
 | **Data persistence** | EF Core with PostgreSQL |
-| **OpenAPI/Swagger** | Scalar.AspNetCore |
+| **API documentation** | Scalar / OpenAPI |
 | **Telemetry** | OpenTelemetry (OTLP export) |
 
-The server runs as a Docker container (default port 8080) or can be deployed natively.
+The server runs as a Docker container (default port 5120) and can also be deployed natively.
 
 ### Authentication Pipeline
 
 The server supports four authentication schemes routed through a dynamic policy scheme:
 
-1. **Identity Cookie** — Default for web UI (Blazor WASM)
-2. **Logon Token** — Query-param based for device access URLs
-3. **Bearer Token** — ASP.NET Core Identity bearer tokens
-4. **Personal Access Token** — Header-based (`x-personal-token`)
+| Scheme | Mechanism | Use Case |
+|--------|-----------|----------|
+| **Identity Cookie** | Standard cookie auth | Web UI (Blazor WASM) |
+| **Logon Token** | Query-string parameter | Device access URLs |
+| **Bearer Token** | `Authorization: Bearer` header | API clients, ASP.NET Core Identity tokens |
+| **Personal Access Token** | `x-personal-token` header | Automation, CI/CD, headless access |
 
 ### SignalR Hubs
 
-Two SignalR hubs handle real-time communication:
+| Hub | Endpoint | Connected By | Purpose |
+|-----|----------|-------------|---------|
+| **AgentHub** | `/hubs/agent` | Agent | Device registration, command dispatch, heartbeat, status updates |
+| **ViewerHub** | `/hubs/viewer` | Web UI | User-initiated commands: remote control requests, terminal input, file operations |
 
-| Hub | Path | Purpose |
-|-----|------|---------|
-| **AgentHub** | `/hubs/agent` | Agents register, send updates, receive commands |
-| **ViewerHub** | `/hubs/viewer` | Viewers send commands (remote control, terminal, files) |
+The hubs relay messages between each other. For example, when a viewer sends a terminal command via `ViewerHub`, the server forwards it to the target device through `AgentHub`. The agent's response flows back the same path.
+
+### WebSocket Relay
+
+The WebSocket relay is now **built into the main server** (it was previously a separately deployable service). It handles the high-bandwidth streaming path for remote control:
+
+- **Responder** role: the Desktop Client on the target device, which captures and sends screen frames
+- **Requester** role: the Web UI (browser), which receives frames and sends input events
+
+Sessions are established via SignalR (ViewerHub → AgentHub) and then handed off to the WebSocket relay for the streaming phase. This bypasses SignalR's overhead for the continuous frame stream while still using SignalR for session setup, teardown, and metadata.
+
+---
 
 ## Agent Component
 
-**Project:** `ControlR.Agent`, `ControlR.Agent.Shared`, `ControlR.Agent.Installer`
+**Projects:** `ControlR.Agent`, `ControlR.Agent.Shared`, `ControlR.Agent.Common`
 
-The agent is installed on each target device. It runs as a headless service and provides:
+The agent runs as a background service on each managed device. It is the bridge between the server and the local device, providing background-accessible tools and coordinating with the Desktop Client for GUI-dependent operations.
 
-| Capability | Description |
-|------------|-------------|
-| **Remote Control** | Screen capture and input forwarding |
-| **File System** | Browse, upload, download files |
-| **Terminal** | Cross-platform PowerShell |
-| **Chat** | Real-time messaging |
-| **Log Streaming** | Stream log files to viewers |
-| **Auto Update** | Periodically checks for and applies updates |
+### Capabilities
+
+| Capability | Description | Requires Desktop Client? |
+|------------|-------------|:---:|
+| **Terminal** | Cross-platform PowerShell sessions over SignalR | No |
+| **File System** | Browse, upload, and download files on the device | No |
+| **Chat** | Real-time messaging between viewer and device user | Yes (for GUI notifications) |
+| **Log Streaming** | Stream log files from the device to viewers | No |
+| **Remote Control** | Coordinated via IPC with Desktop Client | **Yes** |
+| **Auto Update** | Periodically checks for and applies agent updates | No |
+
+### Relationship with Desktop Client
+
+The agent does **not** render the screen or capture input directly. Instead, it delegates these OS-level GUI operations to the Desktop Client through **IPC (named pipes)** using the [StreamJsonRpc](https://github.com/microsoft/vs-streamjsonrpc) protocol:
+
+- The agent hosts an **IPC server** (named pipe) on the local machine.
+- The Desktop Client connects as an **IPC client** and exposes an `IDesktopClientRpcService` interface.
+- The agent calls methods like `ReceiveRemoteControlRequest`, `GetDesktopPreview`, and `InvokeCtrlAltDel` over IPC.
+- The Desktop Client calls back to the agent (via `IAgentRpcService`) for chat message delivery.
+
+This separation keeps the agent lightweight and allows it to run headlessly, while the Desktop Client handles GUI-specific work.
 
 ### Platform Support
 
 | Platform | Remote Control | Terminal | Auto-Update |
-|----------|---------------|----------|-------------|
+|----------|:---:|:---:|:---:|
 | Windows 11 (x64, x86) | Full | Yes | Yes |
 | macOS Apple Silicon (M1+) | Full | Yes | Yes |
 | Linux AMD64 (X11) | Full | Yes | Yes |
 | Linux (Wayland) | Experimental | Yes | Yes |
-| macOS (VNC) | Experimental | Yes | Yes |
+| macOS (VNC fallback) | Experimental | Yes | Yes |
+
+---
 
 ## Desktop Client
 
-**Project:** `ControlR.DesktopClient`, `ControlR.DesktopClient.*`
+**Projects:** `ControlR.DesktopClient`, `ControlR.DesktopClient.Common`, `ControlR.DesktopClient.{Windows,Linux,Mac}`
 
-The desktop client is an Avalonia-based application that runs on the target device alongside the agent. It provides:
+The Desktop Client is an [Avalonia UI](https://avaloniaui.net/) cross-platform desktop application that runs alongside the agent on managed devices. It provides:
 
-- Live visibility of remote sessions to the local user
-- Optional session start notifications
-- Runs as a background service (systemd user service on Linux, launchd agent on macOS, Windows service)
+- **Screen capture & input forwarding** — The actual work of capturing the desktop and injecting mouse/keyboard events during remote control sessions
+- **Live session visibility** — Shows the local user when a remote session is active
+- **Session consent & notifications** — Prompts the local user before granting remote access
+- **WebSocket relay streaming** — Connects directly to the server's WebSocket relay to send screen frames and receive input from the viewer
 
-## WebSocket Relay (Optional)
+### Communication Paths
 
-**Project:** `ControlR.Web.WebSocketRelay`
+```
+Agent ←——IPC (Named Pipes)——→ Desktop Client
+Desktop Client ——WebSocket Relay——→ Server ←——WebSocket Relay——→ Web UI
+```
 
-The WebSocket relay is an optional infrastructure component for geographically distributed deployments. It transfers remote control sessions to a server closer to the viewer, reducing latency.
+The Desktop Client connects to the server's WebSocket relay **only during active remote control sessions**. Session setup is initiated by the agent over IPC, and once established, the Desktop Client streams screen captures and receives input events through the relay.
+
+---
 
 ## Database
 
-**Technology:** PostgreSQL (via EF Core)
+**Technology:** PostgreSQL via Entity Framework Core
 
-The database stores:
-- Device registrations and status
-- User accounts and roles
-- Tenant settings and data
-- Installer keys and usage history
-- Personal access tokens
-- Invitations and tags
+**Key entities:**
+
+| Entity | Description |
+|--------|-------------|
+| Devices | Registered agents with status, platform info, and connection state |
+| Users | ASP.NET Core Identity accounts with roles |
+| Tenants | Multi-tenant isolation (if enabled) |
+| Installer Keys | Pre-shared keys for agent installation authorization |
+| Personal Access Tokens | Headless API access tokens |
+| Invitations | User invitation codes |
+| Tags | Device grouping and resource-based authorization |
+
+---
 
 ## Telemetry
 
-**Technology:** ASP.NET Aspire Dashboard + OpenTelemetry
+Both the **Server** and the **Agent** can optionally export OpenTelemetry data (traces, metrics, logs) to any OTLP-compatible collector:
 
-The Aspire Dashboard provides:
-- Application metrics
-- Request/response traces
-- Log aggregation
-- Resource monitoring
+| Environment | Collector | Configuration |
+|-------------|-----------|---------------|
+| Development | ASP.NET Aspire Dashboard | Set `OTLP_ENDPOINT_URL` to the Aspire OTLP endpoint |
+| Production | Azure Monitor | Set `AzureMonitor:ConnectionString` |
+| Production (alt) | Any OTLP-compatible backend | Set `OTLP_ENDPOINT_URL` to your collector |
 
-Configured via `ControlR_AspireDashboard__Token` and `ControlR_AspireDashboard__PublicWebUrl`.
+---
 
-## Communication Flow
+## End-to-End Flow: Remote Control Session
 
-1. **Agent** connects to the server via SignalR (AgentHub)
-2. **Viewer** (browser) connects to the server via SignalR (ViewerHub)
-3. **Viewer** requests remote control through ViewerHub
-4. **Server** forwards the request to the **Agent** via AgentHub
-5. **Agent** starts screen capture and streams frames back through the server to the **Viewer**
-6. **Viewer** sends input (mouse/keyboard) through ViewerHub, which the server forwards to the Agent
+1. **Viewer** (browser) requests remote control on a device via `ViewerHub` (SignalR)
+2. **Server** forwards the request to the target **Agent** via `AgentHub` (SignalR)
+3. **Agent** sends a remote control request to the **Desktop Client** over IPC
+4. **Desktop Client** prompts the local user for consent (if configured)
+5. Upon consent, the Desktop Client connects to the server's **WebSocket relay** as a `Responder`
+6. The **Viewer** connects to the **WebSocket relay** as a `Requester`
+7. The relay bridges WebSocket frames: screen captures from Desktop Client → Viewer, input events from Viewer → Desktop Client
+8. SignalR handles session teardown: either side can request disconnect through the normal hub path
 
 ## Next
 
