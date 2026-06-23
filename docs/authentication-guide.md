@@ -154,11 +154,52 @@ External providers require both a Client ID and Client Secret to be configured. 
 
 Users can enable TOTP-based 2FA through their account settings. The authenticator app name is controlled by `ControlR_AppOptions__AuthenticatorIssuerName` (default: "ControlR").
 
-## Passkey Authentication
+## Passkey Authentication (WebAuthn)
 
-Passkeys provide passwordless authentication using Web Authentication (WebAuthn). Users can sign in using their device's biometric or hardware authenticator (Face ID, Touch ID, Windows Hello, etc.).
+Passkeys provide passwordless authentication using the Web Authentication (WebAuthn) API. Users can sign in using their device's built-in biometric or hardware authenticator — Face ID, Touch ID, Windows Hello, or a physical security key.
 
-Configure with: `ControlR_AppOptions__PersistPasskeyLogin` — when `true`, passkey login acts like "remember me" and persists the session.
+### Enabling Passkey Support
+
+Passkey support is built into ControlR and requires no server-side configuration beyond ensuring your server is served over HTTPS (WebAuthn requires a secure context).
+
+### Registering a Passkey
+
+1. Log in to the ControlR web interface using your username and password
+2. Navigate to your **account settings** or profile section
+3. Look for the **Passkey** or **Security Key** section
+4. Click **Add Passkey** and follow your browser's prompts:
+   - **Windows**: Windows Hello (PIN, fingerprint, or facial recognition)
+   - **macOS**: Touch ID or iCloud Keychain
+   - **Android**: Screen lock or biometric
+   - **iOS/iPadOS**: Face ID or Touch ID
+   - **Hardware Key**: USB-C/NFC security key (YubiKey, etc.)
+
+### Signing In with a Passkey
+
+1. On the login page, click **Sign in with Passkey**
+2. Your browser will prompt you to authenticate using your registered method
+3. On completion, you're logged in — no password entry required
+
+### Persisting Passkey Sessions
+
+By default, passkey login creates a session that expires when the browser closes. To persist the session across browser restarts, set:
+
+```yaml
+ControlR_AppOptions__PersistPasskeyLogin: true
+```
+
+When `true`, passkey login acts like "remember me" and keeps the user signed in even after closing and reopening the browser.
+
+### Managing Passkeys
+
+Users can view and revoke registered passkeys from their account settings. If a passkey is lost or compromised, remove it immediately and register a new one.
+
+### Security Considerations
+
+- Passkeys are **phishing-resistant** — they're tied to the specific origin (your ControlR server domain)
+- They use **public-key cryptography** — the private key never leaves the user's device
+- Multiple passkeys can be registered per account (e.g., one per device)
+- Passkeys can be synced across devices via iCloud Keychain, Google Password Manager, or similar providers
 
 ## Roles
 

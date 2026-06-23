@@ -317,5 +317,6 @@ Authenticated viewers connect to this hub for device control.
 
 ## Next
 
+- **[NuGet Packages](/docs/api-reference/nuget-packages)** — API client and viewer packages
 - **[Scalar API Browser](/docs/scalar-api-browser)** — Interactive API exploration
 - **[API Overview](/docs/api/overview)** — API structure and conventions

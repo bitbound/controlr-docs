@@ -54,6 +54,8 @@ const sidebars: SidebarsConfig = {
         'admin/reverse-proxy',
         'admin/upgrading',
         'admin/backup-restore',
+        'admin/server-alerts',
+        'admin/telemetry',
       ],
     },
     {
@@ -68,6 +70,7 @@ const sidebars: SidebarsConfig = {
         'api/authentication',
         'scalar-api-browser',
         'api-reference/endpoints',
+        'api-reference/nuget-packages',
       ],
     },
     'faq',

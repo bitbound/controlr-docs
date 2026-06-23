@@ -119,6 +119,32 @@ Configure X.509 certificate-based encryption for Data Protection keys at rest:
 |----------|------|---------|-------------|
 | `ControlR_ServerLifecycle__DecommissionServer` | bool | `false` | **Dangerous:** When `true`, agents auto-uninstall when they connect. Use only during server teardown. |
 
+### Decommission Mode (Server Teardown)
+
+The `DecommissionServer` option permanently decommissions a ControlR server instance. When enabled, any agent that connects to the server receives an **immediate uninstall command** and is removed from the server. Use this when you are permanently shutting down a ControlR instance and want all connected agents to cleanly uninstall themselves.
+
+**⚠️ Warning:** This is a destructive, irreversible action. Once an agent self-uninstalls, it will need to be reinstalled to reconnect to any server.
+
+**How it works:**
+
+1. Set `ControlR_ServerLifecycle__DecommissionServer: true` on the server
+2. Existing agents connect and receive the uninstall command
+3. Agents uninstall themselves from their host machines
+4. The process repeats until all agents are removed
+
+**Checking decommission status:**
+
+The web UI displays a decommission indicator. You can also check programmatically:
+
+```bash
+curl https://your-server/api/user-server-settings/decommission-status \
+  -H "x-personal-token: <tokenId>:<secret>"
+```
+
+**After decommissioning:**
+
+Once all agents have been removed, you can safely stop the server containers and delete any remaining resources (volumes, etc.).
+
 ## Logging Configuration
 
 ControlR uses ASP.NET Core's standard logging levels. Configure specific log sources:
