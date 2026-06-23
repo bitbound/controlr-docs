@@ -13,7 +13,7 @@ The page is organized into three tabs:
 
 ### Tags
 
-Create, rename, and delete tags. Tags are used for device access control — a user needs either the `DeviceSuperuser` role or a matching tag to access a device.
+Create, rename, and delete tags. Tags are used for device access control: a user needs either the `DeviceSuperuser` role or a matching tag to access a device.
 
 | Action | Description |
 |--------|-------------|
@@ -55,5 +55,5 @@ Manage device access:
 
 ## Next
 
-- **[Invitations](/docs/user-guide/invitations)** — Invite users to your tenant
-- **[Tenant Settings](/docs/user-guide/tenant-settings)** — Tenant-wide configuration
+- **[Invitations](/docs/user-guide/invitations)**: Invite users to your tenant
+- **[Tenant Settings](/docs/user-guide/tenant-settings)**: Tenant-wide configuration

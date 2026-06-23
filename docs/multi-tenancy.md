@@ -60,13 +60,13 @@ Invitation links are specific to the tenant and cannot be used to join a differe
 
 | Role | Scope |
 |------|-------|
-| **Server Administrator** | Server-wide — can see server stats, logs, alerts. Cannot access other tenants' devices or users. |
-| **Tenant Administrator** | Tenant-scoped — can manage users, devices, tags, invites, and tenant settings |
-| **Device Superuser** | Tenant-scoped — can access all devices in the tenant |
-| **Agent Installer** | Tenant-scoped — can deploy agents on new devices |
-| **Installer Key Manager** | Tenant-scoped — can manage installer keys |
+| **Server Administrator** | Server-wide: can see server stats, logs, alerts. Cannot access other tenants' devices or users. |
+| **Tenant Administrator** | Tenant-scoped: can manage users, devices, tags, invites, and tenant settings |
+| **Device Superuser** | Tenant-scoped: can access all devices in the tenant |
+| **Agent Installer** | Tenant-scoped: can deploy agents on new devices |
+| **Installer Key Manager** | Tenant-scoped: can manage installer keys |
 
 ## Next
 
-- **[Configuration](/docs/configuration)** — Server configuration options
-- **[Authentication Guide](/docs/authentication-guide)** — All authentication methods
+- **[Configuration](/docs/configuration)**: Server configuration options
+- **[Authentication Guide](/docs/authentication-guide)**: All authentication methods

@@ -73,5 +73,5 @@ sudo ./ControlR.Agent.Installer install \
 
 ## Next
 
-- **[Installation](/docs/installation)** — Complete installation guide
-- **[Installer Keys](/docs/user-guide/installer-keys)** — Manage installer access keys
+- **[Installation](/docs/installation)**: Complete installation guide
+- **[Installer Keys](/docs/user-guide/installer-keys)**: Manage installer access keys

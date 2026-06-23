@@ -9,10 +9,10 @@ ControlR can be deployed natively on Linux without Docker. The server is publish
 
 ## Prerequisites
 
-- **Linux** — AMD64 (Ubuntu, Debian, or similar)
-- **.NET 10 Runtime** — Install from [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/10.0)
-- **PostgreSQL 18** — Install via Docker (recommended) or your package manager
-- **Reverse Proxy** — Nginx or Caddy for HTTPS termination (optional but recommended)
+- **Linux**: AMD64 (Ubuntu, Debian, or similar)
+- **.NET 10 Runtime**: Install from [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/10.0)
+- **PostgreSQL 18**: Install via Docker (recommended) or your package manager
+- **Reverse Proxy**: Nginx or Caddy for HTTPS termination (optional but recommended)
 
 ## Step 1: Install PostgreSQL
 
@@ -280,6 +280,6 @@ sudo lsof -i :5002
 
 ## Next
 
-- **[Installation](/docs/installation)** — Docker Compose installation (recommended)
-- **[Configuration](/docs/configuration)** — Server configuration options
-- **[Reverse Proxy](/docs/admin/reverse-proxy)** — HTTPS configuration
+- **[Installation](/docs/installation)**: Docker Compose installation (recommended)
+- **[Configuration](/docs/configuration)**: Server configuration options
+- **[Reverse Proxy](/docs/admin/reverse-proxy)**: HTTPS configuration

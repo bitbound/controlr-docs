@@ -31,5 +31,5 @@ This is useful when you run multiple ControlR servers and want to distinguish de
 
 ## Next
 
-- **[Permissions](/docs/user-guide/permissions)** — Manage roles and access
-- **[Configuration](/docs/configuration)** — Server-level configuration options
+- **[Permissions](/docs/user-guide/permissions)**: Manage roles and access
+- **[Configuration](/docs/configuration)**: Server-level configuration options

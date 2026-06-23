@@ -7,10 +7,10 @@ title: Authentication
 
 ControlR uses a multi-scheme authentication pipeline that routes requests to the appropriate handler based on the request type. There are **four authentication schemes**:
 
-1. **Cookie-based authentication** — Default for the web UI (Blazor WASM)
-2. **Bearer token authentication** — For interactive login via API (desktop clients, scripts)
-3. **Personal Access Token (PAT)** — For long-lived programmatic access
-4. **Logon Token** — For single-use device access URLs
+1. **Cookie-based authentication**: Default for the web UI (Blazor WASM)
+2. **Bearer token authentication**: For interactive login via API (desktop clients, scripts)
+3. **Personal Access Token (PAT)**: For long-lived programmatic access
+4. **Logon Token**: For single-use device access URLs
 
 ## Dynamic Authentication Scheme
 
@@ -89,7 +89,7 @@ Personal Access Tokens provide long-lived programmatic access without needing a 
 1. Navigate to **Access Tokens** in the web interface (`/personal-access-tokens`)
 2. Enter a friendly name
 3. Click **Create PAT**
-4. Copy and store the token — it will **never be shown again**
+4. Copy and store the token. It will **never be shown again**.
 
 **Using a PAT:**
 ```bash
@@ -169,6 +169,6 @@ Beyond roles, device access is controlled via tags:
 
 ## Next
 
-- **[API Overview](/docs/api/overview)** — API structure and conventions
-- **[Scalar API Browser](/docs/scalar-api-browser)** — Interactive API exploration
-- **[API Endpoints](/docs/api-reference/endpoints)** — Complete endpoint reference
+- **[API Overview](/docs/api/overview)**: API structure and conventions
+- **[Scalar API Browser](/docs/scalar-api-browser)**: Interactive API exploration
+- **[API Endpoints](/docs/api-reference/endpoints)**: Complete endpoint reference

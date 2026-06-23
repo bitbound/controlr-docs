@@ -74,12 +74,12 @@ Standard HTTP status codes are used:
 
 | Code | Description |
 |------|-------------|
-| `400` | Bad Request — Invalid input or validation error |
-| `401` | Unauthorized — Missing or invalid authentication |
-| `403` | Forbidden — Authenticated but not authorized |
-| `404` | Not Found — Resource does not exist |
-| `429` | Too Many Requests — Rate limited |
-| `500` | Internal Server Error — Unexpected server error |
+| `400` | Bad Request: Invalid input or validation error |
+| `401` | Unauthorized: Missing or invalid authentication |
+| `403` | Forbidden: Authenticated but not authorized |
+| `404` | Not Found: Resource does not exist |
+| `429` | Too Many Requests: Rate limited |
+| `500` | Internal Server Error: Unexpected server error |
 
 ## SignalR Hubs
 
@@ -98,6 +98,6 @@ Anonymous authentication endpoints (login, register, password reset) are rate-li
 
 ## Next
 
-- **[Authentication](/docs/api/authentication)** — Detailed authentication guide
-- **[Scalar API Browser](/docs/scalar-api-browser)** — Interactive API exploration
-- **[API Endpoints](/docs/api-reference/endpoints)** — Complete endpoint reference
+- **[Authentication](/docs/api/authentication)**: Detailed authentication guide
+- **[Scalar API Browser](/docs/scalar-api-browser)**: Interactive API exploration
+- **[API Endpoints](/docs/api-reference/endpoints)**: Complete endpoint reference

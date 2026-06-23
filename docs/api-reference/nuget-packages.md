@@ -103,6 +103,6 @@ Source code for both examples is available in the [ControlR repository](https://
 
 ## Next
 
-- **[API Overview](/docs/api/overview)** — REST API structure and conventions
-- **[API Endpoints](/docs/api-reference/endpoints)** — Complete endpoint reference
-- **[Authentication Guide](/docs/authentication-guide)** — Authentication methods for API access
+- **[API Overview](/docs/api/overview)**: REST API structure and conventions
+- **[API Endpoints](/docs/api-reference/endpoints)**: Complete endpoint reference
+- **[Authentication Guide](/docs/authentication-guide)**: Authentication methods for API access

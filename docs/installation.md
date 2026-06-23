@@ -174,12 +174,12 @@ ControlR is configured primarily through environment variables in your Docker Co
 
 Key settings:
 
-- `ControlR_AppOptions__EnablePublicRegistration` — Allow self-registration (default: `false`)
-- `ControlR_AppOptions__AllowAgentsToSelfBootstrap` — Allow agents to register without installer keys (default: `false`)
-- `ControlR_AppOptions__RequireUserEmailConfirmation` — Require email confirmation for new accounts (default: `false`)
+- `ControlR_AppOptions__EnablePublicRegistration`: Allow self-registration (default: `false`)
+- `ControlR_AppOptions__AllowAgentsToSelfBootstrap`: Allow agents to register without installer keys (default: `false`)
+- `ControlR_AppOptions__RequireUserEmailConfirmation`: Require email confirmation for new accounts (default: `false`)
 
 ## Next Steps
 
-- **[Configuration](/docs/configuration)** — Learn about available settings
-- **[Reverse Proxy](/docs/admin/reverse-proxy)** — Set up HTTPS with a reverse proxy
-- **[Upgrading](/docs/admin/upgrading)** — How to upgrade when new versions are released
+- **[Configuration](/docs/configuration)**: Learn about available settings
+- **[Reverse Proxy](/docs/admin/reverse-proxy)**: Set up HTTPS with a reverse proxy
+- **[Upgrading](/docs/admin/upgrading)**: How to upgrade when new versions are released

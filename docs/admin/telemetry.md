@@ -104,9 +104,9 @@ ControlR_AzureMonitor__ConnectionString: "InstrumentationKey=...;IngestionEndpoi
 
 - Telemetry data never leaves your infrastructure unless you configure Azure Monitor export
 - No telemetry is sent to third-party services by default
-- The OTLP endpoint and Azure Monitor connection string are optional — omit them for no telemetry export
+- The OTLP endpoint and Azure Monitor connection string are optional: omit them for no telemetry export
 
 ## Next
 
-- **[Configuration](/docs/configuration)** — Full server configuration reference
-- **[Server Alerts](/docs/admin/server-alerts)** — Broadcasting messages to users
+- **[Configuration](/docs/configuration)**: Full server configuration reference
+- **[Server Alerts](/docs/admin/server-alerts)**: Broadcasting messages to users

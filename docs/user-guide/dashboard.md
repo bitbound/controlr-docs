@@ -35,7 +35,7 @@ A connection indicator in the top navigation bar shows the SignalR hub connectio
 | Status | Meaning |
 |--------|---------|
 | **Connected** | Real-time device updates are flowing |
-| **Disconnected** | Connection lost — auto-reconnecting |
+| **Disconnected** | Connection lost: auto-reconnecting |
 | **Reconnecting** | Attempting to re-establish the connection |
 
 ## Theme
@@ -44,6 +44,6 @@ Toggle between dark and light mode using the theme button in the navigation bar.
 
 ## Next
 
-- **[Device Overview](/docs/user-guide/overview)** — View device details and manage actions
-- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)** — Stream and control device screens
-- **[Devices & Tags](/docs/user-guide/devices)** — Organize devices with tags
+- **[Device Overview](/docs/user-guide/overview)**: View device details and manage actions
+- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)**: Stream and control device screens
+- **[Devices & Tags](/docs/user-guide/devices)**: Organize devices with tags

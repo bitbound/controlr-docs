@@ -25,8 +25,8 @@ Controls how keyboard input is sent during remote control sessions:
 | Mode | Description |
 |------|-------------|
 | **Auto** | Automatically detects the correct input mode (default) |
-| **Physical** | Sends physical key events — may not work with all applications |
-| **Virtual** | Sends virtual key events — better compatibility with some applications |
+| **Physical** | Sends physical key events: may not work with all applications |
+| **Virtual** | Sends virtual key events: better compatibility with some applications |
 
 ## Remote Control Preferences
 
@@ -73,5 +73,5 @@ The Settings page also displays:
 
 ## Next
 
-- **[Dashboard](/docs/user-guide/dashboard)** — Overview of all devices
-- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)** — Screen streaming and control
+- **[Dashboard](/docs/user-guide/dashboard)**: Overview of all devices
+- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)**: Screen streaming and control

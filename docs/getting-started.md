@@ -7,9 +7,9 @@ title: Getting Started
 
 ControlR is a self-hosted, cross-platform remote control system that lets you manage and control devices over a network. It consists of three main components:
 
-- **Server** — A web-based application (ASP.NET Core) that manages connections, authentication, and device communication
-- **Agent** — A headless service installed on target devices that provides remote control, file access, and terminal sessions
-- **Desktop Client** — A live GUI application (Avalonia-based) that runs on target devices, giving local users visibility into remote sessions
+- **Server**: A web-based application (ASP.NET Core) that manages connections, authentication, and device communication
+- **Agent**: A headless service installed on target devices that provides remote control, file access, and terminal sessions
+- **Desktop Client**: A live GUI application (Avalonia-based) that runs on target devices, giving local users visibility into remote sessions
 
 ## Core Concepts
 
@@ -67,9 +67,9 @@ Before installing ControlR, make sure you have:
 
 ## Next Steps
 
-1. **[Installation](/docs/installation)** — Deploy ControlR using Docker or native installation
-2. **[Configuration](/docs/configuration)** — Set up your server settings
-3. **[Reverse Proxy](/docs/admin/reverse-proxy)** — Configure HTTPS with a reverse proxy
+1. **[Installation](/docs/installation)**: Deploy ControlR using Docker or native installation
+2. **[Configuration](/docs/configuration)**: Set up your server settings
+3. **[Reverse Proxy](/docs/admin/reverse-proxy)**: Configure HTTPS with a reverse proxy
 
 ## Need Help?
 

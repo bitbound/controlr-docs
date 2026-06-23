@@ -265,58 +265,58 @@ This page provides a reference of all REST API endpoints in ControlR. All endpoi
 Agents connect to this hub to register, send updates, and receive commands.
 
 **Client methods (called by server on agent):**
-- `ReceiveDeviceUpdate` — Device state changed
-- `CreateDirectory` — Create directory command
-- `DeleteFile` — Delete file command
-- `UploadFileToViewer` — Start file download
-- `StreamDirectoryContents` — Stream directory
-- `StreamFileContents` — Stream file content
-- `StreamSubdirectories` — Stream subdirectories
-- `ReceiveChatResponse` — Chat response
-- `ReceiveTerminalOutput` — Terminal output
-- `ReceivePowerStateChange` — Power state change
-- `ReceiveAgentUpdateTrigger` — Trigger agent update check
-- `UninstallAgent` — Uninstall agent command
-- `CloseChatSession` — Close chat session
+- `ReceiveDeviceUpdate`: Device state changed
+- `CreateDirectory`: Create directory command
+- `DeleteFile`: Delete file command
+- `UploadFileToViewer`: Start file download
+- `StreamDirectoryContents`: Stream directory
+- `StreamFileContents`: Stream file content
+- `StreamSubdirectories`: Stream subdirectories
+- `ReceiveChatResponse`: Chat response
+- `ReceiveTerminalOutput`: Terminal output
+- `ReceivePowerStateChange`: Power state change
+- `ReceiveAgentUpdateTrigger`: Trigger agent update check
+- `UninstallAgent`: Uninstall agent command
+- `CloseChatSession`: Close chat session
 
 **Server methods (called by agent):**
-- `UpdateDevice` / `UpdateDeviceSigned` — Update device info
-- `SendDesktopPreviewStream` — Stream desktop preview
-- `SendDirectoryContentsStream` — Stream directory
-- `SendFileContentStream` — Stream file content
-- `SendSubdirectoriesStream` — Stream subdirectories
-- `SendChatResponse` — Forward chat response
-- `SendTerminalOutputToViewer` — Forward terminal output
+- `UpdateDevice` / `UpdateDeviceSigned`: Update device info
+- `SendDesktopPreviewStream`: Stream desktop preview
+- `SendDirectoryContentsStream`: Stream directory
+- `SendFileContentStream`: Stream file content
+- `SendSubdirectoriesStream`: Stream subdirectories
+- `SendChatResponse`: Forward chat response
+- `SendTerminalOutputToViewer`: Forward terminal output
 
 ### ViewerHub (`/hubs/viewer`)
 
 Authenticated viewers connect to this hub for device control.
 
 **Server methods (called by viewer):**
-- `RequestRemoteControlSession` — Start remote control
-- `RequestVncSession` — Start VNC session
-- `RequestRemoteControlPermission` — Request permission
-- `UploadFile` — Upload file to device
-- `SendTerminalInput` — Send terminal input
-- `CreateTerminalSession` — Create terminal session
-- `CloseTerminalSession` — Close terminal session
-- `SendChatMessage` — Send chat message
-- `SendChatResponse` — Forward chat response
-- `SendDtoToAgent` — Send generic DTO to agent
-- `SendDtoToUserGroups` — Send DTO to user groups
-- `SendAgentUpdateTrigger` — Trigger agent update
-- `SendPowerStateChange` — Power state change
-- `SendWakeDevice` — Wake-on-LAN
-- `UninstallAgent` — Remote uninstall
-- `RefreshDeviceInfo` — Refresh device info
-- `InvokeCtrlAltDel` — Invoke Ctrl+Alt+Del (Windows)
-- `CloseChatSession` — Close chat session
-- `TestVncConnection` — Test VNC connection
-- `GetActiveDesktopSessions` — Get Windows desktop sessions
-- `GetPwshCompletions` — PowerShell completions
+- `RequestRemoteControlSession`: Start remote control
+- `RequestVncSession`: Start VNC session
+- `RequestRemoteControlPermission`: Request permission
+- `UploadFile`: Upload file to device
+- `SendTerminalInput`: Send terminal input
+- `CreateTerminalSession`: Create terminal session
+- `CloseTerminalSession`: Close terminal session
+- `SendChatMessage`: Send chat message
+- `SendChatResponse`: Forward chat response
+- `SendDtoToAgent`: Send generic DTO to agent
+- `SendDtoToUserGroups`: Send DTO to user groups
+- `SendAgentUpdateTrigger`: Trigger agent update
+- `SendPowerStateChange`: Power state change
+- `SendWakeDevice`: Wake-on-LAN
+- `UninstallAgent`: Remote uninstall
+- `RefreshDeviceInfo`: Refresh device info
+- `InvokeCtrlAltDel`: Invoke Ctrl+Alt+Del (Windows)
+- `CloseChatSession`: Close chat session
+- `TestVncConnection`: Test VNC connection
+- `GetActiveDesktopSessions`: Get Windows desktop sessions
+- `GetPwshCompletions`: PowerShell completions
 
 ## Next
 
-- **[NuGet Packages](/docs/api-reference/nuget-packages)** — API client and viewer packages
-- **[Scalar API Browser](/docs/scalar-api-browser)** — Interactive API exploration
-- **[API Overview](/docs/api/overview)** — API structure and conventions
+- **[NuGet Packages](/docs/api-reference/nuget-packages)**: API client and viewer packages
+- **[Scalar API Browser](/docs/scalar-api-browser)**: Interactive API exploration
+- **[API Overview](/docs/api/overview)**: API structure and conventions

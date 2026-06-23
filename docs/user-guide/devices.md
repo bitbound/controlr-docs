@@ -5,7 +5,7 @@ title: Devices & Tags
 
 ## Device Groups (Tags)
 
-Devices are organized using **tags** — string labels that can be assigned to both devices and users. A user needs either the `DeviceSuperuser` role or a matching tag to access a device.
+Devices are organized using **tags**: string labels that can be assigned to both devices and users. A user needs either the `DeviceSuperuser` role or a matching tag to access a device.
 
 ### Managing Tags
 

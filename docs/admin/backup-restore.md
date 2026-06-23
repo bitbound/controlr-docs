@@ -82,5 +82,5 @@ sudo docker compose start
 
 ## Next
 
-- **[Docker Setup](/docs/admin/docker-setup)** — Container configuration
-- **[Reverse Proxy](/docs/admin/reverse-proxy)** — HTTPS configuration
+- **[Docker Setup](/docs/admin/docker-setup)**: Container configuration
+- **[Reverse Proxy](/docs/admin/reverse-proxy)**: HTTPS configuration

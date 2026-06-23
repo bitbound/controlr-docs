@@ -37,9 +37,9 @@ When a user receives an invitation email, they can:
 1. Click the invitation link in the email
 2. Go to the invitation page (`/invite-confirmation`)
 3. Enter their email and choose a password
-4. Join the tenant — they're redirected to the login page
+4. Join the tenant. They're redirected to the login page.
 
 ## Next
 
-- **[Permissions](/docs/user-guide/permissions)** — Manage roles and access
-- **[Tenant Settings](/docs/user-guide/tenant-settings)** — Tenant-wide configuration
+- **[Permissions](/docs/user-guide/permissions)**: Manage roles and access
+- **[Tenant Settings](/docs/user-guide/tenant-settings)**: Tenant-wide configuration

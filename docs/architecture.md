@@ -171,10 +171,10 @@ This separation keeps the agent lightweight and allows it to run headlessly, whi
 
 The Desktop Client is an [Avalonia UI](https://avaloniaui.net/) cross-platform desktop application that runs alongside the agent on managed devices. It provides:
 
-- **Screen capture & input forwarding** — The actual work of capturing the desktop and injecting mouse/keyboard events during remote control sessions
-- **Live session visibility** — Shows the local user when a remote session is active
-- **Session consent & notifications** — Prompts the local user before granting remote access
-- **WebSocket relay streaming** — Connects directly to the server's WebSocket relay to send screen frames and receive input from the viewer
+- **Screen capture & input forwarding**: The actual work of capturing the desktop and injecting mouse/keyboard events during remote control sessions
+- **Live session visibility**: Shows the local user when a remote session is active
+- **Session consent & notifications**: Prompts the local user before granting remote access
+- **WebSocket relay streaming**: Connects directly to the server's WebSocket relay to send screen frames and receive input from the viewer
 
 ### Communication Paths
 
@@ -230,5 +230,5 @@ Both the **Server** and the **Agent** can optionally export OpenTelemetry data (
 
 ## Next
 
-- **[Getting Started](/docs/getting-started)** — Overview and quick start
-- **[Configuration](/docs/configuration)** — Configuration options
+- **[Getting Started](/docs/getting-started)**: Overview and quick start
+- **[Configuration](/docs/configuration)**: Configuration options

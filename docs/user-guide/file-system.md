@@ -19,8 +19,8 @@ The File System page uses a split-pane layout with a draggable splitter between 
 
 | Panel | Description |
 |-------|-------------|
-| **Left Panel** | Tree-view folder navigation — expand folders to browse the file system |
-| **Right Panel** | Sortable/filterable data grid — shows files and folders in the current directory |
+| **Left Panel** | Tree-view folder navigation: expand folders to browse the file system |
+| **Right Panel** | Sortable/filterable data grid: shows files and folders in the current directory |
 
 ## Operations
 
@@ -58,6 +58,6 @@ The maximum file transfer size is configurable via `ControlR_AppOptions__MaxFile
 
 ## Next
 
-- **[Dashboard](/docs/user-guide/dashboard)** — Overview of all devices
-- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)** — Screen streaming and control
-- **[Terminal](/docs/user-guide/terminal)** — Remote terminal access
+- **[Dashboard](/docs/user-guide/dashboard)**: Overview of all devices
+- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)**: Screen streaming and control
+- **[Terminal](/docs/user-guide/terminal)**: Remote terminal access

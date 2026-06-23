@@ -13,10 +13,10 @@ The overview displays a summary section with the following information:
 
 | Field | Description |
 |-------|-------------|
-| **Name** | Editable alias for the device — click the edit icon to change |
+| **Name** | Editable alias for the device: click the edit icon to change |
 | **Online Status** | Online (check icon), Offline (cancel icon), or Outdated (warning icon) |
 | **Platform** | Icon indicating Windows, macOS, or Linux |
-| **Device ID** | Unique GUID — click the copy icon to copy to clipboard |
+| **Device ID** | Unique GUID: click the copy icon to copy to clipboard |
 | **Agent Version** | Version of the installed agent |
 | **Active Users** | Currently logged-in users (shown only if users are active) |
 | **Last Seen** | Timestamp of the last device heartbeat |
@@ -51,8 +51,8 @@ Network configuration for the device:
 
 Live resource metrics displayed as radial gauges:
 
-- **CPU Usage** — Real-time CPU utilization percentage
-- **Memory Usage** — Real-time memory utilization percentage
+- **CPU Usage**: Real-time CPU utilization percentage
+- **Memory Usage**: Real-time memory utilization percentage
 
 ## Drives
 
@@ -64,7 +64,7 @@ Each detected storage drive is displayed with:
 | **Volume Label** | Human-readable label |
 | **Format** | File system format (e.g., NTFS, ext4, APFS) |
 | **Root Directory** | Drive root path |
-| **Storage** — Donut chart showing used vs. free space with total capacity |
+| **Storage**: Donut chart showing used vs. free space with total capacity |
 
 ## Updating Agents
 
@@ -125,6 +125,6 @@ Wake-on-LAN is available through the **ViewerHub** SignalR hub. From the device 
 
 ## Next
 
-- **[Devices & Tags](/docs/user-guide/devices)** — Manage device groups and access control
-- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)** — Screen streaming and control
-- **[Device Access: Terminal](/docs/user-guide/terminal)** — Remote PowerShell access
+- **[Devices & Tags](/docs/user-guide/devices)**: Manage device groups and access control
+- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)**: Screen streaming and control
+- **[Device Access: Terminal](/docs/user-guide/terminal)**: Remote PowerShell access

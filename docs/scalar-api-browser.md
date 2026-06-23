@@ -66,5 +66,5 @@ For production, it's recommended to keep `ControlR_AppOptions__EnableScalarUi` s
 
 ## Next
 
-- **[API Overview](/docs/api/overview)** — API structure and conventions
-- **[API Endpoints](/docs/api-reference/endpoints)** — Complete endpoint reference
+- **[API Overview](/docs/api/overview)**: API structure and conventions
+- **[API Endpoints](/docs/api-reference/endpoints)**: Complete endpoint reference

@@ -9,8 +9,8 @@ title: Upgrading
 
 ## Upgrade Steps
 
-1. **Read the release notes** — Check for any migration steps
-2. **Backup your database** — See [Backup & Restore](/docs/admin/backup-restore)
+1. **Read the release notes**: Check for any migration steps
+2. **Backup your database**: See [Backup & Restore](/docs/admin/backup-restore)
 3. **Pull the new image**:
    ```bash
    sudo docker compose pull
@@ -19,7 +19,7 @@ title: Upgrading
    ```bash
    sudo docker compose up -d
    ```
-5. **Verify** — Check the health endpoint:
+5. **Verify**: Check the health endpoint:
    ```bash
    curl http://127.0.0.1:5120/health
    ```

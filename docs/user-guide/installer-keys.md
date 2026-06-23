@@ -18,7 +18,7 @@ Installer Keys are access tokens used during agent installation to register devi
 
 1. Enter a friendly name for the key
 2. Click **Create** to generate a new installer key
-3. The key secret is shown once — copy and store it securely
+3. The key secret is shown once. Copy and store it securely.
 
 ### Listing Keys
 
@@ -38,14 +38,14 @@ Select a key and use the rename action to update its friendly name.
 
 ### Viewing Usage History
 
-Click on a key to view its usage history — each installation that used the key is recorded with:
+Click on a key to view its usage history. Each installation that used the key is recorded with:
 - Timestamp
 - Device ID
 - Instance ID (if applicable)
 
 ### Deleting a Key
 
-Delete keys that are no longer needed. This does **not** affect already-installed agents — it only prevents new registrations with that key.
+Delete keys that are no longer needed. This does **not** affect already-installed agents. It only prevents new registrations with that key.
 
 ## Using Installer Keys
 
@@ -68,5 +68,5 @@ Installer key usage history is retained for `ControlR_AppOptions__AgentInstaller
 
 ## Next
 
-- **[Deploy](/docs/user-guide/deploy)** — Generate install scripts
-- **[Installation](/docs/installation)** — Complete installation guide
+- **[Deploy](/docs/user-guide/deploy)**: Generate install scripts
+- **[Installation](/docs/installation)**: Complete installation guide

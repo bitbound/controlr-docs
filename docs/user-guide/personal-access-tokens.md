@@ -16,7 +16,7 @@ Personal Access Tokens (PATs) allow you to authenticate with the ControlR API as
 
 1. Enter a friendly name for the token (e.g., "CI/CD Pipeline", "Backup Script")
 2. Click **Create PAT**
-3. **Copy the token immediately** — it will never be shown again
+3. **Copy the token immediately**: it will never be shown again
 
 ## Using a PAT
 
@@ -27,7 +27,7 @@ curl https://your-server/api/devices \
   -H "x-personal-token: <tokenId>:<secret>"
 ```
 
-The token format is `{tokenId}:{secret}` — include both parts separated by a colon.
+The token format is `{tokenId}:{secret}`. Include both parts separated by a colon.
 
 ### Using in Code
 
@@ -55,7 +55,7 @@ var client = new ControlRClient(new ControlrApiClientOptions {
 |--------|-------------|
 | **List** | View all your active tokens |
 | **Rename** | Update the friendly name of a token |
-| **Delete** | Revoke a token — it will no longer work for authentication |
+| **Delete** | Revoke a token: it will no longer work for authentication |
 
 ## Rate Limiting
 
@@ -63,12 +63,12 @@ PAT authentication failures are rate-limited to **5 attempts per 5 minutes** per
 
 ## Security Best Practices
 
-- **Store tokens securely** — never commit them to source control
-- **Use descriptive names** — makes it easy to identify and revoke tokens
-- **Rotate tokens regularly** — delete and recreate tokens periodically
-- **Use minimum permissions** — create tokens with the least privilege needed
+- **Store tokens securely**: never commit them to source control
+- **Use descriptive names**: makes it easy to identify and revoke tokens
+- **Rotate tokens regularly**: delete and recreate tokens periodically
+- **Use minimum permissions**: create tokens with the least privilege needed
 
 ## Next
 
-- **[Authentication Guide](/docs/authentication-guide)** — All authentication methods
-- **[API Overview](/docs/api/overview)** — API structure and conventions
+- **[Authentication Guide](/docs/authentication-guide)**: All authentication methods
+- **[API Overview](/docs/api/overview)**: API structure and conventions

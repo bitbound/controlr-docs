@@ -7,10 +7,10 @@ title: Authentication Guide
 
 ControlR uses a multi-scheme authentication pipeline that automatically routes requests to the appropriate handler. There are **four authentication schemes**:
 
-1. **Cookie-based authentication** — Default for the web UI (Blazor WASM)
-2. **Bearer token authentication** — For interactive login via API (desktop clients, scripts)
-3. **Personal Access Token (PAT)** — For long-lived programmatic access
-4. **Logon Token** — For single-use device access URLs
+1. **Cookie-based authentication**: Default for the web UI (Blazor WASM)
+2. **Bearer token authentication**: For interactive login via API (desktop clients, scripts)
+3. **Personal Access Token (PAT)**: For long-lived programmatic access
+4. **Logon Token**: For single-use device access URLs
 
 Additionally, ControlR supports external identity providers (Microsoft, GitHub) and passkey authentication.
 
@@ -94,7 +94,7 @@ Personal Access Tokens provide long-lived programmatic access without needing a 
 1. Navigate to **Access Tokens** in the web interface (`/personal-access-tokens`)
 2. Enter a friendly name
 3. Click **Create PAT**
-4. Copy and store the token — it will **never be shown again**
+4. Copy and store the token. It will **never be shown again**.
 
 **Using a PAT:**
 ```bash
@@ -156,7 +156,7 @@ Users can enable TOTP-based 2FA through their account settings. The authenticato
 
 ## Passkey Authentication (WebAuthn)
 
-Passkeys provide passwordless authentication using the Web Authentication (WebAuthn) API. Users can sign in using their device's built-in biometric or hardware authenticator — Face ID, Touch ID, Windows Hello, or a physical security key.
+Passkeys provide passwordless authentication using the Web Authentication (WebAuthn) API. Users can sign in using their device's built-in biometric or hardware authenticator: Face ID, Touch ID, Windows Hello, or a physical security key.
 
 ### Enabling Passkey Support
 
@@ -178,7 +178,7 @@ Passkey support is built into ControlR and requires no server-side configuration
 
 1. On the login page, click **Sign in with Passkey**
 2. Your browser will prompt you to authenticate using your registered method
-3. On completion, you're logged in — no password entry required
+3. On completion, you're logged in. No password entry required.
 
 ### Persisting Passkey Sessions
 
@@ -196,8 +196,8 @@ Users can view and revoke registered passkeys from their account settings. If a 
 
 ### Security Considerations
 
-- Passkeys are **phishing-resistant** — they're tied to the specific origin (your ControlR server domain)
-- They use **public-key cryptography** — the private key never leaves the user's device
+- Passkeys are **phishing-resistant**. They're tied to the specific origin (your ControlR server domain)
+- They use **public-key cryptography**. The private key never leaves the user's device.
 - Multiple passkeys can be registered per account (e.g., one per device)
 - Passkeys can be synced across devices via iCloud Keychain, Google Password Manager, or similar providers
 
@@ -208,7 +208,7 @@ ControlR uses a role-based permission system with 5 built-in roles:
 | Role | Permissions |
 |------|-------------|
 | **Server Administrator** | Full server-wide admin (stats, logs, alerts, server settings). Does NOT allow access to other tenants' devices or users. |
-| **Tenant Administrator** | Tenant-level admin — manage users, devices, tags, invites, and tenant settings |
+| **Tenant Administrator** | Tenant-level admin: manage users, devices, tags, invites, and tenant settings |
 | **Device Superuser** | Can access all devices in the tenant |
 | **Agent Installer** | Can deploy/install agents on new devices |
 | **Installer Key Manager** | Can manage installer keys |
@@ -226,5 +226,5 @@ Tags are managed in the **Permissions** page under the **Tags** tab. Assign tags
 
 ## Next
 
-- **[API Overview](/docs/api/overview)** — API structure and conventions
-- **[API Endpoints](/docs/api-reference/endpoints)** — Complete endpoint reference
+- **[API Overview](/docs/api/overview)**: API structure and conventions
+- **[API Endpoints](/docs/api-reference/endpoints)**: Complete endpoint reference

@@ -20,7 +20,7 @@ Only users with the **Server Administrator** role can manage server alerts.
 
 1. Navigate to the server admin section
 2. Enter the alert message text
-3. Save — the alert immediately appears for all users
+3. Save. The alert immediately appears for all users.
 
 ### Using the API
 
@@ -100,5 +100,5 @@ Server alerts are stored in the database. No additional environment variables ar
 
 ## Next
 
-- **[Configuration](/docs/configuration)** — Server configuration options
-- **[Upgrading](/docs/admin/upgrading)** — How to upgrade ControlR
+- **[Configuration](/docs/configuration)**: Server configuration options
+- **[Upgrading](/docs/admin/upgrading)**: How to upgrade ControlR

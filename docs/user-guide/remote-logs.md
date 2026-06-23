@@ -59,5 +59,5 @@ Desktop client logs follow the same pattern under `ControlR.DesktopClient`.
 
 ## Next
 
-- **[Terminal](/docs/user-guide/terminal)** — Remote PowerShell access
-- **[VNC Relay](/docs/user-guide/vnc-relay)** — VNC remote access
+- **[Terminal](/docs/user-guide/terminal)**: Remote PowerShell access
+- **[VNC Relay](/docs/user-guide/vnc-relay)**: VNC remote access

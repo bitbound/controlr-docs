@@ -35,5 +35,5 @@ Terminal output displays scrollable command history. Scroll through the output h
 
 ## Next
 
-- **[Device Overview](/docs/user-guide/overview)** — View device details and manage actions
-- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)** — Screen streaming and control
+- **[Device Overview](/docs/user-guide/overview)**: View device details and manage actions
+- **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)**: Screen streaming and control

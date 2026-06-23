@@ -265,6 +265,6 @@ services:
 
 ## Next Steps
 
-- **[Reverse Proxy](/docs/admin/reverse-proxy)** — Configure HTTPS with a reverse proxy
-- **[Docker Setup](/docs/admin/docker-setup)** — Advanced Docker configuration
-- **[Native Installation](/docs/admin/native-installation)** — Deploy without Docker
+- **[Reverse Proxy](/docs/admin/reverse-proxy)**: Configure HTTPS with a reverse proxy
+- **[Docker Setup](/docs/admin/docker-setup)**: Advanced Docker configuration
+- **[Native Installation](/docs/admin/native-installation)**: Deploy without Docker
