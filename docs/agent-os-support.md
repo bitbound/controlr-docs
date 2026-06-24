@@ -15,14 +15,15 @@ The ControlR agent runs as a background service on target devices. The level of 
 
 ## macOS
 
-### Apple Silicon (tested on M1 running Sequoia)
+### Apple Silicon
+
+Tested on Mac Mini M4 and MacBook Air M1 running latest version of macOS.
 
 | Feature | Support |
 |---------|---------|
 | **Remote Control** | Full support |
 | **Login Window** | Controlling the login window is only possible after a user has logged in |
 | **VNC (Apple Screen Sharing)** | Experimental |
-| **Code Signing** | Signed using adhoc certificate (this will change soon) |
 
 ### Intel (untested)
 
@@ -40,7 +41,7 @@ The ControlR agent runs as a background service on target devices. The level of 
 |---------|---------|
 | **Remote Control** | Full support |
 
-Tested on Ubuntu, Kubuntu, and Mint.
+Tested on Fedora KDE, Ubuntu, Kubuntu, and Mint.
 
 **Ubuntu login screen:** You must enable X11 for the login screen. Edit `/etc/gdm3/custom.conf` and uncomment the line `WaylandEnable=false`, then reboot.
 
