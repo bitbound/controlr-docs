@@ -180,6 +180,7 @@ Key settings:
 
 ## Next Steps
 
+- **[Agent OS Support](/docs/agent-os-support)**: See which operating systems are supported
 - **[Configuration](/docs/configuration)**: Learn about available settings
 - **[Reverse Proxy](/docs/admin/reverse-proxy)**: Set up HTTPS with a reverse proxy
 - **[Upgrading](/docs/admin/upgrading)**: How to upgrade when new versions are released

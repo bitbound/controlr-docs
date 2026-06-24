@@ -206,7 +206,8 @@ main() {
 
   if [[ "$mode" == "plan" ]]; then
     mkdir -p "$PLANS_DIR"
-    local plan_file="$PLANS_DIR/sync-$target-$(date +%Y%m%d%H%M%S).md"
+    local plan_file
+    plan_file="$PLANS_DIR/sync-$target-$(date +%Y%m%d%H%M%S).md"
 
     blue "Running qwen in plan mode…"
     echo "  Plan will be written to: $plan_file"
