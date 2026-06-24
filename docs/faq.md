@@ -29,6 +29,12 @@ Yes. All communications between clients and the server are encrypted using TLS/S
 
 No. All agent communications are initiated from the agent to the server over an outbound SignalR connection (WebSocket by default) and outbound HTTP requests. No inbound ports need to be opened on the agent's network.
 
+## Does my data leave my network?
+
+No. ControlR does not send any telemetry to any third-party services by default. Telemetry is only sent to your self-hosted Aspire Dashboard or Azure Monitor if you configure those endpoints.
+
+There are no "phone-home" mechanisms in ControlR.
+
 ### How do I upgrade ControlR?
 
 See the [Upgrading guide](/docs/admin/upgrading) for step-by-step instructions.
