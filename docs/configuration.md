@@ -3,7 +3,7 @@ sidebar_position: 3
 title: Configuration
 ---
 
-ControlR uses ASP.NET Core's standard configuration system. All values can be set via environment variables, Docker secrets, or the `appsettings.json` file.
+ControlR uses ASP.NET Core's standard `IConfiguration` system. All values can be set via environment variables, Docker secrets, or the `appsettings.json` file.
 
 ## Configuration Prefix
 

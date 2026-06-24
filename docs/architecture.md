@@ -3,8 +3,6 @@ sidebar_position: 2
 title: Architecture
 ---
 
-## Architecture
-
 ControlR follows a hub-and-spoke architecture with the server acting as the central control plane. Communication is split across three transports: **SignalR** for real-time command and status, **REST** for resource operations, and **WebSockets** for high-bandwidth remote control streaming.
 
 ### High-Level Flow

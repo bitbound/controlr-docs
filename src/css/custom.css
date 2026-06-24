@@ -22,3 +22,15 @@
   --ifm-color-secondary-lighter: #02b09a;
   --ifm-color-secondary-lightest: #0dd0b8;
 }
+
+/* Version badge in the navbar */
+.navbar-version-badge {
+  font-size: 0.7rem;
+  padding: 1px 0.5rem;
+  border-radius: 999px;
+  background-color: var(--ifm-color-primary-lightest);
+  color: var(--ifm-color-primary-darkest);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}

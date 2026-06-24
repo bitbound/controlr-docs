@@ -5,7 +5,7 @@ title: Getting Started
 
 ## What is ControlR?
 
-ControlR is a self-hosted, cross-platform remote control system that lets you manage and control devices over a network. It consists of three main components:
+ControlR is a self-hosted, cross-platform remote control system that lets you manage and control devices from anywhere. It consists of three main components:
 
 - **Server**: A web-based application (ASP.NET Core) that manages connections, authentication, and device communication
 - **Agent**: A headless service installed on target devices that provides remote control, file access, and terminal sessions
@@ -38,21 +38,17 @@ The desktop client runs on the target device and:
 
 ### Architecture
 
-```
-┌─────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│  Web Viewer  │────▶│   ControlR       │◀────│  Agent (Service) │
-│  (Browser)   │     │   Server         │     │  (Target Device) │
-│              │     │  (Docker/Native) │     │                  │
-└─────────────┘     │                  │     ┌──────────────────┐
-                    │                  │◀───▶│  Desktop Client  │
-                    └──────────────────┘     │  (Target Device) │
-                      ▲                      └──────────────────┘
-                      │
-              ┌───────┴────────┐
-              │  Optional:     │
-              │  WebSocket     │
-              │  Relay Server  │
-              └────────────────┘
+```mermaid
+flowchart LR
+    Browser["Web Viewer\n(Browser)"] --> Server["ControlR Server\n(Docker / Native)"]
+    Agent["Agent (Service)\n(Target Device)"] --> Server
+    Client["Desktop Client\n(Target Device)"] <--> Agent
+
+    subgraph OTEL["Optional: Aspire / OTEL\n(logs, metrics, tracing)"]
+    end
+
+    Server -.-> OTEL
+    Agent -.-> OTEL
 ```
 
 ## Prerequisites
