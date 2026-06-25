@@ -38,7 +38,7 @@ After the containers start, verify that ControlR is running:
 curl http://127.0.0.1:5120/health
 ```
 
-You should receive: `"Healthy."`
+You should receive: `Healthy`
 
 The ControlR web interface should be available at `http://your-server:5120` (or `https://your-domain` if you configured a reverse proxy with HTTPS).
 
@@ -122,6 +122,16 @@ To uninstall:
 ```powershell
 .\ControlR.Agent.Installer.exe uninstall [-InstanceId "my-pc"]
 ```
+
+#### Repair Desktop Client (Internal Use)
+
+The installer includes a `repair-desktop` command that re-installs the desktop client from the current agent bundle. This command is intended for internal troubleshooting and is not part of the standard installation workflow:
+
+```bash
+sudo ./ControlR.Agent.Installer repair-desktop [--instance-id my-server]
+```
+
+#### Installer Behavior
 
 Each installer does the following:
 

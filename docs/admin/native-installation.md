@@ -108,7 +108,7 @@ Wants=postgresql.service
 
 [Service]
 WorkingDirectory=/var/www/dev.controlr.app
-ExecStart=/usr/bin/dotnet /var/www/dev.controlr.app/ControlR.Web.Server.dll --urls "http://*:5002"
+ExecStart=/usr/bin/dotnet /var/www/dev.controlr.app/ControlR.Web.Server.dll --urls "http://*:5120"
 Restart=always
 RestartSec=10
 SyslogIdentifier=dev.controlr.app
@@ -139,8 +139,8 @@ sudo systemctl status controlr
 ## Step 6: Verify Installation
 
 ```bash
-curl http://127.0.0.1:5002/health
-# Should return: "Healthy."
+curl http://127.0.0.1:5120/health
+# Should return: Healthy
 ```
 
 ## Step 7: Configure a Reverse Proxy (Recommended)
@@ -156,7 +156,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/controlr.example.com/privkey.pem;
 
     location / {
-        proxy_pass http://localhost:5002;
+        proxy_pass http://localhost:5120;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection upgrade;
@@ -172,7 +172,7 @@ server {
 
 ```caddy
 controlr.example.com {
-    reverse_proxy localhost:5002
+    reverse_proxy localhost:5120
 }
 ```
 
@@ -191,13 +191,7 @@ sudo journalctl -u controlr -n 50 --no-pager
 # Look for "Applying migrations..." and "Migrations applied successfully" in the output
 ```
 
-If you need to manually run migrations (e.g., for debugging), install the EF Core CLI tools:
-
-```bash
-dotnet tool install --global dotnet-ef
-cd /var/www/dev.controlr.app
-sudo -u controlr dotnet ef database update
-```
+> **Note:** Migrations are applied automatically on each startup if they haven't been applied. There is no manual migration CLI command — the `ApplyMigrationsAsync()` extension method handles this at startup in `Program.cs`.
 
 ## Step 9: Backups
 
@@ -271,11 +265,11 @@ sudo docker exec -it controlr-postgres psql -U controlr_admin controlr
 ### Port conflicts
 
 ```bash
-# Check what's using port 5002
-sudo lsof -i :5002
+# Check what's using port 5120
+sudo lsof -i :5120
 
 # Change the port in the service file
-# ExecStart=... --urls "http://*:5003"
+# ExecStart=... --urls "http://*:5121"
 ```
 
 ## Next
