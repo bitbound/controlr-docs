@@ -56,7 +56,6 @@ flowchart LR
 Before installing ControlR, make sure you have:
 
 - **Docker** and **Docker Compose** installed on your server
-- **PostgreSQL 18** (if deploying natively, without Docker)
 - A domain name (optional, for HTTPS)
 - At least 1 GB of RAM available
 - An open network port (default host port: `5120`, container port: `8080`)

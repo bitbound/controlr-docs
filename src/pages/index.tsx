@@ -17,9 +17,9 @@ function HomepageHeader() {
     <header className={styles.heroBanner}>
       <div className={styles.container}>
         <img
-          src={logoSrc}
+          src={"/img/controlr-logo-flat.png"}
           alt="ControlR Logo"
-          style={{width: '80px', height: '80px', marginBottom: '1.5rem'}}
+          style={{width: '120px', height: '120px', marginBottom: '1.5rem'}}
         />
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
