@@ -40,6 +40,7 @@ const sidebars: SidebarsConfig = {
         'user-guide/permissions',
         'user-guide/invitations',
         'user-guide/tenant-settings',
+        'user-guide/headless-remote-control',
       ],
     },
     {
