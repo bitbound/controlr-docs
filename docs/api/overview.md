@@ -48,38 +48,34 @@ See the [Authentication Guide](/docs/authentication-guide) for details on each m
 
 ## Response Format
 
-API responses follow ASP.NET Core Identity conventions. Successful responses typically return:
-
-```json
-{
-  "data": { ... },
-  "errors": []
-}
-```
-
-Error responses include an `errors` array with details:
-
-```json
-{
-  "success": false,
-  "errors": [
-    { "code": "InvalidCredentials", "description": "The username or password is incorrect." }
-  ]
-}
-```
+Successful responses return typed DTOs specific to each endpoint. Refer to the [OpenAPI specification](/openapi/v1.json) or [Scalar API Browser](/docs/scalar-api-browser) for the full schema of each endpoint.
 
 ## Error Handling
 
-Standard HTTP status codes are used:
+Errors use the [RFC 7807 Problem Details](https://tools.ietf.org/html/rfc7807) format with content type `application/problem+json`. All `/api` routes are covered by a global exception handler that returns Problem Details on unexpected errors.
+
+**Standard HTTP status codes:**
 
 | Code | Description |
 |------|-------------|
-| `400` | Bad Request: Invalid input or validation error |
+| `400` | Bad Request: Invalid input or validation error (returns `HttpValidationProblemDetails` with per-field errors) |
 | `401` | Unauthorized: Missing or invalid authentication |
 | `403` | Forbidden: Authenticated but not authorized |
 | `404` | Not Found: Resource does not exist |
 | `429` | Too Many Requests: Rate limited |
-| `500` | Internal Server Error: Unexpected server error |
+| `500` | Internal Server Error: Unexpected server error (returns `ProblemDetails` with `traceId`) |
+
+**Example 500 error response:**
+
+```json
+{
+  "status": 500,
+  "title": "An unexpected error occurred.",
+  "detail": "An unexpected error occurred.",
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.6.1",
+  "traceId": "0HN6QO4CG7E8O:00000001"
+}
+```
 
 ## SignalR Hubs
 

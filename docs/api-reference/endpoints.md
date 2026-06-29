@@ -36,6 +36,7 @@ This page provides a reference of all REST API endpoints in ControlR. All endpoi
 | POST | `/api/auth/manage-two-factor` | Any | Enable/disable/verify 2FA |
 | GET | `/api/auth/manage-info` | Any | Get manage info |
 | POST | `/api/auth/update-manage-info` | Any | Update manage info |
+| GET | `/api/auth/me` | Any | Get current user's profile and roles |
 
 ---
 
@@ -49,6 +50,8 @@ This page provides a reference of all REST API endpoints in ControlR. All endpoi
 | DELETE | `/api/devices/{deviceId}` | Any (resource policy) | Delete a device |
 | PATCH | `/api/devices/{deviceId}/alias` | Any | Update device alias |
 | POST | `/api/devices/search` | Any | Search/filter/paginate devices |
+| POST | `/api/devices/delete-many` | Any (resource policy) | Delete multiple devices |
+| GET | `/api/devices/summary` | Any | Get a summary list of all devices |
 
 ---
 
