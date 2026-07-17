@@ -48,9 +48,22 @@ https://your-server/openapi/v1.json
 ```
 
 You can use this file to:
-- Generate API clients in any language
-- Import into API testing tools (Postman, Insomnia, etc.)
-- Build custom documentation
+
+- Import into API tools (Postman, Insomnia, etc.)
+- Generate client libraries with Swagger Codegen or Kiota
+- Validate API payloads against the published schema
+
+## Route Architecture
+
+The API is organized into three route roots:
+
+| Route root | Audience | Description |
+|---|---|---|
+| `/api/internal/*` | Blazor Web UI | Dynamic BFF endpoints, no versioning |
+| `/api/v0/*` | S2S automation | Versioned stable contract for integrations |
+| `/api/agent/*` | Device agents | Anonymous agent communication |
+
+The Scalar UI reflects this structure, grouping endpoints by their route root. See the [API Overview](/docs/api/overview) for details on each surface.
 
 ### .NET API Client
 

@@ -70,6 +70,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'api/overview',
         'api/authentication',
+        'api/service-accounts',
         'scalar-api-browser',
         'api-reference/endpoints',
         'api-reference/nuget-packages',

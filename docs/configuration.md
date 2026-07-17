@@ -49,6 +49,7 @@ The main application settings section:
 | `ControlR_AppOptions__CorsAllowedOrigins__N` | string[] | `[]` | Array of allowed origins for CORS. Index by `N` (0, 1, 2...). |
 | `ControlR_AppOptions__DefaultThemeMode` | string | `"Dark"` | Default theme for unauthenticated users (`"Dark"` or `"Light"`). Authenticated users have their own per-user theme preference. |
 | `ControlR_AppOptions__DisableEmailSending` | bool | `false` | Disables ALL email sending (account confirmation, password reset, etc.). |
+| `ControlR_AppOptions__DisableFirstUserSelfRegistration` | bool | `false` | Disables the one-time first-user self-registration bootstrap. Set `true` with `EnablePublicRegistration: false` for service-account-only deployments. Independent of `EnablePublicRegistration`. |
 | `ControlR_AppOptions__DockerGatewayIp` | string? | Docker gateway | Gateway IP address for Docker environments, added to `KnownProxies`. |
 | `ControlR_AppOptions__EnableCloudflareProxySupport` | bool | `false` | Auto-fetches Cloudflare IPs (`ips-v4` + `ips-v6`) and adds to `KnownNetworks`. |
 | `ControlR_AppOptions__EnableCors` | bool | `false` | Enables CORS middleware. |
@@ -56,9 +57,10 @@ The main application settings section:
 | `ControlR_AppOptions__EnableDockerSecrets` | bool | `false` | Reads secrets from `/run/secrets` via `AddKeyPerFile`. Windows not supported. |
 | `ControlR_AppOptions__EnableInteractiveBearerLogin` | bool | `false` | Enables ASP.NET Core Identity interactive bearer-token login flow. |
 | `ControlR_AppOptions__EnableNetworkTrust` | bool | `false` | Bypasses `KnownProxies`/`KnownNetworks` checks and trusts all forwarded headers. |
-| `ControlR_AppOptions__EnablePublicRegistration` | bool | `false` | Allows public self-registration without an invitation. |
+| `ControlR_AppOptions__EnablePublicRegistration` | bool | `false` | Allows public self-registration without an invitation. Independent of `DisableFirstUserSelfRegistration`. |
 | `ControlR_AppOptions__EnableScalarUi` | bool | `false` | Serves the Scalar API reference UI and OpenAPI document. |
 | `ControlR_AppOptions__EnableSignalrDetailedErrors` | bool | `false` | Sends detailed SignalR error messages to clients. |
+| `ControlR_AppOptions__ExternalUserCleanupAfterDays` | int | `30` | Days after which external user accounts with no recent login activity are purged by a background service. `<= 0` disables cleanup. |
 | `ControlR_AppOptions__GitHubClientId` | string? | — | GitHub OAuth client ID. |
 | `ControlR_AppOptions__GitHubClientSecret` | string? | — | GitHub OAuth client secret. |
 | `ControlR_AppOptions__InMemoryDatabaseName` | string? | — | Name for the in-memory database when `UseInMemoryDatabase` is `true`. |
@@ -71,6 +73,9 @@ The main application settings section:
 | `ControlR_AppOptions__MicrosoftClientSecret` | string? | — | Microsoft OAuth client secret. |
 | `ControlR_AppOptions__PersistPasskeyLogin` | bool | `false` | Makes passkey login equivalent to "remember me". |
 | `ControlR_AppOptions__RequireUserEmailConfirmation` | bool | `false` | Users must confirm email before logging in. Requires SMTP. |
+| `ControlR_AppOptions__RequireUserUniqueEmail` | bool | `true` | Whether each user must have a unique email address across all tenants. |
+| `ControlR_AppOptions__ServiceAccountAuthFailureLimit` | int | `5` | Maximum failed `x-api-key` authentication attempts allowed per rate-limit window. |
+| `ControlR_AppOptions__ServiceAccountAuthFailureWindowMinutes` | int | `5` | Fixed window size (minutes) for the service-account authentication rate limiter. |
 | `ControlR_AppOptions__SmtpCheckCertificateRevocation` | bool | `true` | Checks SMTP server certificate revocation. |
 | `ControlR_AppOptions__SmtpDisplayName` | string? | — | Display name in outgoing emails. |
 | `ControlR_AppOptions__SmtpEmail` | string? | — | Sender email address for outgoing emails. |
@@ -92,8 +97,15 @@ These settings create the first admin user on server startup. They only take eff
 | `ControlR_Bootstrap__AdminPassword` | string? | Admin user password (8+ characters required) |
 | `ControlR_Bootstrap__AdminPatTokenId` | string? | Pre-assigned GUID for the bootstrap PAT |
 | `ControlR_Bootstrap__AdminPatSecret` | string? | Pre-shared secret for the bootstrap PAT |
+| `ControlR_Bootstrap__ServerServiceAccountName` | string? | Name for the bootstrapped server-scoped service account. Set alongside `ServerServiceAccountTokenId` and `ServerServiceAccountTokenSecret` to create on first startup. |
+| `ControlR_Bootstrap__ServerServiceAccountDescription` | string? | Human-readable description for the bootstrapped service account. |
+| `ControlR_Bootstrap__ServerServiceAccountId` | Guid? | Pre-assigned deterministic GUID for the service account entity. Lets automation consumers hardcode the account ID without a discovery API call. |
+| `ControlR_Bootstrap__ServerServiceAccountTokenId` | Guid? | Pre-assigned deterministic GUID for the initial credential. The resulting `x-api-key` header is `{hex-guid}:{ServerServiceAccountTokenSecret}`. |
+| `ControlR_Bootstrap__ServerServiceAccountTokenSecret` | string? | Pre-shared secret for the initial credential. The resulting `x-api-key` header is `{hex-guid}:{secret}`. |
 
 Both `AdminEmail` and `AdminPassword` must be set together. If both are set but users already exist, bootstrap is skipped.
+
+For server service accounts, `ServerServiceAccountName`, `ServerServiceAccountTokenId`, and `ServerServiceAccountTokenSecret` must all be set together. If the named account already exists, bootstrap skips. Partial configuration fails startup.
 
 ## Key Protection Options
 

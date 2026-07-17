@@ -5,17 +5,19 @@ title: Authentication
 
 ## Authentication Overview
 
-ControlR uses a multi-scheme authentication pipeline that routes requests to the appropriate handler based on the request type. There are **four authentication schemes**:
+ControlR uses a multi-scheme authentication pipeline that routes requests to the appropriate handler based on the request type. There are **five authentication schemes**:
 
 1. **Cookie-based authentication**: Default for the web UI (Blazor WASM)
 2. **Bearer token authentication**: For interactive login via API (desktop clients, scripts)
 3. **Personal Access Token (PAT)**: For long-lived programmatic access
-4. **Logon Token**: For single-use device access URLs
+4. **Service Account Credential**: For S2S automation and cross-tenant management
+5. **Logon Token**: For single-use device access URLs
 
 ## Dynamic Authentication Scheme
 
 ControlR uses a policy scheme that automatically selects the right handler:
 
+- Requests with `x-api-key` header → Service Account handler
 - Requests to `/device-access` with a `logonToken` query parameter → Logon Token handler
 - Requests with `Authorization: Bearer <token>` → Bearer Token handler
 - Requests with `x-personal-token` header → PAT handler
@@ -101,29 +103,82 @@ The token format is `{tokenId}:{secret}`. It's sent via the `x-personal-token` h
 
 **Rate limiting:** PAT authentication failures are rate-limited to 5 attempts per 5 minutes per token prefix + IP.
 
-## 4. Logon Tokens
+## 4. Service Account Credential Authentication (x-api-key)
 
-Logon Tokens are time-limited, single-use tokens that grant access to a **specific device**. They're commonly used in automation scripts alongside PATs.
+Service accounts are server-scoped or tenant-scoped identities designed for system-to-system (S2S) automation. They authenticate using an API key rather than a user password.
 
-**Creating a logon token:**
+**Bootstrap a service account** (on first startup):
+
+```yaml
+ControlR_Bootstrap__ServerServiceAccountName: "my-automation"
+ControlR_Bootstrap__ServerServiceAccountTokenId: "11111111-2222-3333-4444-555555555555"
+ControlR_Bootstrap__ServerServiceAccountTokenSecret: "a-very-strong-and-long-secret"
+```
+
+**Using the x-api-key:**
+
 ```bash
-curl -X POST https://your-server/api/logon-tokens \
+curl https://your-server/api/v0/service-accounts \
+  -H "x-api-key: 11111111222233334444555555555555:a-very-strong-and-long-secret"
+```
+
+The token format is `{credential-id-hex}:{plaintext-secret}`, sent via the `x-api-key` header.
+
+**Claims emitted on successful auth:**
+
+| Claim | Value |
+|-------|-------|
+| `controlr:principal:type` | `server-service-account` |
+| `controlr:principal:id` | Service account GUID |
+| `controlr:auth:method` | `service-account-credential` |
+| `controlr:credential:id` | Credential GUID |
+
+No `controlr:tenant:id` claim is emitted. Server-scoped service accounts are cross-tenant; all identifiers must be explicit in the request.
+
+**Rate limiting:** Service account authentication failures are rate-limited per IP + credential-ID prefix. Configurable via `ControlR_AppOptions__ServiceAccountAuthFailureLimit` (default 5) and `ControlR_AppOptions__ServiceAccountAuthFailureWindowMinutes` (default 5).
+
+**Service-account-only deployments:** To run ControlR in a headless/API-only mode with no self-registration:
+
+```yaml
+ControlR_AppOptions__EnablePublicRegistration: false
+ControlR_AppOptions__DisableFirstUserSelfRegistration: true
+# + bootstrap server service account configuration above
+```
+
+**Managing credentials:** Additional credentials can be created and revoked via `POST /api/v0/service-accounts/{id}/credentials` and `DELETE /api/v0/service-accounts/{id}/credentials/{credentialId}`. Each credential's secret is returned exactly once on creation.
+
+## 5. Logon Tokens
+
+Logon Tokens are time-limited, single-use tokens that grant access to a **specific device**. They come in two kinds:
+
+| Kind | Creator | Use Case |
+|------|---------|----------|
+| **User** | Any authenticated user | Granting a user browser session for a specific device |
+| **Service** | Service account | Creating a temporary browser session linked to an external system identity |
+
+**Creating a user logon token (Internal API):**
+
+```bash
+curl -X POST https://your-server/api/internal/logon-tokens \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"deviceId":"<device-guid>"}'
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "url": "https://your-server/device-access?logonToken=<token>&deviceId=<guid>"
-  }
-}
+**Creating a service logon token (V0 API):**
+
+```bash
+curl -X POST https://your-server/api/v0/logon-tokens/external \
+  -H "x-api-key: <credential-id>:<secret>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenantId": "<tenant-guid>",
+    "deviceId": "<device-guid>",
+    "userCorrelationId": "ext-user-123"
+  }'
 ```
 
-The returned URL opens a browser session with access to the specified device. Since it's single-use, it can only be accessed once.
+Service logon tokens find-or-create a **transient user** (`ext-{correlationId}`) in the target tenant. These users have no password (unloggable), no real email, and no roles or tags. They are scoped to a single device.
 
 ## External Authentication
 

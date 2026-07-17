@@ -94,7 +94,7 @@ The server runs as a Docker container (default port 5120) and can also be deploy
 
 ### Authentication Pipeline
 
-The server supports four authentication schemes routed through a dynamic policy scheme:
+The server supports five authentication schemes routed through a dynamic policy scheme:
 
 | Scheme | Mechanism | Use Case |
 |--------|-----------|----------|
@@ -102,6 +102,7 @@ The server supports four authentication schemes routed through a dynamic policy 
 | **Logon Token** | Query-string parameter | Device access URLs |
 | **Bearer Token** | `Authorization: Bearer` header | API clients, ASP.NET Core Identity tokens |
 | **Personal Access Token** | `x-personal-token` header | Automation, CI/CD, headless access |
+| **Service Account** | `x-api-key` header | S2S automation, cross-tenant management |
 
 ### SignalR Hubs
 

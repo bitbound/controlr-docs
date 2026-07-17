@@ -5,16 +5,41 @@ title: API Overview
 
 ## Overview
 
-ControlR provides a RESTful API for programmatic access to its features. The API is built on ASP.NET Core Identity and uses standard HTTP methods with JSON payloads.
+ControlR provides a RESTful API for programmatic access to its features. The API is split into three **route roots**, each serving a distinct audience with different contract stability guarantees.
+
+## Route Architecture
+
+| Route root | Audience | Contract stability | Versioning | Example |
+|---|---|---|---|---|
+| `/api/internal/*` | Blazor Web UI (BFF), device agents | Dynamic, evolves freely | No | `/api/internal/users` |
+| `/api/v0/*` | Server-to-server (S2S) automation | Stable contract | Yes (`[ApiVersion("0")]`) | `/api/v0/service-accounts` |
+| `/api/agent/*` | Device agents (anonymous) | Dynamic, evolves freely | No | `/api/agent/updates` |
+
+### Internal Routes (`/api/internal/*`)
+
+The Internal surface serves the Blazor WASM web UI. These controllers assume a user session and derive tenant and user context from claims. Endpoints evolve dynamically based on UI needs and carry no versioning.
+
+**Legacy fallback:** All Internal controllers also respond at their old `/api/*` paths via dual-routing. For example, `UsersController` responds at both `/api/internal/users` (canonical) and `/api/users` (legacy). These legacy paths are maintained for backward compatibility and will be removed in a future release. New integrations should use the canonical `/api/internal/*` paths.
+
+### V0 Routes (`/api/v0/*`)
+
+The V0 surface is a **versioned, stable contract** for system-to-system (S2S) integrations. Key characteristics:
+
+- All endpoints require a server-scoped service account or the `ServerAdministrator` role
+- **No tenant claim** is derived; all identifiers (tenant ID, user ID, device ID) must be explicit in the request
+- Uses ASP.NET Core API versioning with `[ApiVersion("0")]`
+- Ideal for RMM platforms, automation scripts, and cross-tenant management
+
+### Agent Routes (`/api/agent/*`)
+
+Dedicated endpoints for device agent communication. These are anonymous and separate from both BFF and S2S surfaces.
 
 ## Base URL
 
-All API endpoints use the `/api/` prefix with **no versioning**:
-
 ```
-https://your-controlr-server/api/auth/login
-https://your-controlr-server/api/devices
-https://your-controlr-server/api/tags
+https://your-controlr-server/api/internal/users
+https://your-controlr-server/api/v0/service-accounts
+https://your-controlr-server/api/agent/updates
 ```
 
 ## API Documentation
@@ -31,7 +56,15 @@ Alternatively, you can fetch the OpenAPI specification directly:
 https://your-server/openapi/v1.json
 ```
 
-A .NET typed API client is also published on NuGet as [`ControlR.ApiClient`](https://www.nuget.org/packages/ControlR.ApiClient/).
+A .NET typed API client is also published on NuGet as [`ControlR.ApiClient`](https://www.nuget.org/packages/ControlR.ApiClient/). The client uses a nested accessor pattern:
+
+```csharp
+// Cookie/PAT auth for Internal routes
+var device = await api.Internal.Devices.GetDevice(deviceId);
+
+// x-api-key auth for V0 routes
+var account = await api.V0.ServiceAccounts.Get(accountId);
+```
 
 ## Authentication
 
@@ -42,7 +75,10 @@ All API requests require authentication. ControlR supports multiple authenticati
 | Cookie (web UI) | `Cookie` | Browser-based web UI sessions |
 | Bearer Token | `Authorization: Bearer <token>` | Interactive login (desktop clients, scripts) |
 | Personal Access Token | `x-personal-token: <token>` | Long-lived programmatic access |
+| Service Account | `x-api-key: <id>:<secret>` | S2S automation, cross-tenant management |
 | Logon Token | `?logonToken=xxx&deviceId=xxx` | Single-use device access URLs |
+
+The dynamic authentication scheme routes each request to the correct handler by matching headers: `x-api-key` → Service Account → PAT → Bearer → Cookie.
 
 See the [Authentication Guide](/docs/authentication-guide) for details on each method.
 
