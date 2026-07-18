@@ -3,7 +3,7 @@ sidebar_position: 2
 title: Installation
 ---
 
-The recommended way to install ControlR is using Docker Compose.
+Install ControlR using Docker Compose.
 
 Prerequisites are listed in the [Getting Started guide](/docs/getting-started).
 

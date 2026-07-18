@@ -7,11 +7,11 @@ title: Authentication Guide
 
 ControlR authenticates every request through a policy scheme that inspects headers and the request URL to pick the right handler. Five authentication schemes are supported:
 
-1. **Cookie** &mdash; the default for the web UI (Blazor WASM).
-2. **Bearer token** &mdash; ASP.NET Core Identity access tokens for interactive sign-in from desktop clients and scripts.
-3. **Personal Access Token (PAT)** &mdash; long-lived, per-user tokens used via the `x-personal-token` header.
-4. **Service Account credential** &mdash; non-interactive, server-scoped identities used via the `x-api-key` header.
-5. **Logon Token** &mdash; single-use, single-device URLs for granting ad-hoc browser sessions.
+1. **Cookie**: the default for the web UI (Blazor WASM).
+2. **Bearer token**: ASP.NET Core Identity access tokens for interactive sign-in from desktop clients and scripts.
+3. **Personal Access Token (PAT)**: long-lived, per-user tokens used via the `x-personal-token` header.
+4. **Service Account credential**: non-interactive, server-scoped identities used via the `x-api-key` header.
+5. **Logon Token**: single-use, single-device URLs for granting ad-hoc browser sessions.
 
 External identity providers (Microsoft, GitHub) and passkeys (WebAuthn) are available on top of cookie or interactive-bearer flows.
 
@@ -27,7 +27,7 @@ A single policy scheme (`CustomSchemes.Dynamic`) inspects each request and forwa
 | `x-personal-token` header | Personal Access Token |
 | Anything else | Cookie |
 
-This means a single server can host a web UI, an integration endpoint, and an RMM bot without any per-client configuration.
+A single server instance can host the web UI, integration endpoints, and an RMM bot simultaneously, without requiring per-client configuration.
 
 For the machine-to-machine schemes (PAT, Service Account, Logon Token), see the [API authentication guide](/docs/api/authentication). The rest of this page covers the interactive flows.
 

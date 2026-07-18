@@ -30,9 +30,9 @@ The PostgreSQL connection is configured through these config keys (`POSTGRES_USE
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `ControlR_POSTGRES_USER` | Yes | — | PostgreSQL username (matches `POSTGRES_USER` after prefix stripping) |
-| `ControlR_POSTGRES_PASSWORD` | Yes | — | PostgreSQL password (only required when not using Entra ID) |
-| `ControlR_POSTGRES_HOST` | Yes | — | PostgreSQL host (or an `https://...` URI for Azure Database) |
+| `ControlR_POSTGRES_USER` | Yes | None | PostgreSQL username (matches `POSTGRES_USER` after prefix stripping) |
+| `ControlR_POSTGRES_PASSWORD` | Yes | None | PostgreSQL password (only required when not using Entra ID) |
+| `ControlR_POSTGRES_HOST` | Yes | None | PostgreSQL host (or an `https://...` URI for Azure Database) |
 | `ControlR_POSTGRES_DB` | No | `controlr` | Database name |
 | `ControlR_POSTGRES_PORT` | No | `5432` | PostgreSQL port |
 | `ControlR_POSTGRES_USE_ENTRA_ID` | No | `false` | Set to `true` to authenticate to Azure Database for PostgreSQL with Entra ID |
@@ -48,7 +48,7 @@ The main application settings section:
 | `ControlR_AppOptions__AllowAgentsToSelfBootstrap` | bool | `false` | Agents can self-register without an installer key. |
 | `ControlR_AppOptions__AuthenticatorIssuerName` | string? | `"ControlR"` | Name shown in TOTP authenticator apps for 2FA setup. |
 | `ControlR_AppOptions__CorsAllowedOrigins__N` | string[] | `[]` | Array of allowed origins for CORS. Index by `N` (0, 1, 2...). |
-| `ControlR_AppOptions__DefaultThemeMode` | string | `"Dark"` | Default theme for unauthenticated users (`"Dark"` or `"Light"`). Authenticated users have their own per-user theme preference. |
+| `ControlR_AppOptions__DefaultThemeMode` | string | `"Auto"` | Default theme for unauthenticated users (`"Auto"`, `"Light"`, or `"Dark"`). Authenticated users have their own per-user theme preference. |
 | `ControlR_AppOptions__DisableEmailSending` | bool | `false` | Disables ALL email sending (account confirmation, password reset, etc.). |
 | `ControlR_AppOptions__DisableFirstUserSelfRegistration` | bool | `false` | Disables the one-time first-user self-registration bootstrap. Set `true` with `EnablePublicRegistration: false` for service-account-only deployments. Independent of `EnablePublicRegistration`. |
 | `ControlR_AppOptions__DockerGatewayIp` | string? | Docker gateway | Gateway IP address for Docker environments, added to `KnownProxies`. |
@@ -62,29 +62,29 @@ The main application settings section:
 | `ControlR_AppOptions__EnableScalarUi` | bool | `false` | Serves the Scalar API reference UI and OpenAPI document. |
 | `ControlR_AppOptions__EnableSignalrDetailedErrors` | bool | `false` | Sends detailed SignalR error messages to clients. |
 | `ControlR_AppOptions__ExternalUserCleanupAfterDays` | int | `30` | Days after which external user accounts with no recent login activity are purged by a background service. `<= 0` disables cleanup. |
-| `ControlR_AppOptions__GitHubClientId` | string? | — | GitHub OAuth client ID. |
-| `ControlR_AppOptions__GitHubClientSecret` | string? | — | GitHub OAuth client secret. |
-| `ControlR_AppOptions__InMemoryDatabaseName` | string? | — | Name for the in-memory database when `UseInMemoryDatabase` is `true`. |
+| `ControlR_AppOptions__GitHubClientId` | string? | None | GitHub OAuth client ID. |
+| `ControlR_AppOptions__GitHubClientSecret` | string? | None | GitHub OAuth client secret. |
+| `ControlR_AppOptions__InMemoryDatabaseName` | string? | None | Name for the in-memory database when `UseInMemoryDatabase` is `true`. |
 | `ControlR_AppOptions__InteractiveBearerTokenExpirationMinutes` | int | `60` | Access token lifetime for interactive bearer logins. |
 | `ControlR_AppOptions__InteractiveRefreshTokenExpirationDays` | int | `30` | Refresh token lifetime for interactive bearer logins. |
 | `ControlR_AppOptions__KnownNetworks__N` | string[] | `[]` | CIDR ranges trusted for forwarded headers. Index by `N`. |
 | `ControlR_AppOptions__KnownProxies__N` | string[] | `[]` | Specific proxy IP addresses trusted for forwarded headers. Index by `N`. |
 | `ControlR_AppOptions__MaxFileTransferSize` | long | `104857600` | Max file transfer size in bytes (100 MiB default). `<= 0` for no limit. |
-| `ControlR_AppOptions__MicrosoftClientId` | string? | — | Microsoft OAuth client ID. |
-| `ControlR_AppOptions__MicrosoftClientSecret` | string? | — | Microsoft OAuth client secret. |
+| `ControlR_AppOptions__MicrosoftClientId` | string? | None | Microsoft OAuth client ID. |
+| `ControlR_AppOptions__MicrosoftClientSecret` | string? | None | Microsoft OAuth client secret. |
 | `ControlR_AppOptions__PersistPasskeyLogin` | bool | `false` | Makes passkey login equivalent to "remember me". |
 | `ControlR_AppOptions__RequireUserEmailConfirmation` | bool | `false` | Users must confirm email before logging in. Requires SMTP. |
 | `ControlR_AppOptions__RequireUserUniqueEmail` | bool | `true` | Whether each user must have a unique email address across all tenants. |
 | `ControlR_AppOptions__ServiceAccountAuthFailureLimit` | int | `5` | Maximum failed `x-api-key` authentication attempts allowed per rate-limit window. |
 | `ControlR_AppOptions__ServiceAccountAuthFailureWindowMinutes` | int | `5` | Fixed window size (minutes) for the service-account authentication rate limiter. |
 | `ControlR_AppOptions__SmtpCheckCertificateRevocation` | bool | `true` | Checks SMTP server certificate revocation. |
-| `ControlR_AppOptions__SmtpDisplayName` | string? | — | Display name in outgoing emails. |
-| `ControlR_AppOptions__SmtpEmail` | string? | — | Sender email address for outgoing emails. |
-| `ControlR_AppOptions__SmtpHost` | string? | — | SMTP server hostname/IP. |
-| `ControlR_AppOptions__SmtpLocalDomain` | string? | — | Local domain for SMTP. |
-| `ControlR_AppOptions__SmtpPassword` | string? | — | SMTP authentication password. |
+| `ControlR_AppOptions__SmtpDisplayName` | string? | None | Display name in outgoing emails. |
+| `ControlR_AppOptions__SmtpEmail` | string? | None | Sender email address for outgoing emails. |
+| `ControlR_AppOptions__SmtpHost` | string? | None | SMTP server hostname/IP. |
+| `ControlR_AppOptions__SmtpLocalDomain` | string? | None | Local domain for SMTP. |
+| `ControlR_AppOptions__SmtpPassword` | string? | None | SMTP authentication password. |
 | `ControlR_AppOptions__SmtpPort` | int | `587` | SMTP port (submission port). |
-| `ControlR_AppOptions__SmtpUserName` | string? | — | SMTP authentication username. |
+| `ControlR_AppOptions__SmtpUserName` | string? | None | SMTP authentication username. |
 | `ControlR_AppOptions__UseHttpLogging` | bool | `false` | Enables HTTP request/response logging. |
 | `ControlR_AppOptions__UseInMemoryDatabase` | bool | `false` | Uses EF Core in-memory DB instead of PostgreSQL (dev/test only). |
 
@@ -114,9 +114,9 @@ Configure X.509 certificate-based encryption for Data Protection keys at rest:
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
-| `ControlR_KeyProtectionOptions__CertificateContentsBase64` | string? | — | Base64-encoded PFX certificate contents. Takes precedence over `CertificatePath`. |
-| `ControlR_KeyProtectionOptions__CertificatePassword` | string? | — | Password for password-protected PFX. |
-| `ControlR_KeyProtectionOptions__CertificatePath` | string? | — | File path to PFX certificate. Mount the certificate into the container. |
+| `ControlR_KeyProtectionOptions__CertificateContentsBase64` | string? | None | Base64-encoded PFX certificate contents. Takes precedence over `CertificatePath`. |
+| `ControlR_KeyProtectionOptions__CertificatePassword` | string? | None | Password for password-protected PFX. |
+| `ControlR_KeyProtectionOptions__CertificatePath` | string? | None | File path to PFX certificate. Mount the certificate into the container. |
 | `ControlR_KeyProtectionOptions__EncryptKeys` | bool | `false` | When `true`, Data Protection keys are encrypted at rest using the specified certificate. |
 
 ## Aspire Dashboard Options

@@ -13,7 +13,8 @@ The Settings page (`/settings`) contains per-user preferences for the ControlR w
 
 | Option | Description |
 |---|---|
-| Dark | Dark theme (default) |
+| Auto | Auto theme (respects system settings) |
+| Dark | Dark theme |
 | Light | Light theme |
 
 The theme preference is saved per-user and applies to every page.
@@ -42,16 +43,25 @@ Controls how keyboard input is sent during remote control sessions:
 
 | Setting | Description |
 |---------|-------------|
-| **Auto Quality** | Automatically adjusts quality based on network conditions (default) |
-| **Manual** | Fixed quality level with configurable threshold |
+| **Auto Quality** | Automatically adjusts quality based on network conditions |
+| **Manual** | Fixed quality level (default) |
 | **Max Bandwidth** | Cap for maximum bandwidth usage (kbps) |
 
 ### Capture Settings
 
 | Setting | Description |
 |---------|-------------|
-| **Show Cursor** | Display the remote cursor in the stream |
-| **DirectX Capture** | Use DirectX for screen capture (Windows, better performance) |
+| **Show Cursor** | Display the remote cursor in the stream (default: disabled) |
+| **DirectX Capture** | Use DirectX for screen capture (Windows, better performance; default: enabled) |
+
+### Other Preferences
+
+| Setting | Description |
+|---------|-------------|
+| **Hide Offline Devices** | Hide devices that are currently disconnected (default: enabled) |
+| **Include Untagged Devices** | Show devices that do not have any tags assigned (default: disabled) |
+| **Open Device in New Tab** | Automatically open remote control sessions in a new browser tab (default: enabled) |
+| **Display Name** | Your custom name shown in the interface (max 25 characters, alphanumeric and hyphens only) |
 
 ## Notification Preferences
 

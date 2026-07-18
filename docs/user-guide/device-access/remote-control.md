@@ -28,8 +28,8 @@ Select a session to connect, or choose **Preview** to see a thumbnail before con
 
 | Control | Action |
 |---------|--------|
-| **Zoom In** | Ctrl + Shift + Mouse Wheel |
-| **Zoom Out** | Ctrl + Shift + Mouse Wheel |
+| **Zoom In** | Ctrl + Shift + Mouse Wheel Up |
+| **Zoom Out** | Ctrl + Shift + Mouse Wheel Down |
 | **Full Screen** | Click the full-screen button |
 | **Disconnect** | Click the disconnect button |
 
