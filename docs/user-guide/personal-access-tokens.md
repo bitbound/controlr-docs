@@ -5,7 +5,7 @@ title: Personal Access Tokens
 
 ## Overview
 
-Personal Access Tokens (PATs) allow you to authenticate with the ControlR API as your user account without using a username and password. They're ideal for scripts, automation, and programmatic access.
+Personal Access Tokens (PATs) let you authenticate against the ControlR API as your user account without sending a username and password on every request. Each PAT acts with your roles, tenant, and tag-based device access.
 
 ## Accessing PATs
 
@@ -41,13 +41,25 @@ response = requests.get("https://your-server/api/devices", headers=headers)
 print(response.json())
 ```
 
-```bash
-# Using the ControlR.ApiClient NuGet package
-var client = new ControlRClient(new ControlrApiClientOptions {
-    BaseUrl = new Uri("https://your-server.example.com"),
-    PersonalAccessToken = "abc123def456:secret-key-here"
+For a typed .NET client, use the [`ControlR.ApiClient`](https://www.nuget.org/packages/ControlR.ApiClient) NuGet package:
+
+```csharp
+using ControlR.ApiClient;
+
+ControlrApiClientBuilder.Initialize(options =>
+{
+    options.BaseUrl = new Uri("https://your-server.example.com");
+    options.PersonalAccessToken = "abc123def456:secret-key-here";
 });
+var client = ControlrApiClientBuilder.GetClient();
+
+await foreach (var device in client.V0.Devices.GetAllDevices())
+{
+    Console.WriteLine($"{device.Name} ({device.Id})");
+}
 ```
+
+See the [NuGet Packages](/docs/api-reference/nuget-packages) page for a complete walkthrough of dependency injection and the static builder.
 
 ## Managing Tokens
 

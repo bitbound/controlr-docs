@@ -26,15 +26,16 @@ For configuration keys that do **not** use the `ControlR_` prefix (such as `POST
 
 ## PostgreSQL Configuration
 
-These environment variables configure the PostgreSQL database connection. They do **not** use the `ControlR_` prefix:
+The PostgreSQL connection is configured through these config keys (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_PORT`, and optionally `POSTGRES_USE_ENTRA_ID`). Because the server registers environment variables under the `ControlR_` prefix and strips it (see [Configuration Prefix](#configuration-prefix) above), a Docker host would set `ControlR_POSTGRES_USER`, while a process-native `appsettings.json` would put the key directly under `POSTGRES_USER`. Either form resolves to the same config key.
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `POSTGRES_USER` | Yes | — | PostgreSQL username |
-| `POSTGRES_PASSWORD` | Yes | — | PostgreSQL password |
-| `POSTGRES_HOST` | Yes | — | PostgreSQL host |
-| `POSTGRES_DB` | No | `controlr` | Database name |
-| `POSTGRES_PORT` | No | `5432` | PostgreSQL port |
+| `ControlR_POSTGRES_USER` | Yes | — | PostgreSQL username (matches `POSTGRES_USER` after prefix stripping) |
+| `ControlR_POSTGRES_PASSWORD` | Yes | — | PostgreSQL password (only required when not using Entra ID) |
+| `ControlR_POSTGRES_HOST` | Yes | — | PostgreSQL host (or an `https://...` URI for Azure Database) |
+| `ControlR_POSTGRES_DB` | No | `controlr` | Database name |
+| `ControlR_POSTGRES_PORT` | No | `5432` | PostgreSQL port |
+| `ControlR_POSTGRES_USE_ENTRA_ID` | No | `false` | Set to `true` to authenticate to Azure Database for PostgreSQL with Entra ID |
 
 ## AppOptions
 
@@ -149,7 +150,7 @@ The `DecommissionServer` option permanently decommissions a ControlR server inst
 The web UI displays a decommission indicator. You can also check programmatically:
 
 ```bash
-curl https://your-server/api/user-server-settings/decommission-status \
+curl https://your-server/api/internal/user-server-settings/decommission-status \
   -H "x-personal-token: <tokenId>:<secret>"
 ```
 
@@ -222,7 +223,7 @@ Agents read configuration from `appsettings.json` on the target device. The file
 
 ## Example: Complete Docker Compose Configuration
 
-Here's a production-ready example with common settings:
+Here's a production-ready example with common settings. Sensitive values should come from your host environment, a `.env` file, or Docker secrets rather than being hardcoded. See the [`docker-compose.yml` in the ControlR repo](https://raw.githubusercontent.com/bitbound/ControlR/main/docker-compose/docker-compose.yml) for the canonical file.
 
 ```yaml
 services:
@@ -236,15 +237,15 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: 8080
 
-      # PostgreSQL
+      # PostgreSQL (prefix is stripped by ASP.NET Core; same key as POSTGRES_HOST)
       ControlR_POSTGRES_HOST: postgres
       ControlR_POSTGRES_USER: postgres
-      ControlR_POSTGRES_PASSWORD: changeme
+      ControlR_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?error}
       ControlR_POSTGRES_DB: controlr
 
-      # Admin bootstrap (only on first startup)
-      ControlR_Bootstrap__AdminEmail: admin@example.com
-      ControlR_Bootstrap__AdminPassword: SecureP@ssw0rd
+      # Admin bootstrap (only effective when the user table is empty)
+      ControlR_Bootstrap__AdminEmail: ${BOOTSTRAP_ADMIN_EMAIL:?error}
+      ControlR_Bootstrap__AdminPassword: ${BOOTSTRAP_ADMIN_PASSWORD:?error}
 
       # Public registration (set to true if you want open signup)
       ControlR_AppOptions__EnablePublicRegistration: false
@@ -261,14 +262,14 @@ services:
       ControlR_AppOptions__SmtpEmail: noreply@example.com
       ControlR_AppOptions__SmtpDisplayName: ControlR
       ControlR_AppOptions__SmtpUserName: noreply@example.com
-      ControlR_AppOptions__SmtpPassword: smtp-password-here
+      ControlR_AppOptions__SmtpPassword: ${SMTP_PASSWORD:?error}
 
       # Reverse proxy support
       ControlR_AppOptions__EnableCloudflareProxySupport: false
       # ControlR_AppOptions__EnableNetworkTrust: true  # Only if proxy is guaranteed secure
 
       # Aspire Dashboard (telemetry)
-      ControlR_AspireDashboard__PublicWebUrl: http://localhost:18888
+      ControlR_AspireDashboard__PublicWebUrl: ${ASPIRE_PUBLIC_URL:-http://localhost:18888}
 
       # CORS (if needed)
       # ControlR_AppOptions__EnableCors: true

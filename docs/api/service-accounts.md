@@ -27,12 +27,13 @@ ControlR_Bootstrap__ServerServiceAccountName: "my-automation"
 ControlR_Bootstrap__ServerServiceAccountDescription: "Server-scoped automation account"
 ControlR_Bootstrap__ServerServiceAccountId: "11111111-2222-3333-4444-777777777777"
 ControlR_Bootstrap__ServerServiceAccountTokenId: "11111111-2222-3333-4444-666666666666"
-ControlR_Bootstrap__ServerServiceAccountTokenSecret: "a-very-strong-and-long-secret"
+ControlR_Bootstrap__ServerServiceAccountTokenSecret: "replace-this-with-a-secret-of-at-least-32-chars"
 ```
 
 **Configuration rules:**
 - `ServerServiceAccountName`, `ServerServiceAccountTokenId`, and `ServerServiceAccountTokenSecret` must all be set together
 - `ServerServiceAccountId` and `ServerServiceAccountDescription` are optional
+- `ServerServiceAccountTokenSecret` must be at least 32 characters
 - If the named account already exists, bootstrap is skipped (idempotent)
 - Partial configuration causes startup to fail with an error
 - The secret is never logged
@@ -40,7 +41,7 @@ ControlR_Bootstrap__ServerServiceAccountTokenSecret: "a-very-strong-and-long-sec
 **The resulting x-api-key:**
 
 ```
-x-api-key: 11111111222233334444666666666666:a-very-strong-and-long-secret
+x-api-key: 11111111222233334444666666666666:replace-this-with-a-secret-of-at-least-32-chars
 ```
 
 The format is `{credential-id-hex}:{plaintext-secret}`, where the credential ID is stripped of hyphens.
@@ -122,7 +123,7 @@ Returns `204 No Content`. Once revoked, the credential can no longer authenticat
 
 ## Creating Service Logon Tokens
 
-A key use case for service accounts is creating logon tokens for external system identities. This allows an RMM-style backend to drive device sessions on behalf of users in external systems.
+Service accounts use logon tokens to grant browser sessions on behalf of users in external systems. This is the building block for RMM-style "connect to this device" buttons driven by an external backend.
 
 ```bash
 curl -X POST https://your-server/api/v0/logon-tokens/external \
@@ -135,19 +136,17 @@ curl -X POST https://your-server/api/v0/logon-tokens/external \
   }'
 ```
 
-**How it works:**
+The endpoint finds or creates a **transient user** in the target tenant:
 
-1. The service account calls the endpoint with a `UserCorrelationId` that maps to an identity in the external system
-2. ControlR finds or creates a **transient user** in the target tenant:
-   - Username: `ext-{userCorrelationId}`
-   - Email: `ext-{userCorrelationId}@controlr.local`
-   - No password hash (unloggable via password)
-   - No roles or tags
-3. A single-use logon token is issued, scoped to the specified device
-4. The token embeds the transient user's identity with `controlr:principal:type = service-token`
-5. The browser session has access to exactly one device
+- Username: `ext-{userCorrelationId}`
+- Email: `ext-{userCorrelationId}@controlr.local`
+- No password set (cannot be logged into directly)
+- No roles or tags
+- Scoped to the requested device
 
-Transient users are cleaned up by the external user cleanup background service (configurable via `ControlR_AppOptions__ExternalUserCleanupAfterDays`, default 30 days).
+ControlR issues a single-use logon token that, when opened in a browser, signs the transient user in and lands directly on the device's access page.
+
+Transient users are cleaned up by the external user cleanup background service after `ControlR_AppOptions__ExternalUserCleanupAfterDays` of inactivity (default 30).
 
 ## Error Responses
 

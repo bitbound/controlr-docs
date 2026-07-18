@@ -5,7 +5,7 @@ title: Installer Keys
 
 ## Overview
 
-Installer Keys are access tokens used during agent installation to register devices with the ControlR server. They provide a secure way to control which machines can register as agents.
+Installer keys are access tokens used during agent installation to register devices with the ControlR server. Use them to control which machines can register as agents.
 
 ## Accessing Installer Keys
 

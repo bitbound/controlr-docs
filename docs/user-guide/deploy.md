@@ -56,9 +56,9 @@ sudo ./ControlR.Agent.Installer install \
 ```powershell
 Invoke-WebRequest -Uri "https://your-server/downloads/win-x64/ControlR.Agent.Installer.exe" -OutFile "installer.exe"
 .\installer.exe install `
-  -ServerUri "https://controlr.example.com" `
-  -TenantId "123e4567-e89b-12d3-a456-426614174000" `
-  -InstanceId "workstation-01"
+  --server-uri "https://your-server.example.com" `
+  --tenant-id "123e4567-e89b-12d3-a456-426614174000" `
+  --instance-id "workstation-01"
 ```
 
 ## Self-Registration

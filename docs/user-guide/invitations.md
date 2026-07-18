@@ -5,7 +5,7 @@ title: Invitations
 
 ## Overview
 
-The Invitations page (`/invite`) lets you invite new users to join your tenant. You need the `TenantAdministrator` role to access this page.
+The Invitations page at `/invite` invites new users into your tenant. Tenant Administrator role is required.
 
 ## Inviting Users
 
@@ -32,12 +32,12 @@ The invitations page shows all pending invitations with:
 
 ## Accepting an Invitation
 
-When a user receives an invitation email, they can:
+A user who receives an invitation email:
 
-1. Click the invitation link in the email
-2. Go to the invitation page (`/invite-confirmation`)
-3. Enter their email and choose a password
-4. Join the tenant. They're redirected to the login page.
+1. Clicks the invitation link.
+2. Lands on the invitation page (`/invite-confirmation`).
+3. Enters their email and chooses a password.
+4. Joins the tenant and is redirected to the login page.
 
 ## Next
 

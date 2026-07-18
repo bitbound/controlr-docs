@@ -83,24 +83,28 @@ All Internal routes are under `/api/internal/*`. Auth uses cookie, bearer, or PA
 
 ### Authentication (`/api/internal/auth`)
 
+ASP.NET Core Identity endpoints are mounted under `/api/internal/auth/*` with the routes that `MapIdentityApi` exposes, plus ControlR-specific additions.
+
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | `/api/internal/auth/login` | None | Cookie-based login |
-| POST | `/api/internal/auth/logout` | Cookie | Sign out |
-| POST | `/api/internal/auth/register` | None | User registration |
-| POST | `/api/internal/auth/interactive-login` | None | Bearer token login (2FA supported) |
-| POST | `/api/internal/auth/refresh` | None | Refresh bearer token |
-| POST | `/api/internal/auth/forgot-password` | None | Request password reset email |
-| POST | `/api/internal/auth/reset-password` | None | Reset password with code |
-| POST | `/api/internal/auth/complete-password-reset` | None | Complete password reset |
-| POST | `/api/internal/auth/confirm-email` | None | Confirm email address |
-| POST | `/api/internal/auth/resend-confirmation-email` | None | Resend confirmation email |
-| POST | `/api/internal/auth/change-password` | Any | Change password |
-| POST | `/api/internal/auth/change-password-with-credentials` | None | Change password with credentials + 2FA |
-| POST | `/api/internal/auth/manage-two-factor` | Any | Enable/disable/verify 2FA |
-| GET | `/api/internal/auth/manage-info` | Any | Get manage info |
-| POST | `/api/internal/auth/update-manage-info` | Any | Update manage info |
-| GET | `/api/internal/auth/me` | Any | Get current user's profile and roles |
+| POST | `/api/internal/auth/register` | None | User registration (gated by `EnablePublicRegistration` / first-user bootstrap) |
+| POST | `/api/internal/auth/login` | None | Email + password sign-in (issues cookie) |
+| POST | `/api/internal/auth/refresh` | None | Refresh a bearer token |
+| GET | `/api/internal/auth/confirmEmail` | None | Confirm an email address |
+| POST | `/api/internal/auth/resendConfirmationEmail` | None | Resend the confirmation email |
+| POST | `/api/internal/auth/forgotPassword` | None | Request a password reset email |
+| POST | `/api/internal/auth/resetPassword` | None | Reset a password with a code |
+| POST | `/api/internal/auth/manage/2fa` | Any | Enable, disable, or verify 2FA |
+| GET | `/api/internal/auth/manage/info` | Any | Get two-factor and recovery-code status |
+| POST | `/api/internal/auth/manage/info` | Any | Update 2FA / recovery code state |
+| POST | `/api/internal/auth/change-password` | Any | Change the current user's password |
+| POST | `/api/internal/auth/change-password-with-credentials` | None | Change password with email + current password (+ optional 2FA) |
+| POST | `/api/internal/auth/complete-password-reset` | None | Complete a password reset using a code |
+| POST | `/api/internal/auth/interactive-login` | None | Interactive bearer-token login (requires `EnableInteractiveBearerLogin`) |
+| POST | `/api/internal/auth/logout` | Cookie | Sign out of the web UI |
+| GET | `/api/internal/auth/me` | Any | Get the current user's profile, roles, and tenant |
+
+> Note: routes inherited from ASP.NET Core Identity use camelCase (`forgotPassword`, `manage/2fa`, etc.). Routes added by ControlR use kebab-case (`change-password`, `complete-password-reset`, `interactive-login`).
 
 ---
 
@@ -211,8 +215,9 @@ All Internal routes are under `/api/internal/*`. Auth uses cookie, bearer, or PA
 | GET | `/api/internal/installer-keys` | TenantAdministrator or InstallerKeyManager | List all installer keys |
 | DELETE | `/api/internal/installer-keys/{id}` | TenantAdministrator or InstallerKeyManager | Delete an installer key |
 | GET | `/api/internal/installer-keys/usages/{keyId}` | TenantAdministrator or InstallerKeyManager | Get usage history for a key |
-| POST | `/api/internal/installer-keys/increment-usage/{keyId}` | TenantAdministrator or InstallerKeyManager | Increment usage counter |
 | PUT | `/api/internal/installer-keys/rename` | TenantAdministrator or InstallerKeyManager | Rename an installer key |
+
+Installer-key usage is recorded server-side when an agent installs using a key. There is no separate increment endpoint.
 
 ---
 
@@ -312,7 +317,7 @@ All Internal routes are under `/api/internal/*`. Auth uses cookie, bearer, or PA
 | GET | `/api/internal/server-alert` | Any | Get server-wide alert |
 | POST | `/api/internal/server-alert` | ServerAdministrator | Update server alert |
 | POST | `/api/internal/test-email` | Any | Send test email to current user |
-| GET | `/api/internal/public-registration-settings` | None | Get whether public registration is enabled |
+| GET | `/api/internal/public-server-settings` | None | Get public server settings: whether public registration is enabled, and whether desktop preview is disabled |
 
 ---
 
@@ -336,60 +341,73 @@ Agent endpoints are for device agent communication and are separate from the BFF
 
 ## SignalR Hubs
 
+Both hubs use the MessagePack protocol with JSON fallback. The `AgentHub` validates device identity on first update; the `ViewerHub` requires an authenticated session.
+
 ### AgentHub (`/hubs/agent`)
 
 Agents connect to this hub to register, send updates, and receive commands.
 
-**Client methods (called by server on agent):**
-- `ReceiveDeviceUpdate`: Device state changed
-- `CreateDirectory`: Create directory command
-- `DeleteFile`: Delete file command
-- `UploadFileToViewer`: Start file download
-- `StreamDirectoryContents`: Stream directory
-- `StreamFileContents`: Stream file content
-- `StreamSubdirectories`: Stream subdirectories
-- `ReceiveChatResponse`: Chat response
-- `ReceiveTerminalOutput`: Terminal output
-- `ReceivePowerStateChange`: Power state change
-- `ReceiveAgentUpdateTrigger`: Trigger agent update check
-- `UninstallAgent`: Uninstall agent command
-- `CloseChatSession`: Close chat session
-
 **Server methods (called by agent):**
-- `UpdateDevice` / `UpdateDeviceSigned`: Update device info
-- `SendDesktopPreviewStream`: Stream desktop preview
-- `SendDirectoryContentsStream`: Stream directory
-- `SendFileContentStream`: Stream file content
-- `SendSubdirectoriesStream`: Stream subdirectories
-- `SendChatResponse`: Forward chat response
-- `SendTerminalOutputToViewer`: Forward terminal output
+- `CloseChatSession(sessionId, targetProcessId)`
+- `CloseTerminalSession(terminalSessionId)`
+- `CreateDirectory(dto)`
+- `CreateRemoteControlSession(dto)`
+- `CreateTerminalSession(terminalSessionId, viewerConnectionId)`
+- `CreateVncSession(dto)`
+- `DeleteFile(dto)`
+- `DownloadFileFromViewer(dto)`
+- `GetActiveDesktopSessions()`
+- `GetLogFiles()`
+- `GetPathSegments(dto)`
+- `GetPwshCompletions(request)`
+- `GetRootDrives(request)`
+- `InvokeCtrlAltDel(request)`
+- `InvokeWakeDevice(dto)`
+- `ReceiveAgentUpdateTrigger()`
+- `ReceivePowerStateChange(changeType)`
+- `ReceiveTerminalInput(dto)`
+- `RefreshDeviceInfo()`
+- `RequestDesktopPreview(dto)`
+- `RequestRemoteControlPermission(targetProcessId)`
+- `SendChatMessage(dto)`
+- `StreamDirectoryContents(dto)`
+- `StreamFileContents(dto)`
+- `StreamSubdirectories(dto)`
+- `TestVncConnection(port)`
+- `UninstallAgent(reason)`
+- `UploadArchiveToViewer(dto)`
+- `UploadFileToViewer(dto)`
+- `ValidateFilePath(dto)`
+
+The server publishes real-time device updates, terminal output, and chat messages back through these methods.
 
 ### ViewerHub (`/hubs/viewer`)
 
 Authenticated viewers connect to this hub for device control.
 
 **Server methods (called by viewer):**
-- `RequestRemoteControlSession`: Start remote control
-- `RequestVncSession`: Start VNC session
-- `RequestRemoteControlPermission`: Request permission
-- `UploadFile`: Upload file to device
-- `SendTerminalInput`: Send terminal input
-- `CreateTerminalSession`: Create terminal session
-- `CloseTerminalSession`: Close terminal session
-- `SendChatMessage`: Send chat message
-- `SendChatResponse`: Forward chat response
-- `SendDtoToAgent`: Send generic DTO to agent
-- `SendDtoToUserGroups`: Send DTO to user groups
-- `SendAgentUpdateTrigger`: Trigger agent update
-- `SendPowerStateChange`: Power state change
-- `SendWakeDevice`: Wake-on-LAN
-- `UninstallAgent`: Remote uninstall
-- `RefreshDeviceInfo`: Refresh device info
-- `InvokeCtrlAltDel`: Invoke Ctrl+Alt+Del (Windows)
-- `CloseChatSession`: Close chat session
-- `TestVncConnection`: Test VNC connection
-- `GetActiveDesktopSessions`: Get Windows desktop sessions
-- `GetPwshCompletions`: PowerShell completions
+- `CloseChatSession(deviceId, sessionId, targetProcessId)`
+- `CloseTerminalSession(deviceId, terminalSessionId)`
+- `CreateTerminalSession(deviceId, terminalSessionId)`
+- `GetActiveDesktopSessions(deviceId)`
+- `GetPwshCompletions(request)`
+- `InvokeCtrlAltDel(deviceId, targetDesktopProcessId, sessionType)`
+- `RefreshDeviceInfo(deviceId)`
+- `RequestRemoteControlPermission(deviceId, targetProcessId)`
+- `RequestRemoteControlSession(deviceId, sessionRequest)`
+- `RequestVncSession(deviceId, sessionRequest)`
+- `SendAgentUpdateTrigger(deviceId)`
+- `SendChatMessage(deviceId, dto)`
+- `SendDtoToAgent(deviceId, wrapper)`
+- `SendDtoToUserGroups(wrapper)`
+- `SendPowerStateChange(deviceId, changeType)`
+- `SendTerminalInput(deviceId, dto)`
+- `SendWakeDevice(deviceId, macAddresses)`
+- `TestVncConnection(deviceId, port)`
+- `UninstallAgent(deviceId, reason)`
+- `UploadFile(metadata, fileStream)`
+
+Pushed from server to the viewer client: `ReceiveDeviceUpdate`, `ReceiveChatResponse`, `ReceiveTerminalOutput`, `ReceiveServerStats`, `InvokeToast`.
 
 ## Next
 

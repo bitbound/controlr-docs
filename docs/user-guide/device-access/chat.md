@@ -5,7 +5,7 @@ title: Chat
 
 ## Overview
 
-Chat provides real-time messaging between you and a connected device. It works across all supported platforms.
+Chat is real-time messaging with the user of a connected device. It works across all supported platforms.
 
 ## Accessing Chat
 
@@ -43,4 +43,4 @@ Chat provides real-time messaging between you and a connected device. It works a
 ## Next
 
 - **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)**: Screen streaming and control
-- **[File System](/docs/user-guide/file-system)**: Remote file management
+- **[Device Access: File System](/docs/user-guide/device-access/file-system)**: Remote file management

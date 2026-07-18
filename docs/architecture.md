@@ -154,13 +154,17 @@ This separation keeps the agent lightweight and allows it to run headlessly, whi
 
 ### Platform Support
 
-| Platform | Remote Control | Terminal | Auto-Update |
-|----------|:---:|:---:|:---:|
-| Windows 11 (x64, x86) | Full | Yes | Yes |
-| macOS Apple Silicon (M1+) | Full | Yes | Yes |
-| Linux AMD64 (X11) | Full | Yes | Yes |
-| Linux (Wayland) | Experimental | Yes | Yes |
-| macOS (VNC fallback) | Experimental | Yes | Yes |
+| Platform | Remote Control | Terminal | Auto-Update | Chat | File System |
+|----------|:---:|:---:|:---:|:---:|:---:|
+| Windows 11 (x64, x86) | Full | Yes | Yes | Yes | Yes |
+| macOS Apple Silicon (M1+) | Full¹ | Yes | Yes | Yes | Yes |
+| macOS Intel | Untested | Yes | Yes | Yes | Yes |
+| Linux AMD64 (X11) | Full | Yes | Yes | Yes | Yes |
+| Linux (Wayland) | Experimental² | Yes | Yes | Yes | Yes |
+| macOS (Apple Screen Sharing / VNC) | Experimental | Yes | Yes | Yes | Yes |
+
+¹ Controlling the macOS login window requires an already-logged-in user session.
+² Requires the XDG Desktop Portal with a restore token cached for the user; see the user guide for setup details.
 
 ---
 
@@ -206,13 +210,13 @@ The Desktop Client connects to the server's WebSocket relay **only during active
 
 ## Telemetry
 
-Both the **Server** and the **Agent** can optionally export OpenTelemetry data (traces, metrics, logs) to any OTLP-compatible collector:
+Both the **Server** and the **Agent** can optionally export OpenTelemetry data (traces, metrics, logs). The two supported destinations are independent and may both be configured:
 
-| Environment | Collector | Configuration |
-|-------------|-----------|---------------|
-| Development | ASP.NET Aspire Dashboard | Set `OTLP_ENDPOINT_URL` to the Aspire OTLP endpoint |
-| Production | Azure Monitor | Set `AzureMonitor:ConnectionString` |
-| Production (alt) | Any OTLP-compatible backend | Set `OTLP_ENDPOINT_URL` to your collector |
+| Destination | Configuration |
+|---|---|
+| ASP.NET Aspire Dashboard (development) | Set `OTLP_ENDPOINT_URL` to the Aspire OTLP endpoint |
+| Any OTLP-compatible backend | Set `OTLP_ENDPOINT_URL` to your collector |
+| Azure Monitor / Application Insights | Set `AzureMonitor__ConnectionString` |
 
 ---
 

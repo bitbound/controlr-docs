@@ -5,11 +5,11 @@ title: Headless Remote Control
 
 ## Overview
 
-ControlR can remotely control machines that have no physical monitor attached, commonly referred to as **headless** systems. These include workstations tucked away in a closet, dedicated kiosks, VM hosts, or any customer device that normally runs without a display.
+ControlR can remote-control machines without a physical monitor attached (headless systems): workstations in a closet, dedicated kiosks, VM hosts, and customer devices without a display.
 
-However, when no monitor is connected, the operating system may not initialize a display output, which can prevent remote control sessions from capturing the screen. To work around this, you need to provide a **virtual display adapter** so the OS always has an active screen to render.
+Without a connected monitor, the OS may leave the GPU uninitialized and the capture pipeline returns a blank frame. A **virtual display adapter** keeps the OS reporting an active screen, so capture frames come through.
 
-> **Note:** Headless remote control has only been validated on **Windows**. Headless setups on macOS and Linux have **not yet been evaluated** and may not work as expected.
+> **Note:** Headless remote control has only been validated on Windows. macOS and Linux headless setups have not been evaluated.
 
 ## Why a Virtual Display Is Needed
 

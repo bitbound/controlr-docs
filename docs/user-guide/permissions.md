@@ -17,7 +17,7 @@ Create, rename, and delete tags. Tags are used for device access control: a user
 
 | Action | Description |
 |--------|-------------|
-| **Create** | Add a new tag (name must match `[a-zA-Z0-9-]`, max 100 chars) |
+| **Create** | Add a new tag (name must match `[a-z0-9-]`, max 100 chars) |
 | **Rename** | Change an existing tag's name |
 | **Delete** | Remove a tag (does not affect device assignments) |
 

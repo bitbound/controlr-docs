@@ -77,7 +77,6 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'faq',
-    // 'contributing', // Hidden — re-enable when ready to accept community contributions
   ],
 };
 

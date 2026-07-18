@@ -9,15 +9,23 @@ ControlR supports exporting telemetry data via **OpenTelemetry (OTLP)** for obse
 
 ## Architecture
 
+ControlR exports OpenTelemetry traces, metrics, and logs to whichever destination you configure. Both the server (ASP.NET Core) and the agent (.NET) publish telemetry independently, and you can run them with no exporter configured at all.
+
+Common exporter paths:
+
 ```
-┌──────────────────┐      ┌──────────────────┐      ┌─────────────────┐
-│  ControlR Server │ ────▶│  OTLP Endpoint   │ ────▶│  Aspire         │
-│  (ASP.NET Core)  │      │  (gRPC/HTTP)      │      │  Dashboard      │
-│                  │      └──────────────────┘      └─────────────────┘
-│  Agent           │                                      OR
-│  (.NET Console)  │ ────▶───────────────────▶  Azure Monitor /
-└──────────────────┘      ───────────────────▶  Application Insights
+                  ┌─────────────────────┐
+ControlR Server ──┤  OTLP endpoint      ├──▶ Aspire Dashboard
+ControlR Agent  ──┤  (gRPC or HTTP)     │
+                  └─────────────────────┘
+
+                  ┌─────────────────────┐
+ControlR Server ──┤  Azure Monitor      ├──▶ Application Insights
+ControlR Agent  ──┤  (ConnectionString) │
+                  └─────────────────────┘
 ```
+
+`OTLP_ENDPOINT_URL` and `AzureMonitor:ConnectionString` are configured independently: set either, both, or neither. If neither is set, no telemetry is exported.
 
 ## Aspire Dashboard
 
@@ -42,7 +50,7 @@ ControlR_OTLP_ENDPOINT_URL: "http://aspire:18889"
 2. Retrieve the dashboard URL (with embedded auth token) via the API:
 
 ```bash
-curl https://your-server/api/server-logs/get-aspire-url \
+curl https://your-server/api/internal/server-logs/get-aspire-url \
   -H "x-personal-token: <tokenId>:<secret>"
 ```
 

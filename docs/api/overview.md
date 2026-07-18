@@ -5,7 +5,7 @@ title: API Overview
 
 ## Overview
 
-ControlR provides a RESTful API for programmatic access to its features. The API is split into three **route roots**, each serving a distinct audience with different contract stability guarantees.
+ControlR exposes a REST API and two SignalR hubs. The REST API is split into three route roots, each serving a distinct audience with different contract stability guarantees.
 
 ## Route Architecture
 
@@ -84,7 +84,7 @@ See the [Authentication Guide](/docs/authentication-guide) for details on each m
 
 ## Response Format
 
-Successful responses return typed DTOs specific to each endpoint. Refer to the [OpenAPI specification](/openapi/v1.json) or [Scalar API Browser](/docs/scalar-api-browser) for the full schema of each endpoint.
+Successful responses return typed DTOs specific to each endpoint. Refer to the [OpenAPI specification](https://your-server/openapi/v1.json) or [Scalar API Browser](/docs/scalar-api-browser) for the full schema of each endpoint. The path is relative to your server origin; substitute `your-server` with your real host.
 
 ## Error Handling
 

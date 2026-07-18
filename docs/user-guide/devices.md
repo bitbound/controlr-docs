@@ -15,5 +15,5 @@ Devices are organized using **tags**: string labels that can be assigned to both
 
 ### Tag Validation
 
-- Tag names must match `[a-zA-Z0-9-]`
+- Tag names must match `[a-z0-9-]` (lowercase letters, digits, and hyphens only)
 - Max length: 100 characters

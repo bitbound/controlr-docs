@@ -9,9 +9,14 @@ The ControlR agent runs as a background service on target devices. The level of 
 
 ## Windows 11 (x64, x86)
 
-| Feature | Support |
-|---------|---------|
-| **Remote Control** | Full support |
+| Capability | Support | Notes |
+|---|---|---|
+| Remote Control | Full | DXGI duplication capture, Aero peek |
+| Terminal | Yes | Cross-platform PowerShell host |
+| Chat | Yes | |
+| File System | Yes | |
+| Log Streaming | Yes | |
+| Auto-Update | Yes | Background 6h check |
 
 ## macOS
 
@@ -27,11 +32,13 @@ Tested on Mac Mini M4 and MacBook Air M1 running latest version of macOS.
 
 ### Intel (untested)
 
+The agent should run on Intel macOS but is not exercised in CI. Expect rough edges; treat Intel macOS as "should work, not validated."
+
 | Feature | Support |
-|---------|---------|
-| **Remote Control** | Not supported |
-| **VNC (Apple Screen Sharing)** | Experimental |
-| **Code Signing** | Signed using adhoc certificate |
+|---|---|
+| Remote Control | Untested |
+| VNC (Apple Screen Sharing) | Experimental |
+| Code Signing | Adhoc-signed |
 
 ## Linux AMD64 (latest LTS)
 

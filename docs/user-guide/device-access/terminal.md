@@ -5,7 +5,7 @@ title: Terminal
 
 ## Overview
 
-The Terminal provides remote shell access on any connected device. ControlR uses an embedded cross-platform PowerShell host, available on Windows, macOS, and Linux.
+The Terminal provides remote shell access on every connected device. ControlR ships an embedded cross-platform PowerShell host, available on Windows, macOS, and Linux.
 
 ## Accessing the Terminal
 

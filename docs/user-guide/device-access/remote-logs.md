@@ -5,7 +5,7 @@ title: Remote Logs
 
 ## Overview
 
-The Remote Logs page lets you view, search, and download log files from connected agents.
+The Remote Logs page shows log files from a connected agent. You can search within a file, copy its contents, or download it.
 
 ## Accessing Remote Logs
 
@@ -59,5 +59,5 @@ Desktop client logs follow the same pattern under `ControlR.DesktopClient`.
 
 ## Next
 
-- **[Terminal](/docs/user-guide/terminal)**: Remote PowerShell access
-- **[VNC Relay](/docs/user-guide/vnc-relay)**: VNC remote access
+- **[Device Access: Terminal](/docs/user-guide/device-access/terminal)**: Remote PowerShell access
+- **[Device Access: VNC Relay](/docs/user-guide/device-access/vnc-relay)**: VNC remote access

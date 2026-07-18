@@ -24,13 +24,13 @@ sudo docker compose start controlr
 
 ### Backup via Docker Volume Copy
 
-Alternatively, backup the PostgreSQL data volume directly:
+Alternatively, back up the PostgreSQL data volume directly. The `docker-compose.yml` in the ControlR repo creates the volume as `controlr-data`, so substitute the name below if you have renamed it:
 
 ```bash
 # Stop services
 sudo docker compose stop
 
-# Backup the volume
+# Back up the volume
 sudo docker run --rm \
   -v controlr-data:/data \
   -v $(pwd):/backup \
@@ -79,6 +79,8 @@ sudo docker run --rm \
 # Start services
 sudo docker compose start
 ```
+
+> Substitute your actual volume name in the `-v controlr-data:/data` mount if you named it differently. `docker volume ls` shows the names Docker created.
 
 ## Next
 

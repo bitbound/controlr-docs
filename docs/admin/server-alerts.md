@@ -5,12 +5,9 @@ title: Server Alerts
 
 ## Overview
 
-Server Alerts allow **Server Administrators** to broadcast a message across the entire ControlR web interface. When an alert is active, it appears prominently in the UI for all authenticated users, making it useful for:
+Server Administrators can broadcast a single banner message across the whole web interface. The banner shows for every authenticated user until cleared.
 
-- Announcing planned maintenance windows
-- Notifying users of known issues or outages
-- Communicating urgent security information
-- Broadcasting upgrade reminders
+Use cases include planned maintenance windows, incident notifications, security advisories, and upgrade reminders.
 
 ## Setting a Server Alert
 
@@ -25,7 +22,7 @@ Only users with the **Server Administrator** role can manage server alerts.
 ### Using the API
 
 ```bash
-curl -X POST https://your-server/api/server-alert \
+curl -X POST https://your-server/api/internal/server-alert \
   -H "x-personal-token: <tokenId>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -34,44 +31,47 @@ curl -X POST https://your-server/api/server-alert \
   }'
 ```
 
-**Parameters:**
+**Request body:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
+| Field | Type | Required | Description |
+|---|---|---|---|
 | `message` | string | Yes | The alert text displayed to all users |
-| `severity` | string | No | Alert severity level (see below) |
+| `severity` | string | No | One of `info`, `warning`, `error`, or `success`. Defaults to `warning` |
+| `isEnabled` | bool | No | When `false`, hides the alert from the UI without deleting it |
+| `isDismissable` | bool | No | When `false`, the alert cannot be dismissed by the user |
+| `isSticky` | bool | No | When `true`, the alert re-appears after page navigation |
 
 ### Severity Levels
 
-| Level | Description | Visual Style |
-|-------|-------------|-------------|
-| `info` | Informational announcement | Blue |
-| `warning` | Important notice (default) | Yellow/Amber |
-| `error` | Critical alert | Red |
+| Level | Description |
+|---|---|
+| `info` | Informational announcement |
+| `warning` | Important notice (default) |
+| `error` | Critical alert |
+| `success` | Positive confirmation (e.g., upgrade complete) |
 
 ## Viewing the Active Alert
 
-All authenticated users can see the current alert:
+Any authenticated user can read the current alert:
 
 ```bash
-curl https://your-server/api/server-alert
+curl https://your-server/api/internal/server-alert
 ```
 
-**Response:**
+**Response** (`ServerAlertResponseDto`):
 
 ```json
 {
-  "success": true,
-  "data": {
-    "message": "Scheduled maintenance tonight at 2 AM UTC.",
-    "severity": "warning",
-    "createdAt": "2026-06-23T10:00:00Z",
-    "createdBy": "admin@example.com"
-  }
+  "message": "Scheduled maintenance tonight at 2 AM UTC.",
+  "severity": "warning",
+  "createdAt": "2026-06-23T10:00:00Z",
+  "isEnabled": true,
+  "isDismissable": true,
+  "isSticky": false
 }
 ```
 
-If no alert is active, the response returns `null`.
+If no alert is active, the endpoint returns `404 Not Found`.
 
 ## Clearing a Server Alert
 
@@ -86,7 +86,7 @@ If no alert is active, the response returns `null`.
 To clear the current alert, POST an empty message:
 
 ```bash
-curl -X POST https://your-server/api/server-alert \
+curl -X POST https://your-server/api/internal/server-alert \
   -H "x-personal-token: <tokenId>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{

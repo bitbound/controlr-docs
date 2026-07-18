@@ -3,23 +3,23 @@ sidebar_position: 0
 title: Welcome to ControlR
 ---
 
-ControlR is a powerful, open-source remote control application for managing and controlling devices over a network. It offers a web-based interface for remote desktop, file transfer, terminal management, and device monitoring.
+ControlR is an open-source remote control and remote access server. A web dashboard and a set of self-hosted agents let you connect to Windows, macOS, and Linux machines, then stream screens, run a PowerShell terminal, transfer files, and chat with the desktop user.
 
 ## Why ControlR?
 
-- **Cross-platform:** Web dashboard works in any modern browser; agents run on Windows, macOS, and Linux
-- **Real-time control:** Low-latency remote desktop with screen streaming and input forwarding
-- **Secure by default:** Multi-tenant isolation, token-based authentication, and TLS-encrypted communications
-- **Self-hosted:** Full control over your data with Docker deployment
-- **Open source:** MIT licensed
+- **Cross-platform:** Web dashboard works in any modern browser; agents run on Windows, macOS, and Linux.
+- **Real-time control:** WebSocket screen streaming and input forwarding, backed by a SignalR control plane.
+- **Multi-tenant:** Server, tenant, and per-user isolation with role-based access and tag-based device scoping.
+- **Self-hosted:** Run the whole stack in Docker or as a native process on Linux. Your data stays on your hardware.
+- **MIT licensed:** Source available, no per-agent or per-seat fees.
 
 ## Quick Links
 
-- **[Getting Started](/docs/getting-started)**: Learn the basics and get up and running
-- **[Installation](/docs/installation)**: Docker and native installation
-- **[User Guide](/docs/user-guide/dashboard)**: Explore remote control, file system, terminal, and more
-- **[Architecture](/docs/architecture)**: System architecture overview
-- **[API Reference](/docs/api/overview)**: API documentation
-- **[GitHub](https://github.com/bitbound/ControlR)**: Source code and issue tracker
-- **[Live Demo](https://demo.controlr.app)**: Try ControlR in your browser
-- **[Discord](https://discord.gg/JWJmMPc72H)**: Join the community
+- **[Getting Started](/docs/getting-started)**: Components, prerequisites, and architecture overview.
+- **[Installation](/docs/installation)**: Docker Compose quick start and agent install scripts.
+- **[User Guide](/docs/user-guide/dashboard)**: Dashboard, device access, deploy, and admin pages.
+- **[Architecture](/docs/architecture)**: How the server, hubs, and agent fit together.
+- **[API Reference](/docs/api/overview)**: REST endpoints, SignalR hubs, and NuGet clients.
+- **[GitHub](https://github.com/bitbound/ControlR)**: Source code, issues, and discussions.
+- **[Live Demo](https://demo.controlr.app)**: Try a hosted instance.
+- **[Discord](https://discord.gg/JWJmMPc72H)**: Community chat.

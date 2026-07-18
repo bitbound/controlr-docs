@@ -5,171 +5,98 @@ title: Authentication
 
 ## Authentication Overview
 
-ControlR uses a multi-scheme authentication pipeline that routes requests to the appropriate handler based on the request type. There are **five authentication schemes**:
+Every ControlR API request must be authenticated. The server routes each request through a [dynamic policy scheme](/docs/authentication-guide) that picks one of five handlers based on the request's headers and URL. This page documents the three machine-to-machine schemes used by API clients and automations: Personal Access Tokens, Service Account credentials, and Logon Tokens. For the cookie, bearer-token, and external-login flows, see the [Authentication Guide](/docs/authentication-guide).
 
-1. **Cookie-based authentication**: Default for the web UI (Blazor WASM)
-2. **Bearer token authentication**: For interactive login via API (desktop clients, scripts)
-3. **Personal Access Token (PAT)**: For long-lived programmatic access
-4. **Service Account Credential**: For S2S automation and cross-tenant management
-5. **Logon Token**: For single-use device access URLs
+## Authentication Methods
 
-## Dynamic Authentication Scheme
+| Method | Header / parameter | Use case |
+|---|---|---|
+| Personal Access Token (PAT) | `x-personal-token: <tokenId>:<secret>` | Long-lived per-user tokens for scripts and CI |
+| Service Account credential | `x-api-key: <credentialId>:<secret>` | Server-scoped, cross-tenant automation |
+| Logon Token | `?logonToken=<token>&deviceId=<guid>` on `/device-access` | Single-use, per-device browser session |
 
-ControlR uses a policy scheme that automatically selects the right handler:
+## 1. Personal Access Tokens (PATs)
 
-- Requests with `x-api-key` header → Service Account handler
-- Requests to `/device-access` with a `logonToken` query parameter → Logon Token handler
-- Requests with `Authorization: Bearer <token>` → Bearer Token handler
-- Requests with `x-personal-token` header → PAT handler
-- Everything else → Cookie-based authentication
+A PAT authenticates as the user who created it, with the user's roles, tenant, and tag-based device access. Create tokens in the **Access Tokens** page at `/personal-access-tokens`, or in the API with the user's existing credentials.
 
-## 1. Cookie-Based Authentication (Web UI)
-
-This is the default authentication method for the web interface. Users log in through the login page and receive an authentication cookie.
-
-**Login flow:**
-1. Navigate to the ControlR web interface
-2. Enter username and password
-3. If 2FA is enabled, enter the TOTP code
-4. If passkey is configured, complete the passkey authentication
-5. An authentication cookie is set for the session
-
-**Logout:**
-- Use the logout button in the web interface
-- Or POST to `/api/auth/logout`
-
-## 2. Bearer Token Authentication (Interactive Login)
-
-Bearer tokens are useful for desktop clients, CLI tools, or any scenario where cookies aren't practical.
-
-**Prerequisites:** The server must have `ControlR_AppOptions__EnableInteractiveBearerLogin` set to `true`.
-
-**Obtaining a token:**
-
-```bash
-curl -X POST https://your-server/api/auth/interactive-login \
-  -H "Content-Type: application/json" \
-  -d '{"userName":"user@example.com","password":"your-password","twoFactorCode":"123456"}'
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "token": "<jwt-bearer-token>",
-    "refreshToken": "<refresh-token>",
-    "expiresIn": 3600
-  }
-}
-```
-
-**Token lifetimes** (configurable):
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `ControlR_AppOptions__InteractiveBearerTokenExpirationMinutes` | `60` | Access token lifetime |
-| `ControlR_AppOptions__InteractiveRefreshTokenExpirationDays` | `30` | Refresh token lifetime |
-
-**Refreshing tokens:**
-```bash
-curl -X POST https://your-server/api/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{"refreshToken":"<refresh-token>"}'
-```
-
-**Using the token:**
-```bash
-curl https://your-server/api/devices \
-  -H "Authorization: Bearer <token>"
-```
-
-## 3. Personal Access Tokens (PATs)
-
-Personal Access Tokens provide long-lived programmatic access without needing a username/password. They're created through the web UI or API.
-
-**Creating a PAT:**
-1. Navigate to **Access Tokens** in the web interface (`/personal-access-tokens`)
-2. Enter a friendly name
-3. Click **Create PAT**
-4. Copy and store the token. It will **never be shown again**.
+**Token format:** `<tokenId>:<secret>` (hex GUID for the token ID, plaintext secret).
 
 **Using a PAT:**
+
 ```bash
-curl https://your-server/api/devices \
+curl https://your-server/api/v0/devices \
   -H "x-personal-token: <tokenId>:<secret>"
 ```
 
-The token format is `{tokenId}:{secret}`. It's sent via the `x-personal-token` header (not `Authorization`).
+PATs do **not** use the `Authorization` header. The dotnet API client sends them automatically when `ControlrApiClientOptions.PersonalAccessToken` is set.
 
-**Rate limiting:** PAT authentication failures are rate-limited to 5 attempts per 5 minutes per token prefix + IP.
+**Rate limiting:** failed PAT authentication is rate-limited to 5 attempts per 5-minute window per token-prefix + source IP. After the limit is hit, requests return `429 Too Many Requests`.
 
-## 4. Service Account Credential Authentication (x-api-key)
+**Sample typed client call:**
 
-Service accounts are server-scoped or tenant-scoped identities designed for system-to-system (S2S) automation. They authenticate using an API key rather than a user password.
+```csharp
+using ControlR.ApiClient;
 
-**Bootstrap a service account** (on first startup):
-
-```yaml
-ControlR_Bootstrap__ServerServiceAccountName: "my-automation"
-ControlR_Bootstrap__ServerServiceAccountTokenId: "11111111-2222-3333-4444-555555555555"
-ControlR_Bootstrap__ServerServiceAccountTokenSecret: "a-very-strong-and-long-secret"
+var client = ControlrApiClientBuilder.GetClient();
+await foreach (var device in client.V0.Devices.GetAllDevices(cancellationToken))
+{
+    Console.WriteLine($"{device.Name} ({device.Id})");
+}
 ```
 
-**Using the x-api-key:**
+## 2. Service Account Credentials
+
+Service accounts are non-interactive, server-scoped identities for S2S automation (RMM-style platforms, CI/CD, cross-tenant scripts). They authenticate via `x-api-key` and have no tenant context, so every tenant, user, and device ID must be explicit in each request.
+
+**Token format:** `<credentialId>:<secret>` (hex GUID + plaintext secret).
+
+**Using a service account:**
 
 ```bash
 curl https://your-server/api/v0/service-accounts \
-  -H "x-api-key: 11111111222233334444555555555555:a-very-strong-and-long-secret"
+  -H "x-api-key: <credentialId>:<secret>"
 ```
 
-The token format is `{credential-id-hex}:{plaintext-secret}`, sent via the `x-api-key` header.
+**Bootstrap:** create the first service account on startup with `Bootstrap__ServerServiceAccountName`, `Bootstrap__ServerServiceAccountTokenId`, and `Bootstrap__ServerServiceAccountTokenSecret`. All three must be set together, or startup fails. The secret must be at least 32 characters. See [Service Accounts](/docs/api/service-accounts) for the full reference.
 
-**Claims emitted on successful auth:**
+**Claims emitted:**
 
 | Claim | Value |
-|-------|-------|
+|---|---|
 | `controlr:principal:type` | `server-service-account` |
-| `controlr:principal:id` | Service account GUID |
+| `controlr:principal:id` | The service account's GUID |
 | `controlr:auth:method` | `service-account-credential` |
-| `controlr:credential:id` | Credential GUID |
+| `controlr:credential:id` | The credential's GUID |
 
-No `controlr:tenant:id` claim is emitted. Server-scoped service accounts are cross-tenant; all identifiers must be explicit in the request.
+There is no `controlr:tenant:id` claim, because server-scoped service accounts are cross-tenant.
 
-**Rate limiting:** Service account authentication failures are rate-limited per IP + credential-ID prefix. Configurable via `ControlR_AppOptions__ServiceAccountAuthFailureLimit` (default 5) and `ControlR_AppOptions__ServiceAccountAuthFailureWindowMinutes` (default 5).
+**Rate limiting:** failed service-account authentication is rate-limited per IP + credential-prefix. Defaults are 5 attempts per 5-minute window; configure via `ControlR_AppOptions__ServiceAccountAuthFailureLimit` and `ControlR_AppOptions__ServiceAccountAuthFailureWindowMinutes`.
 
-**Service-account-only deployments:** To run ControlR in a headless/API-only mode with no self-registration:
+## 3. Logon Tokens
 
-```yaml
-ControlR_AppOptions__EnablePublicRegistration: false
-ControlR_AppOptions__DisableFirstUserSelfRegistration: true
-# + bootstrap server service account configuration above
-```
+Logon tokens grant browser access to a single device, scoped to either an existing user or a transient external user created on the fly. They are single-use and time-limited.
 
-**Managing credentials:** Additional credentials can be created and revoked via `POST /api/v0/service-accounts/{id}/credentials` and `DELETE /api/v0/service-accounts/{id}/credentials/{credentialId}`. Each credential's secret is returned exactly once on creation.
+| Kind | Creator | Use case |
+|---|---|---|
+| User | Any authenticated user | Grant someone a browser session pinned to one device |
+| Service | Service account | Open a browser session on behalf of a user in an external system |
 
-## 5. Logon Tokens
-
-Logon Tokens are time-limited, single-use tokens that grant access to a **specific device**. They come in two kinds:
-
-| Kind | Creator | Use Case |
-|------|---------|----------|
-| **User** | Any authenticated user | Granting a user browser session for a specific device |
-| **Service** | Service account | Creating a temporary browser session linked to an external system identity |
-
-**Creating a user logon token (Internal API):**
+**Create a user logon token (Internal API):**
 
 ```bash
 curl -X POST https://your-server/api/internal/logon-tokens \
-  -H "Authorization: Bearer <token>" \
+  -H "Authorization: Bearer <bearer-token>" \
   -H "Content-Type: application/json" \
   -d '{"deviceId":"<device-guid>"}'
 ```
 
-**Creating a service logon token (V0 API):**
+The response contains a URL like `https://your-server/device-access?logonToken=<token>&deviceId=<guid>` that can be opened in a browser.
+
+**Create a service logon token (V0 API):**
 
 ```bash
 curl -X POST https://your-server/api/v0/logon-tokens/external \
-  -H "x-api-key: <credential-id>:<secret>" \
+  -H "x-api-key: <credentialId>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{
     "tenantId": "<tenant-guid>",
@@ -178,52 +105,22 @@ curl -X POST https://your-server/api/v0/logon-tokens/external \
   }'
 ```
 
-Service logon tokens find-or-create a **transient user** (`ext-{correlationId}`) in the target tenant. These users have no password (unloggable), no real email, and no roles or tags. They are scoped to a single device.
+The service account's call creates or finds a transient user in the target tenant (`ext-{userCorrelationId}`) with no password, no roles, no tags, and access scoped to the specified device. The returned URL opens a browser session on that user's behalf. Cleanup is automatic after `ControlR_AppOptions__ExternalUserCleanupAfterDays` days of inactivity (default 30).
 
-## External Authentication
+## Error Responses
 
-ControlR supports external login providers:
+| Status | Meaning |
+|---|---|
+| `400` | Invalid request (missing/invalid fields) |
+| `401` | Missing or invalid credentials |
+| `403` | Authenticated but not authorized (wrong scheme, missing role, denied device access) |
+| `429` | Rate limit exceeded (check the `Retry-After` header) |
+| `503` | Service unavailable (typically the upstream identity store) |
 
-| Provider | Configuration |
-|----------|--------------|
-| **Microsoft Account** | Set `ControlR_AppOptions__MicrosoftClientId` and `ControlR_AppOptions__MicrosoftClientSecret` |
-| **GitHub OAuth** | Set `ControlR_AppOptions__GitHubClientId` and `ControlR_AppOptions__GitHubClientSecret` |
-
-External providers require both a Client ID and Client Secret to be configured. They appear as login options on the login page.
-
-## Two-Factor Authentication (2FA)
-
-Users can enable TOTP-based 2FA through their account settings. The authenticator app name is controlled by `ControlR_AppOptions__AuthenticatorIssuerName` (default: "ControlR").
-
-## Passkey Authentication
-
-Passkeys provide passwordless authentication. When enabled, users can sign in using their device's biometric or hardware authenticator.
-
-Configure with: `ControlR_AppOptions__PersistPasskeyLogin` (makes passkey login equivalent to "remember me")
-
-## Roles
-
-ControlR uses a role-based permission system with 5 built-in roles:
-
-| Role | Permissions |
-|------|-------------|
-| **Server Administrator** | Full server-wide admin (stats, logs, alerts, server settings) |
-| **Tenant Administrator** | Tenant-level admin (user/device/tag management, invites) |
-| **Device Superuser** | Can access all devices in the tenant |
-| **Agent Installer** | Can deploy/install agents on new devices |
-| **Installer Key Manager** | Can manage installer keys |
-
-Role assignments are done through the **Permissions** page (`/permissions`).
-
-## Tags for Device Access
-
-Beyond roles, device access is controlled via tags:
-- A user must have either the `DeviceSuperuser` role **or** a matching tag to access a device
-- Tags can be assigned to both users and devices
-- Matching tags grant device access
+Authentication errors on `/api/*` responses return an `application/problem+json` body. See [API Overview](/docs/api/overview#error-handling) for the schema.
 
 ## Next
 
-- **[API Overview](/docs/api/overview)**: API structure and conventions
-- **[Scalar API Browser](/docs/scalar-api-browser)**: Interactive API exploration
-- **[API Endpoints](/docs/api-reference/endpoints)**: Complete endpoint reference
+- **[API Overview](/docs/api/overview)**: REST API structure and conventions
+- **[Service Accounts](/docs/api/service-accounts)**: Bootstrap, credential management, logon tokens in depth
+- **[Authentication Guide](/docs/authentication-guide)**: Interactive flows, 2FA, passkeys, external providers

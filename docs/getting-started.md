@@ -5,38 +5,43 @@ title: Getting Started
 
 ## What is ControlR?
 
-ControlR is a self-hosted, cross-platform remote control system that lets you manage and control devices from anywhere. It consists of three main components:
+ControlR is a self-hosted remote control system with three components:
 
-- **Server**: A web-based application (ASP.NET Core) that manages connections, authentication, and device communication
-- **Agent**: A headless service installed on target devices that provides remote control, file access, and terminal sessions
-- **Desktop Client**: A live GUI application (Avalonia-based) that runs on target devices, giving local users visibility into remote sessions
+- **Server**: An ASP.NET Core application (Docker container or native process) that owns authentication, device registry, SignalR hubs, the REST API, and the built-in WebSocket relay.
+- **Agent**: A background service installed on each device you want to manage. Provides remote control, terminal, chat, file system, log streaming, and self-update.
+- **Desktop Client**: An Avalonia GUI process launched alongside the agent per active user session. Performs the actual screen capture and input injection. The local user sees when a remote session is active.
 
 ## Core Concepts
 
 ### Server
 
-The ControlR server (running as a Docker container or native deployment) manages:
-- Connected agents and their device status
-- Authentication and access control (roles, tags, permissions)
-- WebSocket relay connections for remote control sessions
-- SignalR hubs for real-time device communication
+The server hosts:
+
+- Connected agents and their status
+- Authentication and authorization (Identity, cookie, bearer, PAT, service account, logon token)
+- SignalR hubs for real-time commands
+- A WebSocket relay for screen streaming
+- Telemetry export (OpenTelemetry / Azure Monitor)
 
 ### Agent
 
-The agent is installed on each device you want to manage. It:
-- Registers the device with the server during installation
-- Maintains a persistent SignalR connection to the server
-- Provides remote control, file system, terminal, chat, and log streaming capabilities
-- Runs as a background service (systemd on Linux, launchd on macOS, Windows Service on Windows)
+Each device you want to manage runs an agent. The agent:
+
+- Registers the device with the server at install time
+- Maintains an outbound-only SignalR connection (WebSocket) to the server
+- Provides remote control, terminal, chat, file system, log streaming, and auto-update
+- Runs as `SYSTEM` (Windows service), `root` (Linux systemd, macOS launchd)
+- Spawns a per-session Desktop Client process for GUI capture and input forwarding
 
 ### Desktop Client
 
 The desktop client runs on the target device and:
-- Provides a live GUI for the local user, showing when remote sessions are active
-- Can be configured to notify users before sessions start
-- Runs alongside the agent on the same machine
 
-### Architecture
+- Captures the screen and injects mouse/keyboard for remote control sessions
+- Shows the local user when a remote session is active
+- Connects to the server's WebSocket relay once a session is established (not before)
+
+### Component Diagram
 
 ```mermaid
 flowchart LR
@@ -53,21 +58,21 @@ flowchart LR
 
 ## Prerequisites
 
-Before installing ControlR, make sure you have:
+Before installing:
 
-- **Docker** and **Docker Compose** installed on your server
-- A domain name (optional, for HTTPS)
-- At least 1 GB of RAM available
-- An open network port (default host port: `5120`, container port: `8080`)
+- **Docker** and **Docker Compose** on the host running the server.
+- A reachable domain name if you plan to terminate TLS in front of the server (recommended).
+- At least 1 GB of RAM available for the server.
+- The server listens on container port `8080`; expose it on host port `5120` (default) or change via `ASPNETCORE_HTTP_PORTS`.
 
 ## Next Steps
 
-1. **[Installation](/docs/installation)**: Deploy ControlR using Docker or native installation
-2. **[Configuration](/docs/configuration)**: Set up your server settings
-3. **[Reverse Proxy](/docs/admin/reverse-proxy)**: Configure HTTPS with a reverse proxy
+1. **[Installation](/docs/installation)**: Deploy ControlR via Docker Compose or native install.
+2. **[Configuration](/docs/configuration)**: Tune `AppOptions` and related settings.
+3. **[Reverse Proxy](/docs/admin/reverse-proxy)**: Put HTTPS in front of the server.
 
 ## Need Help?
 
-- Join the [Discord community](https://discord.gg/JWJmMPc72H)
-- Check the [GitHub Discussions](https://github.com/bitbound/ControlR/discussions)
-- File an [issue on GitHub](https://github.com/bitbound/ControlR/issues)
+- Join the [Discord community](https://discord.gg/JWJmMPc72H).
+- Search or start a [GitHub Discussion](https://github.com/bitbound/ControlR/discussions).
+- File an [issue on GitHub](https://github.com/bitbound/ControlR/issues).

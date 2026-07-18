@@ -27,6 +27,9 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io
 
+# Create a named volume for data persistence
+sudo docker volume create controlr-postgres-data
+
 # Create the PostgreSQL container
 sudo docker run -d \
   --name controlr-postgres \
@@ -36,9 +39,6 @@ sudo docker run -d \
   -p 5432:5432 \
   -v controlr-postgres-data:/var/lib/postgresql/data \
   postgres:18
-
-# Create a named volume for data persistence
-sudo docker volume create controlr-postgres-data
 ```
 
 ### Option B: Native PostgreSQL
@@ -57,8 +57,8 @@ sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE controlr TO controlr_
 ## Step 2: Download and Extract the Server
 
 ```bash
-# Download from GitHub Releases
-wget https://github.com/bitbound/ControlR/releases/download/v1.0.0/server-linux-amd64.zip
+# Download from GitHub Releases (replace <release-tag> with a specific version, e.g. v0.10.0)
+wget https://github.com/bitbound/ControlR/releases/download/<release-tag>/server-linux-amd64.zip
 mkdir -p /var/www/dev.controlr.app
 unzip server-linux-amd64.zip -d /var/www/dev.controlr.app
 cd /var/www/dev.controlr.app
@@ -191,7 +191,7 @@ sudo journalctl -u controlr -n 50 --no-pager
 # Look for "Applying migrations..." and "Migrations applied successfully" in the output
 ```
 
-> **Note:** Migrations are applied automatically on each startup if they haven't been applied. There is no manual migration CLI command — the `ApplyMigrationsAsync()` extension method handles this at startup in `Program.cs`.
+> **Note:** Migrations are applied automatically on each startup if they haven't been applied. There is no manual migration CLI command. The `ApplyMigrationsAsync()` extension method runs at startup in `Program.cs`.
 
 ## Step 9: Backups
 

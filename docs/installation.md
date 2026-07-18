@@ -120,7 +120,7 @@ Invoke-WebRequest -Uri "https://your-server/downloads/win-x64/ControlR.Agent.Ins
 
 To uninstall:
 ```powershell
-.\ControlR.Agent.Installer.exe uninstall [-InstanceId "my-pc"]
+.\ControlR.Agent.Installer.exe uninstall --instance-id "my-pc"
 ```
 
 #### Repair Desktop Client (Internal Use)
@@ -147,13 +147,15 @@ When an installer key is provided (`--installer-key-secret` / `-ks`), the instal
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `--server-uri` / `-s` | Yes | URL of the ControlR server (e.g., `https://controlr.example.com`) |
-| `--tenant-id` / `-t` | Yes | GUID of the tenant this agent belongs to |
-| `--instance-id` / `-i` | No | Multi-instance identifier. Useful when running multiple agents on the same machine |
-| `--device-tags` / `-g` | No | Comma-separated list of tag GUIDs to assign to the device |
-| `--installer-key-secret` / `-ks` | No | Secret of an installer access key for device registration |
-| `--installer-key-id` / `-ki` | No | GUID of a specific installer key to use |
-| `--device-id` / `-d` | No | GUID of an existing device to associate with this installation |
+| `--server-uri` (`-s`) | Yes | URL of the ControlR server (e.g., `https://controlr.example.com`) |
+| `--tenant-id` (`-t`) | Yes | GUID of the tenant this agent belongs to |
+| `--instance-id` (`-i`) | No | Multi-instance identifier. Useful when running multiple agents on the same machine |
+| `--device-tags` (`-g`) | No | Comma-separated list of tag GUIDs to assign to the device |
+| `--installer-key-secret` (`-ks`) | No | Secret of an installer access key for device registration |
+| `--installer-key-id` (`-ki`) | No | GUID of a specific installer key to use |
+| `--device-id` (`-d`) | No | GUID of an existing device to associate with this installation |
+
+The CLI option names are lowercase-kebab (`--server-uri`, `--tenant-id`, etc.). PowerShell accepts the same flag names as shown above; the `System.CommandLine` parser does not auto-translate PascalCase aliases.
 
 ## Configuration
 

@@ -5,34 +5,53 @@ title: Upgrading
 
 ## Before Upgrading
 
-> **Important**: Until ControlR reaches v1.0, there may be breaking changes between minor version increments. Please read the [release notes](https://github.com/bitbound/ControlR/releases) for each version before upgrading.
+> **Important**: Until ControlR reaches v1.0, breaking changes between minor version increments are possible.
+
+## Pre-Upgrade Checklist
+
+1. Snapshot the server and database (see [Backup & Restore](/docs/admin/backup-restore)).
+2. Read the [release notes](https://github.com/bitbound/ControlR/releases) for all versions in between your current version and the target version before upgrading.
+3. If any manual steps are required, follow the instructions for migrating.
+4. Schedule a brief maintenance window, especially for the agent self-update.
 
 ## Upgrade Steps
 
-1. **Read the release notes**: Check for any migration steps
-2. **Backup your database**: See [Backup & Restore](/docs/admin/backup-restore)
-3. **Pull the new image**:
+1. **Pin the target tag in your `docker-compose.yml`.** Set `image: bitbound/controlr:<release-tag>` for the `controlr` service (replace `<release-tag>` with the version you want, e.g. `v0.10.0`). `latest` is convenient for hobby deployments but it skips the upgrade step entirely and removes your ability to roll back to a known tag.
+2. **Pull the image:**
    ```bash
    sudo docker compose pull
    ```
-4. **Restart the containers**:
+3. **Recreate the container:**
    ```bash
    sudo docker compose up -d
    ```
-5. **Verify**: Check the health endpoint:
-   ```bash
-   curl http://127.0.0.1:5120/health
-   ```
+   Compose restarts only the services whose image changed. Migrations run automatically on the server's first startup at the new version.
 
-You should receive: `Healthy`
+## Verifying the Upgrade
+
+Open the ControlR web UI in your browser and sign in to confirm:
+
+- The login page loads (the app accepts connections).
+- You can sign in as a server admin.
+- The agent list shows the new agent version pulling down from the server.
+- The Aspire dashboard (if enabled; see [Telemetry](/docs/admin/telemetry)) shows no errors during the migration window.
+
+If you automate checks, the server exposes `GET /health` which returns `Healthy` once startup completes:
+
+```bash
+curl http://127.0.0.1:5120/health
+```
 
 ## Rollback
 
-If the new version causes issues:
+EF Core migrations applied during the upgrade are forward-only. Rolling back the server image without restoring the database may leave the schema in a state the older server does not understand.
 
-```bash
-# Revert to the previous version
-sudo docker compose stop
-sudo docker compose pull <previous-version-tag>
-sudo docker compose up -d
-```
+The cleanest rollback sequence:
+
+1. Restore the pre-upgrade database backup (see [Backup & Restore](/docs/admin/backup-restore)).
+2. Edit `docker-compose.yml` and pin the image to the previous tag (`bitbound/controlr:<previous-tag>`).
+3. Apply:
+   ```bash
+   sudo docker compose pull
+   sudo docker compose up -d
+   ```

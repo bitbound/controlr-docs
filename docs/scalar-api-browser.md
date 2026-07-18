@@ -5,7 +5,7 @@ title: Scalar API Browser
 
 ## Overview
 
-ControlR includes the [Scalar](https://scalar.com) API reference UI, which provides an interactive, browsable view of all available API endpoints. It lets you explore, understand, and test the ControlR API interactively.
+ControlR includes the [Scalar](https://scalar.com) API reference UI, an interactive, browsable view of every API endpoint. Enable it on a per-deployment basis (off by default in production).
 
 ## Enabling the Scalar UI
 
@@ -52,6 +52,8 @@ You can use this file to:
 - Import into API tools (Postman, Insomnia, etc.)
 - Generate client libraries with Swagger Codegen or Kiota
 - Validate API payloads against the published schema
+
+The path above is relative to your server origin. For a host at `https://your-server`, fetch the JSON from `https://your-server/openapi/v1.json`.
 
 ## Route Architecture
 

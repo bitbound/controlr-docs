@@ -12,11 +12,11 @@ The Settings page (`/settings`) contains per-user preferences for the ControlR w
 ### Theme
 
 | Option | Description |
-|--------|-------------|
-| **Dark** | Dark theme (default) |
-| **Light** | Light theme |
+|---|---|
+| Dark | Dark theme (default) |
+| Light | Light theme |
 
-Your theme preference is saved per-user and applied across the entire interface.
+The theme preference is saved per-user and applies to every page.
 
 ### Keyboard Input Mode
 

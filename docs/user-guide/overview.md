@@ -5,7 +5,7 @@ title: Device Overview
 
 ## Overview
 
-Navigate to a device from the Dashboard to view its overview page. This provides a comprehensive summary of the device's status, system information, networking, and resource usage.
+Open a device from the Dashboard to see its overview page: status, system info, networking, drives, and live resource usage.
 
 ## Device Summary
 
@@ -88,7 +88,7 @@ Desktop Preview lets you request a **single-frame JPEG snapshot** of a specific 
 Desktop Previews are available through the REST API:
 
 ```bash
-curl https://your-server/api/desktop-preview/{deviceId}/{targetProcessId} \
+curl https://your-server/api/internal/desktop-preview/{deviceId}/{targetProcessId} \
   -H "x-personal-token: <tokenId>:<secret>" \
   -o preview.jpg
 ```
@@ -127,4 +127,4 @@ Wake-on-LAN is available through the **ViewerHub** SignalR hub. From the device 
 
 - **[Devices & Tags](/docs/user-guide/devices)**: Manage device groups and access control
 - **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)**: Screen streaming and control
-- **[Device Access: Terminal](/docs/user-guide/terminal)**: Remote PowerShell access
+- **[Device Access: Terminal](/docs/user-guide/device-access/terminal)**: Remote PowerShell access

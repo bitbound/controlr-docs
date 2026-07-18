@@ -40,4 +40,4 @@ Since the ControlR server relays the VNC connection through localhost on the age
 ## Next
 
 - **[Device Access: Remote Control](/docs/user-guide/device-access/remote-control)**: Native remote control (recommended)
-- **[Remote Logs](/docs/user-guide/remote-logs)**: View agent logs
+- **[Device Access: Remote Logs](/docs/user-guide/device-access/remote-logs)**: View agent logs
