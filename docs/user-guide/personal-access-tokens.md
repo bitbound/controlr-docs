@@ -53,7 +53,7 @@ ControlrApiClientBuilder.Initialize(options =>
 });
 var client = ControlrApiClientBuilder.GetClient();
 
-await foreach (var device in client.V0.Devices.GetAllDevices())
+await foreach (var device in client.V1.Devices.GetAllDevices())
 {
     Console.WriteLine($"{device.Name} ({device.Id})");
 }

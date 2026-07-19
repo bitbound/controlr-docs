@@ -24,7 +24,7 @@ A PAT authenticates as the user who created it, with the user's roles, tenant, a
 **Using a PAT:**
 
 ```bash
-curl https://your-server/api/v0/devices \
+curl https://your-server/api/v1/devices \
   -H "x-personal-token: <tokenId>:<secret>"
 ```
 
@@ -38,7 +38,7 @@ PATs do **not** use the `Authorization` header. The dotnet API client sends them
 using ControlR.ApiClient;
 
 var client = ControlrApiClientBuilder.GetClient();
-await foreach (var device in client.V0.Devices.GetAllDevices(cancellationToken))
+await foreach (var device in client.V1.Devices.GetAllDevices(cancellationToken))
 {
     Console.WriteLine($"{device.Name} ({device.Id})");
 }
@@ -53,7 +53,7 @@ Service accounts are non-interactive, server-scoped identities for S2S automatio
 **Using a service account:**
 
 ```bash
-curl https://your-server/api/v0/service-accounts \
+curl https://your-server/api/v1/service-accounts \
   -H "x-api-key: <credentialId>:<secret>"
 ```
 
@@ -92,10 +92,10 @@ curl -X POST https://your-server/api/internal/logon-tokens \
 
 The response contains a URL like `https://your-server/device-access?logonToken=<token>&deviceId=<guid>` that can be opened in a browser.
 
-**Create a service logon token (V0 API):**
+**Create a service logon token (V1 API):**
 
 ```bash
-curl -X POST https://your-server/api/v0/logon-tokens/external \
+curl -X POST https://your-server/api/v1/logon-tokens/external \
   -H "x-api-key: <credentialId>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{

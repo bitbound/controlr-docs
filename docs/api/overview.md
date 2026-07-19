@@ -12,7 +12,7 @@ ControlR exposes a REST API and two SignalR hubs. The REST API is split into thr
 | Route root | Audience | Contract stability | Versioning | Example |
 |---|---|---|---|---|
 | `/api/internal/*` | Blazor Web UI (BFF), device agents | Dynamic, evolves freely | No | `/api/internal/users` |
-| `/api/v0/*` | Server-to-server (S2S) automation | Stable contract | Yes (`[ApiVersion("0")]`) | `/api/v0/service-accounts` |
+| `/api/v1/*` | Server-to-server (S2S) automation | Stable contract | Yes (`[ApiVersion("1")]`) | `/api/v1/service-accounts` |
 | `/api/agent/*` | Device agents (anonymous) | Dynamic, evolves freely | No | `/api/agent/updates` |
 
 ### Internal Routes (`/api/internal/*`)
@@ -21,13 +21,13 @@ The Internal surface serves the Blazor WASM web UI. These controllers assume a u
 
 **Legacy fallback:** All Internal controllers also respond at their old `/api/*` paths via dual-routing. For example, `UsersController` responds at both `/api/internal/users` (canonical) and `/api/users` (legacy). These legacy paths are maintained for backward compatibility and will be removed in a future release. New integrations should use the canonical `/api/internal/*` paths.
 
-### V0 Routes (`/api/v0/*`)
+### V1 Routes (`/api/v1/*`)
 
-The V0 surface is a **versioned, stable contract** for system-to-system (S2S) integrations. Key characteristics:
+The V1 surface is a **versioned, stable contract** for system-to-system (S2S) integrations. Key characteristics:
 
 - All endpoints require a server-scoped service account or the `ServerAdministrator` role
 - **No tenant claim** is derived; all identifiers (tenant ID, user ID, device ID) must be explicit in the request
-- Uses ASP.NET Core API versioning with `[ApiVersion("0")]`
+- Uses ASP.NET Core API versioning with `[ApiVersion("1")]`
 - Ideal for RMM platforms, automation scripts, and cross-tenant management
 
 ### Agent Routes (`/api/agent/*`)
@@ -38,7 +38,7 @@ Dedicated endpoints for device agent communication. These are anonymous and sepa
 
 ```
 https://your-controlr-server/api/internal/users
-https://your-controlr-server/api/v0/service-accounts
+https://your-controlr-server/api/v1/service-accounts
 https://your-controlr-server/api/agent/updates
 ```
 
@@ -62,8 +62,8 @@ A .NET typed API client is also published on NuGet as [`ControlR.ApiClient`](htt
 // Cookie/PAT auth for Internal routes
 var device = await api.Internal.Devices.GetDevice(deviceId);
 
-// x-api-key auth for V0 routes
-var account = await api.V0.ServiceAccounts.Get(accountId);
+// x-api-key auth for V1 routes
+var account = await api.V1.ServiceAccounts.Get(accountId);
 ```
 
 ## Authentication

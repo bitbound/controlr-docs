@@ -15,7 +15,7 @@ Service accounts are server-scoped identities designed for **system-to-system (S
 | **Auth method** | Password, passkey, PAT, external OAuth | `x-api-key` header |
 | **Roles** | Tenant-level roles | No roles; explicit identifiers in requests |
 | **Tenant context** | Derived from session claims | None; must be explicit in each request |
-| **Created by** | Self-registration, invite, admin | Bootstrap config or V0 API |
+| **Created by** | Self-registration, invite, admin | Bootstrap config or V1 API |
 
 ## Bootstrapping a Service Account
 
@@ -62,7 +62,7 @@ Combine with service account bootstrap above. No browser-based user registration
 Service accounts authenticate via the `x-api-key` HTTP header:
 
 ```bash
-curl https://your-server/api/v0/service-accounts \
+curl https://your-server/api/v1/service-accounts \
   -H "x-api-key: <credential-id>:<secret>"
 ```
 
@@ -95,7 +95,7 @@ Each service account can have multiple credentials. Credentials can be created, 
 ### Creating a Credential
 
 ```bash
-curl -X POST https://your-server/api/v0/service-accounts/{id}/credentials \
+curl -X POST https://your-server/api/v1/service-accounts/{id}/credentials \
   -H "x-api-key: <credential-id>:<secret>"
 ```
 
@@ -115,7 +115,7 @@ The secret is returned **exactly once**. Store it securely; it cannot be retriev
 ### Revoking a Credential
 
 ```bash
-curl -X DELETE https://your-server/api/v0/service-accounts/{id}/credentials/{credentialId} \
+curl -X DELETE https://your-server/api/v1/service-accounts/{id}/credentials/{credentialId} \
   -H "x-api-key: <credential-id>:<secret>"
 ```
 
@@ -126,7 +126,7 @@ Returns `204 No Content`. Once revoked, the credential can no longer authenticat
 Service accounts use logon tokens to grant browser sessions on behalf of users in external systems. This is the building block for RMM-style "connect to this device" buttons driven by an external backend.
 
 ```bash
-curl -X POST https://your-server/api/v0/logon-tokens/external \
+curl -X POST https://your-server/api/v1/logon-tokens/external \
   -H "x-api-key: <credential-id>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -161,15 +161,15 @@ Transient users are cleaned up by the external user cleanup background service a
 
 ## Cross-Tenant Operations
 
-Server-scoped service accounts are not bound to any tenant. When calling V0 endpoints, provide the tenant ID explicitly:
+Server-scoped service accounts are not bound to any tenant. When calling V1 endpoints, provide the tenant ID explicitly:
 
 ```bash
 # List devices in a specific tenant
-curl "https://your-server/api/v0/devices?tenantId=<tenant-guid>" \
+curl "https://your-server/api/v1/devices?tenantId=<tenant-guid>" \
   -H "x-api-key: <credential-id>:<secret>"
 
 # Create an installer key for a specific tenant
-curl -X POST https://your-server/api/v0/installer-keys \
+curl -X POST https://your-server/api/v1/installer-keys \
   -H "x-api-key: <credential-id>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{"tenantId":"<tenant-guid>","keyName":"my-key"}'
@@ -177,6 +177,6 @@ curl -X POST https://your-server/api/v0/installer-keys \
 
 ## Next
 
-- **[API Endpoints](/docs/api-reference/endpoints)**: Complete V0 and Internal endpoint reference
+- **[API Endpoints](/docs/api-reference/endpoints)**: Complete V1 and Internal endpoint reference
 - **[Authentication Guide](/docs/authentication-guide)**: All authentication schemes
 - **[Configuration](/docs/configuration)**: Bootstrap and AppOptions reference

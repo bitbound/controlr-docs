@@ -10,7 +10,7 @@ ControlR's API is split into three route roots, each serving a distinct audience
 | Route root | Audience | Contract | Versioning | Example |
 |---|---|---|---|---|
 | `/api/internal/*` | Blazor Web UI (BFF), device agents | Dynamic | No | `/api/internal/users` |
-| `/api/v0/*` | S2S automation | Stable contract | Yes | `/api/v0/service-accounts` |
+| `/api/v1/*` | S2S automation | Stable contract | Yes | `/api/v1/service-accounts` |
 | `/api/agent/*` | Device agents (anonymous) | Dynamic | No | `/api/agent/updates` |
 
 **Legacy fallback:** All Internal endpoints also respond at their old `/api/*` paths (e.g., `/api/users` still works). These legacy paths are maintained for backward compatibility and will be removed in a future release. New integrations should target the canonical `/api/internal/*` paths.
@@ -21,59 +21,59 @@ ControlR's API is split into three route roots, each serving a distinct audience
 |-----------|-------------|
 | **None** | Public endpoint, no authentication required |
 | **Any Auth** | Any authentication method (cookie, bearer, PAT) |
-| **Service Account** | Server-scoped service account via `x-api-key` header (V0 routes only) |
+| **Service Account** | Server-scoped service account via `x-api-key` header (V1 routes only) |
 | **Specific Roles** | Requires specific role(s) listed |
 
 ---
 
-## V0 Endpoints (S2S Automation)
+## V1 Endpoints (S2S Automation)
 
-All V0 routes are under `/api/v0/*`. Auth requires a server-scoped service account (`x-api-key`) or the `ServerAdministrator` role. All tenant, user, and device identifiers must be explicit in the request. The V0 surface uses ASP.NET Core API versioning with `[ApiVersion("0")]`.
+All V1 routes are under `/api/v1/*`. Auth requires a server-scoped service account (`x-api-key`) or the `ServerAdministrator` role. All tenant, user, and device identifiers must be explicit in the request. The V1 surface uses ASP.NET Core API versioning with `[ApiVersion("1")]`.
 
-### Service Accounts (`/api/v0/service-accounts`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v0/service-accounts` | Service Account | Create a server service account |
-| GET | `/api/v0/service-accounts` | Service Account | List all service accounts |
-| GET | `/api/v0/service-accounts/{id}` | Service Account | Get a specific service account |
-| DELETE | `/api/v0/service-accounts/{id}` | Service Account | Delete a service account |
-| POST | `/api/v0/service-accounts/{id}/credentials` | Service Account | Add a credential (returns secret once) |
-| DELETE | `/api/v0/service-accounts/{id}/credentials/{credId}` | Service Account | Revoke a credential |
-
-### Tenants (`/api/v0/tenants`)
+### Service Accounts (`/api/v1/service-accounts`)
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | `/api/v0/tenants` | Service Account | Create a tenant |
-| GET | `/api/v0/tenants/{id}` | Service Account | Get a tenant |
-| PUT | `/api/v0/tenants/{id}` | Service Account | Update a tenant |
-| DELETE | `/api/v0/tenants/{id}` | Service Account | Delete a tenant |
+| POST | `/api/v1/service-accounts` | Service Account | Create a server service account |
+| GET | `/api/v1/service-accounts` | Service Account | List all service accounts |
+| GET | `/api/v1/service-accounts/{id}` | Service Account | Get a specific service account |
+| DELETE | `/api/v1/service-accounts/{id}` | Service Account | Delete a service account |
+| POST | `/api/v1/service-accounts/{id}/credentials` | Service Account | Add a credential (returns secret once) |
+| DELETE | `/api/v1/service-accounts/{id}/credentials/{credId}` | Service Account | Revoke a credential |
 
-### Devices (`/api/v0/devices`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v0/devices` | Service Account | Cross-tenant device listing |
-| GET | `/api/v0/devices/{deviceId}` | Service Account | Get a specific device (any tenant) |
-| DELETE | `/api/v0/devices/{deviceId}` | Service Account | Delete a device |
-| POST | `/api/v0/devices/delete-many` | Service Account | Delete multiple devices |
-| POST | `/api/v0/devices/search` | Service Account | Search/filter devices |
-| GET | `/api/v0/devices/summary` | Service Account | Get device summaries |
-| PATCH | `/api/v0/devices/{deviceId}/alias` | Service Account | Update device alias |
-
-### Installer Keys (`/api/v0/installer-keys`)
+### Tenants (`/api/v1/tenants`)
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | `/api/v0/installer-keys` | Service Account | Create an installer key (requires explicit tenant ID) |
+| POST | `/api/v1/tenants` | Service Account | Create a tenant |
+| GET | `/api/v1/tenants/{id}` | Service Account | Get a tenant |
+| PUT | `/api/v1/tenants/{id}` | Service Account | Update a tenant |
+| DELETE | `/api/v1/tenants/{id}` | Service Account | Delete a tenant |
 
-### Logon Tokens (`/api/v0/logon-tokens`)
+### Devices (`/api/v1/devices`)
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | `/api/v0/logon-tokens/external` | Service Account | Create a service logon token (requires `tenantId`, `deviceId`, `userCorrelationId`) |
-| POST | `/api/v0/logon-tokens/user` | Service Account | Create a user logon token (requires explicit `userId`) |
+| GET | `/api/v1/devices` | Service Account | Cross-tenant device listing |
+| GET | `/api/v1/devices/{deviceId}` | Service Account | Get a specific device (any tenant) |
+| DELETE | `/api/v1/devices/{deviceId}` | Service Account | Delete a device |
+| POST | `/api/v1/devices/delete-many` | Service Account | Delete multiple devices |
+| POST | `/api/v1/devices/search` | Service Account | Search/filter devices |
+| GET | `/api/v1/devices/summary` | Service Account | Get device summaries |
+| PATCH | `/api/v1/devices/{deviceId}/alias` | Service Account | Update device alias |
+
+### Installer Keys (`/api/v1/installer-keys`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/v1/installer-keys` | Service Account | Create an installer key (requires explicit tenant ID) |
+
+### Logon Tokens (`/api/v1/logon-tokens`)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/v1/logon-tokens/external` | Service Account | Create a service logon token (requires `tenantId`, `deviceId`, `userCorrelationId`) |
+| POST | `/api/v1/logon-tokens/user` | Service Account | Create a user logon token (requires explicit `userId`) |
 
 ---
 

@@ -91,7 +91,7 @@ curl -X POST https://your-server/api/internal/auth/refresh \
 **Using the bearer token:**
 
 ```bash
-curl https://your-server/api/v0/devices \
+curl https://your-server/api/v1/devices \
   -H "Authorization: Bearer <access-token>"
 ```
 

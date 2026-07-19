@@ -21,7 +21,7 @@ A typed .NET client for the ControlR REST API. Handles Personal Access Token aut
 dotnet add package ControlR.ApiClient
 ```
 
-**Two ways to use it:** dependency injection (recommended for most apps) or a static builder (useful for console apps and scripts). The underlying `IControlrApi` exposes three nested clients: `Agent`, `Internal`, and `V0`.
+**Two ways to use it:** dependency injection (recommended for most apps) or a static builder (useful for console apps and scripts). The underlying `IControlrApi` exposes three nested clients: `Agent`, `Internal`, and `V1`.
 
 #### Option 1: Dependency Injection
 
@@ -72,7 +72,7 @@ public class MyService
 
     public async Task ListDevicesAsync(CancellationToken cancellationToken)
     {
-        await foreach (var device in _client.V0.Devices.GetAllDevices(cancellationToken))
+        await foreach (var device in _client.V1.Devices.GetAllDevices(cancellationToken))
         {
             Console.WriteLine($"{device.Name} ({device.Id})");
         }
@@ -94,7 +94,7 @@ ControlrApiClientBuilder.Initialize(options =>
 });
 
 var client = ControlrApiClientBuilder.GetClient();
-await foreach (var device in client.V0.Devices.GetAllDevices())
+await foreach (var device in client.V1.Devices.GetAllDevices())
 {
     Console.WriteLine($"{device.Name} ({device.Id})");
 }
