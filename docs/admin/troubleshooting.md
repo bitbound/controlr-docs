@@ -37,3 +37,11 @@ Agents automatically check for updates at a fixed interval (every 6 hours).
 ### Failure Handling
 
 If an update fails, the agent will enter a cooldown period and retry after 10 minutes. After 3 consecutive failures within a 30-second window, the agent will trigger an automatic self-healing procedure (the Desktop Client Repair System) to attempt to recover the installation.
+
+## Agent Not Showing in Dashboard
+
+If you've installed the agent but it's not appearing in the ControlR dashboard, it might be due to clock skew.
+
+The `AgentClockSkewTolerance` value (which defaults to 1 minute in both the `docker-compose.yml` and `AppSettings` files) ensures that the agent and server clocks are synchronized (not with each other, but with "actual time" for their timezone). Both the agent and the server must be synced with a Network Time Protocol (NTP) server. While most operating systems have this feature built-in, it can occasionally be disabled.
+
+If the system clocks are inaccurate, the agent authentication mechanism will fail. You can bypass these time-based checks by setting `AgentClockSkewTolerance` to `null`, but this is not recommended as it makes the agent endpoints vulnerable to replay attacks.

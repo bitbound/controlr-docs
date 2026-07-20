@@ -13,6 +13,7 @@ title: Upgrading
 2. Read the [release notes](https://github.com/bitbound/ControlR/releases) for all versions in between your current version and the target version before upgrading.
 3. If any manual steps are required, follow the instructions for migrating.
 4. Schedule a brief maintenance window, especially for the agent self-update.
+5. Check the latest [docker-compose.yml](https://github.com/bitbound/ControlR/blob/main/docker-compose/docker-compose.yml) for any new configuration values that might need to be added to your setup, as new settings are added over time.
 
 ## Upgrade Steps
 
