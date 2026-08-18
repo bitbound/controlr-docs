@@ -258,6 +258,7 @@ Note that client-side checks use the *user's* effective permissions and therefor
 `PermissionAssignmentManager` (`IPermissionAssignmentManager`) is the service that implements the admin API: create/update/delete assignments, apply presets, and replace a principal's assignments for given scope kinds. Every write emits an `AuthorizationChangeLog` entry. Key guardrails:
 
 - **Write authority**: managing tenant-scoped allow assignments requires `tenant.permissions.write`; deny-effect assignments (at any scope) require `tenant.permissions.deny`; managing server-scoped assignments requires `server.permissions.write`.
+- **Delegated administration**: write authority checks only the management permission, not whether the actor holds the permission being granted. A `tenant.permissions.write` holder can grant any tenant-scoped permission to any principal, including themselves, so that permission is de facto full tenant admin. This is intentional. The asymmetry is deliberate: direct assignment grants are delegated-admin, while credential grants (PAT and logon token scope rows) are grantor-bounded at write time (see `ValidateCredentialPrincipalScope`), so credentials can never exceed the grantor's effective rights.
 - **Tenant isolation**: `IsVisibleToTenant` restricts which rows an actor can see -- tenant-owned rows are visible only to the owning tenant, and server-scoped (null-owned) rows additionally require `server.permissions.read` or `server.permissions.write`.
 - **Self-protection**: see the [Self-Removable Guard](#self-removable-guard) design decision.
 - **Credential principal validation**: assignments written to a PAT or logon token principal are validated at write time against the token owner's effective permissions (`ValidateCredentialPrincipalScope`), so out-of-bounds rows are rejected early instead of being silently discarded at evaluation time.
@@ -329,6 +330,10 @@ The backfill preserves existing access on upgrades. On fresh databases the backf
 | `LogonToken` | Self-contained, device-bound, single-use token with optional desktop session restrictions and scoped grants. |
 
 ## Design Decisions
+
+### Delegated Administration for Direct Grants
+
+Direct assignment writes are checked against the management permissions only (`tenant.permissions.write` / `server.permissions.write`, plus `tenant.permissions.deny` for deny rows). The system does not require the actor to hold the permission being granted, so a tenant permission writer can grant any tenant-scoped permission, including to themselves. This is an accepted privilege-escalation trade-off: the management permissions are `selfRemovable: false`, the catalog's scope whitelist prevents a tenant writer from granting server-scoped permissions, and every change is audit-logged. Credential grants are the exception and are bounded by the grantor's effective permissions at write time, so a PAT or logon token can never exceed its creator's rights.
 
 ### No Tenant Query Filter on PermissionAssignments
 
