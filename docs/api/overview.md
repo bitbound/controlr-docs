@@ -25,7 +25,7 @@ The Internal surface serves the Blazor WASM web UI. These controllers assume a u
 
 The V1 surface is a **versioned, stable contract** for system-to-system (S2S) integrations. Key characteristics:
 
-- All endpoints require a server-scoped service account or the `ServerAdministrator` role
+- All endpoints require a server-scoped service account or a principal holding the relevant server-scoped permissions
 - **No tenant claim** is derived; all identifiers (tenant ID, user ID, device ID) must be explicit in the request
 - Uses ASP.NET Core API versioning with `[ApiVersion("1")]`
 - Ideal for RMM platforms, automation scripts, and cross-tenant management

@@ -13,7 +13,7 @@ Service accounts are server-scoped identities designed for **system-to-system (S
 |---|---|---|
 | **Scope** | Single tenant | Server-wide (cross-tenant) |
 | **Auth method** | Password, passkey, PAT, external OAuth | `x-api-key` header |
-| **Roles** | Tenant-level roles | No roles; explicit identifiers in requests |
+| **Permissions** | Tenant-scoped permission assignments | Server-scoped permission assignments; explicit identifiers in requests |
 | **Tenant context** | Derived from session claims | None; must be explicit in each request |
 | **Created by** | Self-registration, invite, admin | Bootstrap config or V1 API |
 
@@ -141,7 +141,7 @@ The endpoint finds or creates a **transient user** in the target tenant:
 - Username: `ext-{userCorrelationId}`
 - Email: `ext-{userCorrelationId}@controlr.local`
 - No password set (cannot be logged into directly)
-- No roles or tags
+- No permission assignments of its own
 - Scoped to the requested device
 
 ControlR issues a single-use logon token that, when opened in a browser, signs the transient user in and lands directly on the device's access page.
@@ -154,7 +154,7 @@ Transient users are cleaned up by the external user cleanup background service a
 |--------|---------|
 | `400` | Invalid request (e.g., missing required fields) |
 | `401` | Invalid or missing `x-api-key` |
-| `403` | Authenticated but not a service account or server admin |
+| `403` | Authenticated but not a service account or lacking the required permission |
 | `404` | Service account or credential not found |
 | `409` | Conflict (e.g., creating a credential for a disabled account) |
 | `429` | Rate limit exceeded |

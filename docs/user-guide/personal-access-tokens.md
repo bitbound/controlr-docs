@@ -5,7 +5,7 @@ title: Personal Access Tokens
 
 ## Overview
 
-Personal Access Tokens (PATs) let you authenticate against the ControlR API as your user account without sending a username and password on every request. Each PAT acts with your roles, tenant, and tag-based device access.
+Personal Access Tokens (PATs) let you authenticate against the ControlR API as your user account without sending a username and password on every request. Each PAT acts with your effective permissions. A PAT can be created in **Restricted** mode with its own scoped permission grants (bounded by your own effective rights) or in **Inherit Owner** mode to act with your full permissions.
 
 ## Accessing PATs
 

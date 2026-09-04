@@ -25,7 +25,7 @@ Setting `ControlR_AppOptions__EnablePublicRegistration` to `true` allows anyone 
 3. Tenant data is isolated via EF Core Global Query Filters
 4. Existing tenant admins cannot see or access other tenants
 
-**Important:** In multi-tenant mode, all tenants share the same server resources. Server-level admin actions (server stats, server logs, server alerts) are only visible to the Server Administrator role.
+**Important:** In multi-tenant mode, all tenants share the same server resources. Server-level admin actions (server stats, server logs, server alerts) are only visible to principals holding the relevant server-scoped permissions.
 
 ## Tenant Isolation
 
@@ -56,15 +56,11 @@ Tenant admins can invite users to join their tenant:
 
 Invitation links are specific to the tenant and cannot be used to join a different tenant.
 
-## Roles Across Tenants
+## Permissions Across Tenants
 
-| Role | Scope |
-|------|-------|
-| **Server Administrator** | Server-wide: can see server stats, logs, alerts. Cannot access other tenants' devices or users. |
-| **Tenant Administrator** | Tenant-scoped: can manage users, devices, tags, invites, and tenant settings |
-| **Device Superuser** | Tenant-scoped: can access all devices in the tenant |
-| **Agent Installer** | Tenant-scoped: can deploy agents on new devices |
-| **Installer Key Manager** | Tenant-scoped: can manage installer keys |
+Access is governed by fine-grained, scope-based permission assignments rather than fixed roles. Server-scoped permissions (e.g. `server.tenants.read`, `server.settings.write`) apply across all tenants and are managed by server administrators. Tenant-scoped permissions (e.g. `tenant.users.write`, `device.read`) apply within a single tenant and are managed by that tenant's administrators.
+
+The **Server Administrator** and **Tenant Administrator** presets bundle the relevant server- and tenant-scoped permissions for convenience. See [Permissions](/docs/user-guide/permissions) and the [Permission System](/docs/permission-system).
 
 ## Next
 

@@ -10,7 +10,7 @@ Installer keys are access tokens used during agent installation to register devi
 ## Accessing Installer Keys
 
 1. Navigate to the **Installer Keys** page (`/installer-keys`)
-2. You need either the `TenantAdministrator` or `InstallerKeyManager` role
+2. You need the `installer-key.read` permission (creating or deleting keys requires `installer-key.write`)
 
 ## Managing Keys
 

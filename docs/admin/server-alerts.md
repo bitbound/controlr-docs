@@ -11,7 +11,7 @@ Use cases include planned maintenance windows, incident notifications, security 
 
 ## Setting a Server Alert
 
-Only users with the **Server Administrator** role can manage server alerts.
+Only users with the `server.settings.write` permission can manage server alerts.
 
 ### Using the Web Interface
 

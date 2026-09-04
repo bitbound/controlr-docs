@@ -33,7 +33,7 @@ title: Upgrading
 Open the ControlR web UI in your browser and sign in to confirm:
 
 - The login page loads (the app accepts connections).
-- You can sign in as a server admin.
+- You can sign in with server administrator permissions.
 - The agent list shows the new agent version pulling down from the server.
 - The Aspire dashboard (if enabled; see [Telemetry](/docs/admin/telemetry)) shows no errors during the migration window.
 

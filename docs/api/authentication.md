@@ -17,7 +17,7 @@ Every ControlR API request must be authenticated. The server routes each request
 
 ## 1. Personal Access Tokens (PATs)
 
-A PAT authenticates as the user who created it, with the user's roles, tenant, and tag-based device access. Create tokens in the **Access Tokens** page at `/personal-access-tokens`, or in the API with the user's existing credentials.
+A PAT authenticates as the user who created it, with the user's effective permissions. Create tokens in the **Access Tokens** page at `/personal-access-tokens`, or in the API with the user's existing credentials.
 
 **Token format:** `<tokenId>:<secret>` (hex GUID for the token ID, plaintext secret).
 
@@ -105,7 +105,7 @@ curl -X POST https://your-server/api/v1/logon-tokens/external \
   }'
 ```
 
-The service account's call creates or finds a transient user in the target tenant (`ext-{userCorrelationId}`) with no password, no roles, no tags, and access scoped to the specified device. The returned URL opens a browser session on that user's behalf. Cleanup is automatic after `ControlR_AppOptions__ExternalUserCleanupAfterDays` days of inactivity (default 30).
+The service account's call creates or finds a transient user in the target tenant (`ext-{userCorrelationId}`) with no password, no permission assignments of its own, and access scoped to the specified device. The returned URL opens a browser session on that user's behalf. Cleanup is automatic after `ControlR_AppOptions__ExternalUserCleanupAfterDays` days of inactivity (default 30).
 
 ## Error Responses
 
@@ -113,7 +113,7 @@ The service account's call creates or finds a transient user in the target tenan
 |---|---|
 | `400` | Invalid request (missing/invalid fields) |
 | `401` | Missing or invalid credentials |
-| `403` | Authenticated but not authorized (wrong scheme, missing role, denied device access) |
+| `403` | Authenticated but not authorized (wrong scheme, missing permission, denied device access) |
 | `429` | Rate limit exceeded (check the `Retry-After` header) |
 | `503` | Service unavailable (typically the upstream identity store) |
 
