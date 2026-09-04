@@ -41,7 +41,7 @@ This is the default. Users land on the login page, submit credentials, and recei
 4. If a passkey is registered, complete the platform authenticator prompt.
 5. An authentication cookie is set for the session.
 
-**Logout:** use the logout button in the UI, or `POST /api/internal/auth/logout`.
+**Logout:** use the logout button in the UI, or `POST /api/auth/logout`.
 
 ## 2. Bearer Token Authentication (Interactive Login)
 
@@ -50,7 +50,7 @@ Desktop clients and CLI tools that cannot rely on cookies use the Identity beare
 **Obtaining a token:**
 
 ```bash
-curl -X POST https://your-server/api/internal/auth/login \
+curl -X POST https://your-server/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"your-password"}'
 ```
@@ -76,7 +76,7 @@ On success the response contains the issued access and refresh tokens along with
 **Refreshing the token:**
 
 ```bash
-curl -X POST https://your-server/api/internal/auth/refresh \
+curl -X POST https://your-server/api/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refreshToken":"<refresh-token>"}'
 ```
@@ -135,3 +135,4 @@ Tags are string labels used to organize and filter devices. They are no longer u
 - **[API Authentication](/docs/api/authentication)**: PAT, service account, and logon token usage with curl examples
 - **[API Overview](/docs/api/overview)**: REST API structure and conventions
 - **[Configuration](/docs/configuration)**: All `AppOptions` related to authentication
+

@@ -11,15 +11,13 @@ ControlR exposes a REST API and two SignalR hubs. The REST API is split into thr
 
 | Route root | Audience | Contract stability | Versioning | Example |
 |---|---|---|---|---|
-| `/api/internal/*` | Blazor Web UI (BFF), device agents | Dynamic, evolves freely | No | `/api/internal/users` |
-| `/api/v1/*` | Server-to-server (S2S) automation | Stable contract | Yes (`[ApiVersion("1")]`) | `/api/v1/service-accounts` |
+| `/api/*` | Blazor Web UI (BFF), device agents | Dynamic, evolves freely | No | `/api/users` |
+| `/api/v1/*` | Server-to-server (S2S) automation | Stable contract | Yes (`[ApiVersion("1")]`) | `/api/v1/tenants` |
 | `/api/agent/*` | Device agents (anonymous) | Dynamic, evolves freely | No | `/api/agent/updates` |
 
-### Internal Routes (`/api/internal/*`)
+### Internal Routes (`/api/*`)
 
 The Internal surface serves the Blazor WASM web UI. These controllers assume a user session and derive tenant and user context from claims. Endpoints evolve dynamically based on UI needs and carry no versioning.
-
-**Legacy fallback:** All Internal controllers also respond at their old `/api/*` paths via dual-routing. For example, `UsersController` responds at both `/api/internal/users` (canonical) and `/api/users` (legacy). These legacy paths are maintained for backward compatibility and will be removed in a future release. New integrations should use the canonical `/api/internal/*` paths.
 
 ### V1 Routes (`/api/v1/*`)
 
@@ -37,8 +35,8 @@ Dedicated endpoints for device agent communication. These are anonymous and sepa
 ## Base URL
 
 ```
-https://your-controlr-server/api/internal/users
-https://your-controlr-server/api/v1/service-accounts
+https://your-controlr-server/api/users
+https://your-controlr-server/api/v1/tenants
 https://your-controlr-server/api/agent/updates
 ```
 
@@ -133,3 +131,4 @@ Anonymous authentication endpoints (login, register, password reset) are rate-li
 - **[Authentication](/docs/api/authentication)**: Detailed authentication guide
 - **[Scalar API Browser](/docs/scalar-api-browser)**: Interactive API exploration
 - **[API Endpoints](/docs/api-reference/endpoints)**: Complete endpoint reference
+

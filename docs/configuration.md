@@ -150,7 +150,7 @@ The `DecommissionServer` option permanently decommissions a ControlR server inst
 The web UI displays a decommission indicator. You can also check programmatically:
 
 ```bash
-curl https://your-server/api/internal/user-server-settings/decommission-status \
+curl https://your-server/api/user-server-settings/decommission-status \
   -H "x-personal-token: <tokenId>:<secret>"
 ```
 
@@ -281,3 +281,4 @@ services:
 - **[Reverse Proxy](/docs/admin/reverse-proxy)**: Configure HTTPS with a reverse proxy
 - **[Docker Setup](/docs/admin/docker-setup)**: Advanced Docker configuration
 - **[Native Installation](/docs/admin/native-installation)**: Deploy without Docker
+

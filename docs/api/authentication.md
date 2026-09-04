@@ -84,7 +84,7 @@ Logon tokens grant browser access to a single device, scoped to either an existi
 **Create a user logon token (Internal API):**
 
 ```bash
-curl -X POST https://your-server/api/internal/logon-tokens \
+curl -X POST https://your-server/api/logon-tokens \
   -H "Authorization: Bearer <bearer-token>" \
   -H "Content-Type: application/json" \
   -d '{"deviceId":"<device-guid>"}'
@@ -124,3 +124,4 @@ Authentication errors on `/api/*` responses return an `application/problem+json`
 - **[API Overview](/docs/api/overview)**: REST API structure and conventions
 - **[Service Accounts](/docs/api/service-accounts)**: Bootstrap, credential management, logon tokens in depth
 - **[Authentication Guide](/docs/authentication-guide)**: Interactive flows, 2FA, passkeys, external providers
+
