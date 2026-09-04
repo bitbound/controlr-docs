@@ -41,7 +41,7 @@ This is the default. Users land on the login page, submit credentials, and recei
 4. If a passkey is registered, complete the platform authenticator prompt.
 5. An authentication cookie is set for the session.
 
-**Logout:** use the logout button in the UI, or `POST /api/internal/auth/logout`.
+**Logout:** use the logout button in the UI, or `POST /api/auth/logout`.
 
 ## 2. Bearer Token Authentication (Interactive Login)
 
@@ -50,7 +50,7 @@ Desktop clients and CLI tools that cannot rely on cookies use the Identity beare
 **Obtaining a token:**
 
 ```bash
-curl -X POST https://your-server/api/internal/auth/login \
+curl -X POST https://your-server/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"your-password"}'
 ```
@@ -76,7 +76,7 @@ On success the response contains the issued access and refresh tokens along with
 **Refreshing the token:**
 
 ```bash
-curl -X POST https://your-server/api/internal/auth/refresh \
+curl -X POST https://your-server/api/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refreshToken":"<refresh-token>"}'
 ```
@@ -118,33 +118,21 @@ Passkeys provide passwordless sign-in via WebAuthn (Face ID, Touch ID, Windows H
 
 Passkeys are phishing-resistant (bound to the server's origin), use public-key cryptography (private keys never leave the device), and can sync across devices via iCloud Keychain, Google Password Manager, or similar providers. Users can manage them from the **Manage Account** page and revoke any that are lost or compromised.
 
-## Roles
+## Permissions
 
-ControlR ships five built-in roles:
+ControlR uses a fine-grained, scope-based permission system instead of fixed roles. Each capability is a namespaced permission (e.g. `device.read`, `tenant.users.write`) granted to a principal (user, user group, service account, or personal access token) at a specific scope (device, device group, customer, tenant, or server). An explicit deny always overrides allow.
 
-| Role | Scope |
-|---|---|
-| **Server Administrator** | Server-wide admin: stats, logs, alerts, server settings. Cannot reach into other tenants' devices or users. |
-| **Tenant Administrator** | Tenant admin: users, devices, tags, invites, tenant settings. |
-| **Device Superuser** | Access every device in the tenant, regardless of tag. |
-| **Agent Installer** | Generate installer keys and deploy agents on new devices. |
-| **Installer Key Manager** | Manage installer keys. |
+To make broad grants easy, ControlR provides named **presets** -- curated bundles of related permissions (Server Administrator, Tenant Administrator, Device Superuser, Agent Installer, Installer Key Manager, Service Account Manager). Applying a preset grants all of its permissions at the appropriate scope.
 
-Role assignments are managed through the **Permissions** page (`/permissions`). See [Permissions](/docs/user-guide/permissions).
+Permissions are managed through the **Permissions** page (`/permissions`). See [Permissions](/docs/user-guide/permissions) and the [Permission System](/docs/permission-system) for the full model.
 
-## Tags for Device Access
+## Tags
 
-Beyond roles, device access is gated by tags:
-
-- A user can access a device if they have the `DeviceSuperuser` role, the matching tag, or are an admin.
-- Tags are per-tenant and assigned independently to users and devices.
-- Tag names must match `[a-z0-9-]` and be at most 100 characters.
-- The four built-in role names (`ServerAdministrator`, etc.) are reserved and cannot be used as tag names.
-
-Tag CRUD is done through the **Permissions** page under the **Tags** tab; assignments are done under the **Users** and **Devices** tabs.
+Tags are string labels used to organize and filter devices. They are no longer used for access control -- device access is governed entirely by permission assignments. Tags are managed on the **Tags** page (`/tags`). Tag names must match `[a-z0-9-]` and be at most 100 characters.
 
 ## Next
 
 - **[API Authentication](/docs/api/authentication)**: PAT, service account, and logon token usage with curl examples
 - **[API Overview](/docs/api/overview)**: REST API structure and conventions
 - **[Configuration](/docs/configuration)**: All `AppOptions` related to authentication
+

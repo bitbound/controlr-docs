@@ -5,7 +5,7 @@ title: Tenant Settings
 
 ## Overview
 
-Tenant Settings (`/tenant-settings`) configure tenant-wide behavior. You need the `TenantAdministrator` role to access this page.
+Tenant Settings (`/tenant-settings`) configure tenant-wide behavior. You need the `tenant.settings.read` permission to view this page (changing settings requires `tenant.settings.write`).
 
 ## Available Settings
 
@@ -31,5 +31,5 @@ Use this when you run multiple ControlR servers with agents connecting to each, 
 
 ## Next
 
-- **[Permissions](/docs/user-guide/permissions)**: Manage roles and access
+- **[Permissions](/docs/user-guide/permissions)**: Manage permissions and access
 - **[Configuration](/docs/configuration)**: Server-level configuration options

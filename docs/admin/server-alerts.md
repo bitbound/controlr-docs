@@ -11,7 +11,7 @@ Use cases include planned maintenance windows, incident notifications, security 
 
 ## Setting a Server Alert
 
-Only users with the **Server Administrator** role can manage server alerts.
+Only users with the `server.settings.write` permission can manage server alerts.
 
 ### Using the Web Interface
 
@@ -22,7 +22,7 @@ Only users with the **Server Administrator** role can manage server alerts.
 ### Using the API
 
 ```bash
-curl -X POST https://your-server/api/internal/server-alert \
+curl -X POST https://your-server/api/server-alert \
   -H "x-personal-token: <tokenId>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -55,7 +55,7 @@ curl -X POST https://your-server/api/internal/server-alert \
 Any authenticated user can read the current alert:
 
 ```bash
-curl https://your-server/api/internal/server-alert
+curl https://your-server/api/server-alert
 ```
 
 **Response** (`ServerAlertResponseDto`):
@@ -86,7 +86,7 @@ If no alert is active, the endpoint returns `404 Not Found`.
 To clear the current alert, POST an empty message:
 
 ```bash
-curl -X POST https://your-server/api/internal/server-alert \
+curl -X POST https://your-server/api/server-alert \
   -H "x-personal-token: <tokenId>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{

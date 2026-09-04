@@ -50,7 +50,7 @@ ControlR_OTLP_ENDPOINT_URL: "http://aspire:18889"
 2. Retrieve the dashboard URL (with embedded auth token) via the API:
 
 ```bash
-curl https://your-server/api/internal/server-logs/get-aspire-url \
+curl https://your-server/api/server-logs/get-aspire-url \
   -H "x-personal-token: <tokenId>:<secret>"
 ```
 

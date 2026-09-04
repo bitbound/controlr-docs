@@ -61,7 +61,7 @@ The API is organized into three route roots:
 
 | Route root | Audience | Description |
 |---|---|---|
-| `/api/internal/*` | Blazor Web UI | Dynamic BFF endpoints, no versioning |
+| `/api/*` | Blazor Web UI | Dynamic BFF endpoints, no versioning |
 | `/api/v1/*` | S2S automation | Versioned stable contract for integrations |
 | `/api/agent/*` | Device agents | Anonymous agent communication |
 

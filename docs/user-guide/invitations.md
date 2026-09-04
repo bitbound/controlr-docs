@@ -5,7 +5,7 @@ title: Invitations
 
 ## Overview
 
-The Invitations page at `/invite` invites new users into your tenant. Tenant Administrator role is required.
+The Invitations page at `/invite` invites new users into your tenant. You need the `tenant.users.write` permission to send invitations.
 
 ## Inviting Users
 
@@ -41,5 +41,5 @@ A user who receives an invitation email:
 
 ## Next
 
-- **[Permissions](/docs/user-guide/permissions)**: Manage roles and access
+- **[Permissions](/docs/user-guide/permissions)**: Manage permissions and access
 - **[Tenant Settings](/docs/user-guide/tenant-settings)**: Tenant-wide configuration

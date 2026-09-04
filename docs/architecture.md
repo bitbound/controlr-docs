@@ -85,7 +85,7 @@ The server is an ASP.NET Core application that orchestrates all ControlR communi
 | **Real-time commands** | SignalR with MessagePack protocol |
 | **Remote control streaming** | Built-in WebSocket relay |
 | **Authentication** | ASP.NET Core Identity with dynamic policy scheme |
-| **Authorization** | Role-based + resource-based (tags) |
+| **Authorization** | Fine-grained, scope-based permission assignments |
 | **Data persistence** | EF Core with PostgreSQL |
 | **API documentation** | Scalar / OpenAPI |
 | **Telemetry** | OpenTelemetry (OTLP export) |
@@ -199,7 +199,7 @@ The Desktop Client connects to the server's WebSocket relay **only during active
 | Entity | Description |
 |--------|-------------|
 | Devices | Registered agents with status, platform info, and connection state |
-| Users | ASP.NET Core Identity accounts with roles |
+| Users | ASP.NET Core Identity accounts with permission assignments |
 | Tenants | Multi-tenant isolation (if enabled) |
 | Installer Keys | Pre-shared keys for agent installation authorization |
 | Personal Access Tokens | Headless API access tokens |

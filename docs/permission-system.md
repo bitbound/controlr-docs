@@ -19,7 +19,7 @@ Phase 2 stores each authorization decision as a `PermissionAssignment` row that 
 Every capability in ControlR has a unique, namespaced permission identifier following the pattern `<resource>.<action>`, such as `device.read`, `device.remote-control.connect`, or `tenant.permissions.write`.
 
 ```
-server.admin                          -- Full server administrator
+server.tenants.read                   -- List all tenants on the server
 server.alerts.read                    -- View server alerts
 device.read                           -- View device details
 device.remote-control.connect         -- Connect via remote control
@@ -80,14 +80,14 @@ The current preset catalog:
 
 | Preset name | Permission count | Purpose |
 |-------------|------------------|---------|
-| `Server Administrator` | 13 | Full server-wide admin: alerts, tenants, telemetry, service accounts, cross-tenant permission management |
+| `Server Administrator` | 14 | Full server-wide admin: alerts, tenants, telemetry, service accounts, cross-tenant permission management |
 | `Tenant Administrator` | 30 | Full tenant admin: users, groups, device groups, customers, tags, permissions, installers, service accounts |
 | `Device Superuser` | 27 | Full device operations: remote control, file system, terminal, power, agent updates |
-| `Agent Installer` | 1 | Just `agent.install` |
+| `Agent Installer` | 3 | Agent install + installer key read/write |
 | `Installer Key Manager` | 3 | Installer key read/write + agent install |
 | `Service Account Manager` | 3 | Service account read/write/rotate |
 
-Note that the preset catalog is the source of truth for current permissions. The legacy role-to-permission backfill (see below) used slightly smaller sets, because several permissions were added later and are not backfilled to existing users. Presets are the recommended way to grant broad access. Custom one-off grants use the raw assignment API.
+Note that the preset catalog is the source of truth for current permissions. Presets are the recommended way to grant broad access. Custom one-off grants use the raw assignment API.
 
 ### The PermissionAssignment Entity
 
@@ -194,16 +194,16 @@ Among matching rules:
 Example permission definitions:
 
 ```
-server.admin                       -- [Server]         Full administrative access to server-wide settings and operations.
-device.read                        -- [Device, DeviceGroup, CustomerTenant, Tenant]  View device details and status.
-device.remote-control.connect      -- [Device, DeviceGroup, CustomerTenant, Tenant]  Initiate a remote control session.
-tenant.permissions.write           -- [Tenant]          Create/update allow permission assignments.
-tenant.permissions.deny            -- [Tenant]          Create/update deny assignments. Required for ANY deny at ANY scope, including server scope.
+server.tenants.read                  -- [Server]         List all tenants on the server.
+device.read                          -- [Device, DeviceGroup, CustomerTenant, Tenant, Server]  View device details and status.
+device.remote-control.connect        -- [Device, DeviceGroup, CustomerTenant, Tenant, Server]  Initiate a remote control session.
+tenant.permissions.write             -- [Tenant]          Create/update allow permission assignments.
+tenant.permissions.deny              -- [Tenant]          Create/update deny assignments. Required for ANY deny at ANY scope, including server scope.
 ```
 
 Certain permissions have constraints:
 
-- `selfRemovable: false` -- Four permissions (`server.admin`, `server.permissions.write`, `tenant.permissions.write`, `tenant.permissions.deny`) are marked this way, so a principal cannot drop their last grant of that permission from themselves (see [Self-Removable Guard](#self-removable-guard)).
+- `selfRemovable: false` -- Three permissions (`server.permissions.write`, `tenant.permissions.write`, `tenant.permissions.deny`) are marked this way, so a principal cannot drop their last grant of that permission from themselves (see [Self-Removable Guard](#self-removable-guard)).
 - `tenant.permissions.deny` -- A gateway permission: you need this to create deny-effect assignments at any scope, including server scope.
 
 ## Authorization in Practice
@@ -304,11 +304,11 @@ Note that client-side checks use the *user's* effective permissions and therefor
 The migration `20260813192551_Permissions_Phase2` performs a complete transformation:
 
 1. **Backfill**: Maps legacy `AspNetUserRoles` entries to `PermissionAssignment` rows using a SQL script that maps role-permission pairs:
-   - Server Administrator --> server-scoped allow for 9 permissions (server admin, alerts, authorization logs, tenants, telemetry, service accounts)
+   - Server Administrator --> 14 permissions (12 server-scoped: alerts, authorization logs, permissions, settings, tenants, telemetry, service accounts; plus 2 tenant-scoped: tenant permissions read, tenant authorization logs read)
    - Tenant Administrator --> tenant-scoped allow for 30 permissions covering all tenant operations
-   - Device Superuser --> tenant-scoped allow for 25 permissions covering device operations
-   - Installer Key Manager --> server-scoped allow for 3 permissions (installer key read/write, agent install)
-   - Agent Installer --> tenant-scoped allow for 1 permission (agent install)
+   - Device Superuser --> tenant-scoped allow for 27 permissions covering device operations
+   - Installer Key Manager --> tenant-scoped allow for 3 permissions (installer key read/write, agent install)
+   - Agent Installer --> tenant-scoped allow for 3 permissions (agent install, installer key read/write)
 
 2. **Drop**: Removes `AspNetUserRoles`, `AspNetRoles`, `AspNetRoleClaims` (the legacy role system), plus `AppUserTag` (superseded by customer/device scoping).
 
@@ -348,7 +348,7 @@ Server service accounts get unrestricted access only when they have **zero** ass
 
 ### Self-Removable Guard
 
-Four permissions are marked `selfRemovable: false` in the catalog: `server.admin`, `server.permissions.write`, `tenant.permissions.write`, and `tenant.permissions.deny`. The guard is enforced by `PermissionAssignmentManager.FindViolatedSelfProtected`: when an actor updates their **own** assignments, the manager diffs the actor's granted permissions before and after the operation, and blocks any change that would drop the last grant of a non-self-removable permission. The check only guards the actor's own principal -- another authorized holder may still revoke these grants.
+Three permissions are marked `selfRemovable: false` in the catalog: `server.permissions.write`, `tenant.permissions.write`, and `tenant.permissions.deny`. The guard is enforced by `PermissionAssignmentManager.FindViolatedSelfProtected`: when an actor updates their **own** assignments, the manager diffs the actor's granted permissions before and after the operation, and blocks any change that would drop the last grant of a non-self-removable permission. The check only guards the actor's own principal -- another authorized holder may still revoke these grants.
 
 ### Fail-Closed Deny Resolution
 

@@ -10,7 +10,7 @@ The Deploy page generates install scripts for deploying the ControlR agent to re
 ## Accessing Deploy
 
 1. Navigate to the Deploy page (`/deploy`)
-2. You need the `AgentInstaller` role to access this page
+2. You need the `agent.install` permission to access this page
 
 ## Generating Install Scripts
 
