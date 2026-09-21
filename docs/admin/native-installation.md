@@ -11,7 +11,7 @@ ControlR can be deployed natively on Linux without Docker. Each release ships th
 
 - **Linux, AMD64**: the server archive is `server-linux-amd64.zip`. Ubuntu, Debian, or similar. ARM64 is not a published server target. The last six releases carry no `server-linux-arm64.zip`, and the published container image is `linux/amd64` only. On ARM hardware, build the server yourself. Check the release's asset list before scripting against a name.
 - **PostgreSQL 18**: The version ControlR's own Compose file ships. Install via Docker (recommended) or your package manager.
-- **Reverse proxy**: Nginx, Caddy, or Apache for HTTPS termination. Recommended.
+- **Reverse proxy**: Nginx, Caddy, or Apache. Required for anything reachable beyond the machine itself. ControlR does not support exposing its own web server to the internet. The proxy provides HTTPS and passes real client addresses through to the server.
 
 The release ZIP is a self-contained publish. It bundles the .NET runtime, so you do **not** need to install .NET on the host. It does not bundle the operating-system libraries .NET links against. ControlR does not enable globalization-invariant mode, so the host needs the ICU libraries that provide culture data.
 
@@ -196,7 +196,9 @@ curl http://127.0.0.1:5120/health
 
 The server registers the health endpoint through ASP.NET Core health checks. A `Healthy` body means the process started and is answering requests. It does not prove the database connection works, so still run the migration check in Step 8.
 
-## Step 7: Configure a Reverse Proxy (Recommended)
+## Step 7: Configure a Reverse Proxy
+
+Skip this only when the server is reachable solely from the machine it runs on or from a private network you fully control. A server you intend to reach over the internet needs a proxy in front of it. Kestrel listens on plain HTTP, has no certificate of its own, and applies no filtering at the edge, so the proxy is what terminates TLS and what tells the server where its clients actually come from.
 
 ### Nginx
 

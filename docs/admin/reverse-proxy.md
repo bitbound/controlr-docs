@@ -7,6 +7,21 @@ Some ControlR features require [forwarded headers](https://learn.microsoft.com/e
 
 The examples below proxy to port 5120 on the proxy host, which is the host port the shipped `docker-compose.yml` maps to the container's port 8080. Adjust the upstream address and port if your deployment publishes the server differently.
 
+## Do Not Point The Internet At Kestrel
+
+ControlR does not support running with Kestrel exposed to the internet. Put a reverse proxy at the public edge and keep the ControlR server behind it.
+
+Kestrel is the web server that ships inside ControlR. It is designed to receive traffic from a proxy on a private network. It is not designed to be the thing the internet connects to.
+
+- **Nothing encrypts the connection.** The server starts Kestrel on plain HTTP and ships no HTTPS port, so ControlR never obtains or renews a certificate. Exposed directly, your sign-in form, your session cookies, and your remote-control screen data all cross the network in clear text. Remote-control frames are not encrypted a second time end to end, so that hop carries them in the open. TLS has to be terminated by something in front of the server.
+- **The edge has no protection in front of it.** The server rate limits three authentication endpoints and nothing else. It has no IP blocklist, no connection throttling, and no request filtering. In production it also turns on HTTPS redirection and HSTS while having no HTTPS port to redirect to. The app is written on the assumption that TLS was already dealt with before the request arrived.
+
+Configuring a certificate on Kestrel yourself does not change this. The proxy arrangement is the supported deployment.
+
+Once a proxy is in front of the server, naming it in the configuration is the part people skip, and skipping it causes the strangest faults. The server only reads forwarded client addresses from an address it has been told to trust. Loopback is already trusted, and the shipped compose file trusts the Docker bridge gateway, so a same-host proxy can look like it needs no configuration at all while a proxy anywhere else silently does nothing. Getting it wrong does not produce an error. Connections keep succeeding while device IP addresses, sign-in rate limits, and audit logs all record your proxy instead of your users. See the next section for the options.
+
+You can usually tell from the address bar. A ControlR URL that carries `http://` and an explicit port, such as `http://controlr.example.com:5120`, means the browser is talking to Kestrel directly.
+
 ## Which Proxies ControlR Trusts by Default
 
 The server consumes four headers: `X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-Prefix`. It applies them only when the immediate connection comes from a trusted address. Chain depth is unlimited, so every proxy between the client and the server needs to be in that trust list before the client address in `X-Forwarded-For` is read.

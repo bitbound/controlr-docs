@@ -72,7 +72,7 @@ Before installing:
 
 1. **[Installation](/docs/installation)**: Deploy ControlR via Docker Compose or native install.
 2. **[Configuration](/docs/configuration)**: Tune `AppOptions` and related settings.
-3. **[Reverse Proxy](/docs/admin/reverse-proxy)**: Put HTTPS in front of the server.
+3. **[Reverse Proxy](/docs/admin/reverse-proxy)**: Put HTTPS in front of the server. ControlR does not support the server's own listener facing the internet, so this is required before remote access. Name the proxy in the trusted-proxy settings there, or the server cannot see where its clients come from.
 
 ## Need Help?
 

@@ -115,7 +115,9 @@ curl http://127.0.0.1:5120/api/v1/version/agent
 
 Both are anonymous. The agent route reports the version of the agent bundle this server serves.
 
-The web interface is at `http://your-server:5120`, or at `https://your-domain` once a reverse proxy terminates TLS. See [Reverse Proxy](/docs/admin/reverse-proxy) before you connect devices. Several features depend on forwarded headers being trusted, and the public IP of a device is wrong when the proxy chain is misconfigured.
+The web interface answers at `http://your-server:5120`. Treat that address as a local check rather than a deployment. ControlR does not support exposing that port to the internet, because the server listens on plain HTTP and has no edge protection of its own. Publish it through a reverse proxy, which gives you HTTPS and passes real client addresses through to the server.
+
+Read [Reverse Proxy](/docs/admin/reverse-proxy) before you connect devices, and name your proxy in the trusted-proxy settings there. Several features depend on forwarded headers being trusted, and a proxy that is not in that list makes every device look like it connects from the proxy address.
 
 ## Installing the Agent
 

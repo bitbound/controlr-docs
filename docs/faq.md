@@ -30,7 +30,7 @@ The `Tools/ControlR.Agent.LoadTester` project in the repository is a harness for
 
 ### Is data encrypted in transit?
 
-Yes, when TLS is terminated in front of the server (reverse proxy) or directly by the server. Agents and viewers only establish outbound connections to the server, so no inbound ports need to be exposed. See [Reverse Proxy](/docs/admin/reverse-proxy).
+Yes. TLS is terminated by a reverse proxy in front of the server, and that is the supported arrangement. ControlR does not support exposing the server's own web listener to the internet, so treat a proxy as required for anything reachable beyond the local machine. Agents and viewers only establish outbound connections to the server, so no inbound ports need to be exposed on their networks. See [Reverse Proxy](/docs/admin/reverse-proxy).
 
 TLS is applied hop by hop. When a proxy terminates TLS, the proxy-to-server hop stays plain HTTP unless you configure TLS there as well. Remote-control screen data is relayed through the server over that same TLS connection, and it is not encrypted a second time end to end.
 
