@@ -45,6 +45,24 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Subscriber Portal',
+      link: {
+        type: 'generated-index',
+        description: 'Guides for sponsors using the ControlR Subscriber Portal.',
+      },
+      items: [
+        'subscriber-portal/overview',
+        'subscriber-portal/sign-in',
+        'subscriber-portal/sponsorship-and-build-slots',
+        'subscriber-portal/manage-a-build-slot',
+        'subscriber-portal/organization-access',
+        'subscriber-portal/notifications',
+        'subscriber-portal/connect-to-controlr',
+        'subscriber-portal/for-administrators',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Administration',
       link: {
         type: 'generated-index',
