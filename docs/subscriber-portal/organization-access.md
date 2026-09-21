@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 9
 title: Organization Access
 ---
 
@@ -32,10 +32,12 @@ In an organization context, open **Users** from the navigation. The portal shows
 
 The **Organization users** page has three sections: current access, pending invites, and audit history. To add someone, select **Grant access** and enter their GitHub username.
 
-- A member of the organization can be granted access right away.
-- Someone who is not a member gets a pending invite. They receive access after they join the organization.
+You can only grant access to someone who is already an active member of the GitHub organization. Granting to a person outside the organization fails, so they must join the organization on GitHub first.
 
-To change or remove an existing grant, use **Edit access** or **Remove access** on that person's card. The same applies to a pending invite.
+- A member who has already signed in to the portal is granted access immediately.
+- A member who has not signed in yet appears under **Pending invites**. They receive the access you granted the first time they sign in. If their organization membership lapses before then, the invite no longer grants access.
+
+Existing grants appear on that person's card with **Edit access** and **Remove access**. Invite cards use **Edit invite** and **Revoke invite** instead.
 
 ## Permissions You Can Grant
 

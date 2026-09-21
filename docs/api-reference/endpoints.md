@@ -1,475 +1,871 @@
 ---
-sidebar_position: 1
+sidebar_position: 4
 title: API Endpoints
 ---
 
 ## Overview
 
-ControlR's API is split into three route roots, each serving a distinct audience:
+ControlR's HTTP surface is split into three route roots.
 
-| Route root | Audience | Contract | Versioning | Example |
-|---|---|---|---|---|
-| `/api/*` | Blazor Web UI (BFF), device agents | Dynamic | No | `/api/users` |
-| `/api/v1/*` | S2S automation | Stable contract | Yes | `/api/v1/tenants` |
-| `/api/agent/*` | Device agents (anonymous) | Dynamic | No | `/api/agent/updates` |
+| Route root | Audience | Status |
+|---|---|---|
+| `/api/v1/*` | Service-to-service automation and integrations | Supported |
+| `/api/*` | ControlR's own Blazor front-end (BFF pattern) | Deprecated |
+| `/api/agent/*` | Device agents | Agent contract, not for integrators |
 
-## Authentication Requirements
+### What to build against
 
-| Auth Type | Description |
-|-----------|-------------|
-| **None** | Public endpoint, no authentication required |
-| **Any** | Any authenticated principal (cookie, bearer, PAT, service account) |
-| **Service Account** | Server-scoped service account via `x-api-key` header (V1 routes only) |
-| **Permission** | Requires the named permission (e.g. `tenant.users.write`) |
+Build against `/api/v1/*`. It is the only surface the server treats as a stable contract.
 
-Authorization is enforced through the fine-grained, scope-based permission system. The permission names shown below are the canonical identifiers; see the [Permission System](/docs/permission-system) for the full model.
+`/api/*` is the surface the ControlR web app calls. The server keeps it, and it is not the surface to integrate against. Nearly every action on it carries an `[ApiDeprecated]` attribute naming its V1 twin, and the OpenAPI document for that group marks those operations `deprecated: true` and adds an `x-replacement-route` extension. Of the 79 Internal routes, 71 are marked deprecated. The eight that are not are the six `/api/auth` routes, the form-encoded archive download the Blazor file input uses, and the anonymous invite accept. See [Internal endpoints (deprecated)](#internal-endpoints-deprecated).
+
+Two OpenAPI documents are published, `v1` and `internal`, served from `/openapi/v1.json` and `/openapi/internal.json`. Both are gated behind `AppOptions:EnableScalarUi`, which also mounts the Scalar reference UI that lists them.
+
+### Conventions used in the V1 tables
+
+- **Permission** is the canonical permission name the server evaluates. It is not a policy name. A principal needs the named permission granted at the scope the row names (Server, Tenant, Device, Device group, or user group).
+- **Required parameters** lists the parameters the server rejects a request over. Route parameters and `tenantId` are covered. Optional query parameters are named only where they change the response.
+- `tenantId` is a query parameter unless the row says it is in the route or in the body. See [Tenant scoping](#tenant-scoping).
+
+## Authentication
+
+The server forwards every request to one handler based on what the request carries. It checks in this order:
+
+1. A logon token, when the path starts with `/device-access` and the query contains `logonToken`.
+2. A bearer token, only when `AppOptions:EnableInteractiveBearerLogin` is set.
+3. The `x-personal-token` header.
+4. The `x-api-key` header.
+5. Otherwise the Identity application cookie.
+
+| Scheme | Credential | Notes |
+|---|---|---|
+| Service account | `x-api-key: <credentialId>:<secret>` | Serves both server service accounts and tenant service accounts. A server service account carries no tenant claim and may address any tenant. A tenant service account carries a tenant claim and is confined to it. |
+| Personal access token | `x-personal-token: <token>` | Acts as the owning user. |
+| Interactive session | `.AspNetCore.Identity.Application` cookie | The web front-end. |
+| Bearer token | `Authorization: Bearer <token>` | Accepted only when `AppOptions:EnableInteractiveBearerLogin` is set. It is off in the shipped `appsettings.json`. |
+| Logon token | `?logonToken=` on `/device-access` | Device access links, not an API credential. |
+| Anonymous | none | Marked per route below. Agent registration authenticates with installer-key credentials in the request body. |
+
+The OpenAPI documents advertise the cookie, `x-personal-token`, and `x-api-key` schemes. The `internal` document omits `x-api-key`, although the dynamic scheme selector still accepts that header on Internal routes.
+
+## Authorization
+
+Authorization is enforced by the fine-grained permission system. Names in the tables are the server's canonical permission identifiers. See the [Permission System](/docs/permission-system) for the model.
+
+Device-scoped permissions (`device.*`) are evaluated against the target device, so a grant over one device does not carry to another. Device group and user group permissions (`device-group.*`, `user-group.*`) are evaluated against the named group.
+
+### Tenant scoping {#tenant-scoping}
+
+Most V1 actions take a `Guid tenantId`. An action-model convention adds a filter to every V1 action that takes one, and the filter answers `400` with a ProblemDetails body when the value is absent or `00000000-0000-0000-0000-000000000000`. Treat `tenantId` as required on every row that names it.
+
+After that check, the server resolves the tenant against the caller:
+
+- A server-scoped principal (server service account, or a user holding server permissions) may name any tenant.
+- Any other principal must name the tenant in its own claim. A mismatch is answered `403`, not `404`.
+
+Deprecated Internal routes have no such filter. They derive the tenant from the caller's claim and answer `403` for an unusable one, which is one reason a migrated caller should send the parameter explicitly.
+
+## V1 endpoints (supported)
+
+All V1 routes live under the literal `/api/v1/...` path. The controllers are declared as API version `1.0`, the server assumes that version when a request does not state one, and the path segment is what selects the group. There is no separate version header to send.
+
+31 route groups, 130 routes.
+
+| Group | Routes | Group | Routes |
+|---|---|---|---|
+| [Authorization change logs](#authorization-change-logs) | 2 | [Server alert](#server-alert) | 2 |
+| [Customers](#customers) | 6 | [Server logs](#server-logs) | 1 |
+| [Deployment options](#deployment-options) | 2 | [Server service accounts](#server-service-accounts) | 8 |
+| [Desktop preview](#desktop-preview) | 1 | [Server stats](#server-stats) | 1 |
+| [Device file system](#device-file-system) | 12 | [Tags](#tags) | 5 |
+| [Device groups](#device-groups) | 7 | [Tenant service accounts](#tenant-service-accounts) | 8 |
+| [Device tags](#device-tags) | 2 | [Tenant settings](#tenant-settings) | 5 |
+| [Devices](#devices) | 8 | [Tenants](#tenants) | 5 |
+| [Effective permissions](#effective-permissions) | 1 | [Test email](#test-email) | 1 |
+| [Effective user preferences](#effective-user-preferences) | 1 | [User groups](#user-groups) | 7 |
+| [Installer keys](#installer-keys) | 5 | [User preferences](#user-preferences) | 4 |
+| [Invites](#invites) | 3 | [User server settings](#user-server-settings) | 2 |
+| [Logon tokens](#logon-tokens) | 2 | [User storage](#user-storage) | 3 |
+| [Permission assignments](#permission-assignments) | 10 | [Users](#users) | 8 |
+| [Personal access tokens](#personal-access-tokens) | 4 | [Version](#version) | 3 |
+| [Public server settings](#public-server-settings) | 1 | | |
+
+### Authorization change logs
+
+`/api/v1/authorization-change-logs`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/authorization-change-logs` | `tenantId` (query) | `server.authorization-logs.read` or `tenant.authorization-logs.read` |
+| GET | `/api/v1/authorization-change-logs/server` | none | `server.authorization-logs.read` |
+
+The tenant-addressed list accepts either permission. A holder of `server.authorization-logs.read` may name any tenant through `tenantId`. A holder of only `tenant.authorization-logs.read` sees their own tenant. A search filter is available as query parameters on the `AuthorizationChangeLogSearchQueryDto` binding.
+
+The `/server` route lists the audit entries that belong to no tenant, such as server service-account edits. It takes no `tenantId` because those rows have none.
+
+### Customers
+
+`/api/v1/customers`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/customers` | `tenantId` (query), body | `tenant.customers.write` |
+| GET | `/api/v1/customers` | `tenantId` (query) | `tenant.customers.read` |
+| GET | `/api/v1/customers/{customerId}` | `customerId` (route), `tenantId` (query) | `tenant.customers.read` |
+| PUT | `/api/v1/customers/{customerId}` | `customerId` (route), `tenantId` (query), body | `tenant.customers.write` |
+| DELETE | `/api/v1/customers/{customerId}` | `customerId` (route), `tenantId` (query) | `tenant.customers.write` |
+| POST | `/api/v1/customers/{customerId}/devices` | `customerId` (route), `tenantId` (query), body | `tenant.customers.write` |
+
+### Deployment options
+
+`/api/v1/deployment-options`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/deployment-options` | `tenantId` (query) | `agent.install` |
+| POST | `/api/v1/deployment-options/tag-capability` | `tenantId` (query), body | `agent.install` |
+
+### Desktop preview
+
+`/api/v1/desktop-preview`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/desktop-preview/{deviceId}/{targetProcessId}` | `deviceId` (route), `targetProcessId` (route, int), `tenantId` (query) | `device.desktop-preview.read` |
+
+Responds with `image/jpeg`. The route disables the server-side request timeout, so a slow device is not cut off by the server.
+
+### Device file system
+
+`/api/v1/device-file-system`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/device-file-system/contents` | `tenantId` (query), body | `device.file-system.read` |
+| POST | `/api/v1/device-file-system/path-segments` | `tenantId` (query), body | `device.file-system.read` |
+| POST | `/api/v1/device-file-system/root-drives` | `tenantId` (query), body | `device.file-system.read` |
+| POST | `/api/v1/device-file-system/subdirectories` | `tenantId` (query), body | `device.file-system.read` |
+| POST | `/api/v1/device-file-system/validate-path/{deviceId}` | `deviceId` (route), `tenantId` (query), body | `device.file-system.read` |
+| POST | `/api/v1/device-file-system/create-directory/{deviceId}` | `deviceId` (route), `tenantId` (query), body | `device.file-system.write` |
+| POST | `/api/v1/device-file-system/upload/{deviceId}` | `deviceId` (route), `tenantId` (query), multipart body | `device.file-system.transfer-upload` |
+| GET | `/api/v1/device-file-system/download/{deviceId}` | `deviceId` (route), `tenantId` (query), `filePath` (query) | `device.file-system.transfer-download` |
+| POST | `/api/v1/device-file-system/download-archive/{deviceId}` | `deviceId` (route), `tenantId` (query), body | `device.file-system.transfer-download` |
+| DELETE | `/api/v1/device-file-system/delete-path/{deviceId}` | `deviceId` (route), `tenantId` (query), body | `device.file-system.delete` |
+| GET | `/api/v1/device-file-system/logs/{deviceId}` | `deviceId` (route), `tenantId` (query) | `device.logs.read` |
+| GET | `/api/v1/device-file-system/logs/{deviceId}/contents` | `deviceId` (route), `tenantId` (query), `filePath` (query) | `device.logs.read` |
+
+The class has no per-action policy. Authentication is required on every route, and the device permission is enforced inside the file-system service for the specific operation, as listed above.
+
+Unlike the deprecated Internal twin, V1 has no `/download-archive/{deviceId}/form` route. That route exists only for the browser form upload.
+
+### Device groups
+
+`/api/v1/device-groups`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/device-groups` | `tenantId` (query), body | `tenant.device-groups.write` |
+| GET | `/api/v1/device-groups` | `tenantId` (query) | `tenant.device-groups.read` |
+| GET | `/api/v1/device-groups/{deviceGroupId}` | `deviceGroupId` (route), `tenantId` (query) | `tenant.device-groups.read` |
+| PUT | `/api/v1/device-groups/{deviceGroupId}` | `deviceGroupId` (route), `tenantId` (query), body | `tenant.device-groups.write` |
+| DELETE | `/api/v1/device-groups/{deviceGroupId}` | `deviceGroupId` (route), `tenantId` (query) | `tenant.device-groups.write` |
+| POST | `/api/v1/device-groups/{deviceGroupId}/members` | `deviceGroupId` (route), `tenantId` (query), body | `device-group.assign-devices` on that group |
+| DELETE | `/api/v1/device-groups/{deviceGroupId}/members` | `deviceGroupId` (route), `tenantId` (query), body | `device-group.assign-devices` on that group |
+
+### Device tags
+
+`/api/v1/device-tags`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/device-tags` | `tenantId` (query), body | `device.tags.write` on the target device |
+| DELETE | `/api/v1/device-tags/{deviceId}/{tagId}` | `deviceId` (route), `tagId` (route), `tenantId` (query) | `device.tags.write` on that device |
+
+### Devices
+
+`/api/v1/devices`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/devices` | none | Device access scope |
+| GET | `/api/v1/devices/summary` | none | Device access scope |
+| POST | `/api/v1/devices/search` | body | Device access scope |
+| GET | `/api/v1/devices/{deviceId}` | `deviceId` (route) | `device.read` |
+| GET | `/api/v1/devices/{deviceId}/desktop-sessions` | `deviceId` (route) | `device.read`, plus per-session desktop access |
+| PATCH | `/api/v1/devices/{deviceId}/alias` | `deviceId` (route), body | `device.alias.write` |
+| DELETE | `/api/v1/devices/{deviceId}` | `deviceId` (route) | `device.delete` |
+| POST | `/api/v1/devices/delete-many` | body, `DeviceIds` required | `device.delete` per device |
+
+No route in this group takes `tenantId`. These routes resolve the caller's device access scope, so a server-scoped principal sees across tenants and a tenant principal sees its own.
+
+`GET /api/v1/devices` and `GET /api/v1/devices/summary` stream the result as a sequence rather than returning one envelope object.
+
+`POST /api/v1/devices/delete-many` answers with both the deleted ids and the ids it refused, so check the response body instead of the status code alone.
+
+### Effective permissions
+
+`/api/v1/effective-permissions`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/effective-permissions/{principalId}` | `principalId` (route), `tenantId` (query), `principalKind` (query), `permissionName` (query), `scopeKind` (query), `scopeId` (query, optional) | `tenant.permissions.read` |
+
+`principalKind` must be one of `User`, `UserGroup`, or `ServiceAccount`. Anything else is answered `400`. `permissionName` is required and capped at 150 characters. `ServiceAccount` covers tenant service accounts only, and a principal in another tenant is answered `404`, the same answer as a principal that does not exist.
+
+There is no `POST /api/v1/effective-permissions/query`.
+
+### Effective user preferences
+
+`/api/v1/effective-user-preferences`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/effective-user-preferences` | `tenantId` (query) | Any authenticated principal |
+
+Returns the effective value of each preference the calling user can hold, together with a flag saying whether the tenant enforces that preference. The current set is `NotifyUserOnSessionStart` and `IsNotifyUserOnSessionStartTenantEnforced`.
+
+### Installer keys
+
+`/api/v1/installer-keys`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/installer-keys` | body, `TenantId` required | `installer-key.write` |
+| GET | `/api/v1/installer-keys` | `tenantId` (query) | `installer-key.read` |
+| GET | `/api/v1/installer-keys/{keyId}/usages` | `keyId` (route), `tenantId` (query) | `installer-key.read` |
+| PUT | `/api/v1/installer-keys/{keyId}` | `keyId` (route), `tenantId` (query), body | `installer-key.write` |
+| DELETE | `/api/v1/installer-keys/{keyId}` | `keyId` (route), `tenantId` (query) | `installer-key.write` |
+
+`POST` is the only route that returns the key secret, and it returns it once. `PUT` renames a key and answers `204`. Usage rows are recorded by the server when an agent installs with a key, and there is no endpoint that increments them.
+
+### Invites
+
+`/api/v1/invites`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/invites` | `tenantId` (query), body | `tenant.users.write` |
+| GET | `/api/v1/invites` | `tenantId` (query) | `tenant.users.read` |
+| DELETE | `/api/v1/invites/{inviteId}` | `inviteId` (route), `tenantId` (query) | `tenant.users.write` |
+
+Accepting an invite is not part of V1. The anonymous accept route is on the deprecated surface, described below.
+
+### Logon tokens
+
+`/api/v1/logon-tokens`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/logon-tokens/user` | body, includes `DeviceId`, `TenantId`, `UserId` | `device.logon-token.create` on the device |
+| POST | `/api/v1/logon-tokens/external` | body, includes `DeviceId`, `TenantId`, `UserCorrelationId` (required) | `device.logon-token.create` on the device |
+
+Both routes carry the tenant in the request body rather than the query string. The `external` route creates a transient user identity from a correlation id you supply, which suits an integration that has its own account system. Both accept optional `Permissions`, `AllowedDesktopSessionIds`, `SessionCorrelationId`, and `ExpirationMinutes`.
+
+### Permission assignments
+
+`/api/v1/permission-assignments`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/permission-assignments` | `tenantId` (query), `principalKind` (query), `principalId` (query) | `tenant.permissions.read` |
+| GET | `/api/v1/permission-assignments/catalog` | `tenantId` (query) | `tenant.permissions.read` |
+| GET | `/api/v1/permission-assignments/presets` | `tenantId` (query) | `tenant.permissions.read` |
+| POST | `/api/v1/permission-assignments` | `tenantId` (query), body | `tenant.permissions.write` |
+| POST | `/api/v1/permission-assignments/batch` | `tenantId` (query), body, `Assignments` required and non-empty | `tenant.permissions.write` |
+| POST | `/api/v1/permission-assignments/batch-delete` | `tenantId` (query), body, `AssignmentIds` required | `tenant.permissions.write` |
+| POST | `/api/v1/permission-assignments/presets/apply` | `tenantId` (query), body | `tenant.permissions.write` |
+| POST | `/api/v1/permission-assignments/replace` | `tenantId` (query), body | `tenant.permissions.write` |
+| PUT | `/api/v1/permission-assignments/{assignmentId}` | `assignmentId` (route), `tenantId` (query), body | `tenant.permissions.write` |
+| DELETE | `/api/v1/permission-assignments/{assignmentId}` | `assignmentId` (route), `tenantId` (query) | `tenant.permissions.write` |
+
+The batch routes are `batch` and `batch-delete`. There is no `create-many` or `delete-many` route on this group.
+
+### Personal access tokens
+
+`/api/v1/personal-access-tokens`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/personal-access-tokens` | `tenantId` (query), body | `personal-access-token.self.write` |
+| GET | `/api/v1/personal-access-tokens` | `tenantId` (query) | `personal-access-token.self.read` |
+| PUT | `/api/v1/personal-access-tokens/{id}` | `id` (route), `tenantId` (query), body | `personal-access-token.self.write` |
+| DELETE | `/api/v1/personal-access-tokens/{id}` | `id` (route), `tenantId` (query) | `personal-access-token.self.write` |
+
+These are self-service routes for the calling user's own tokens. Managing another user's tokens is under [Users](#users). `POST` answers `201` and `DELETE` answers `204`.
+
+### Public server settings
+
+`/api/v1/public-server-settings`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/public-server-settings` | none | Anonymous |
+
+Returns `IsPublicRegistrationEnabled` and `DisableDesktopPreview`. The response is cached for 60 seconds.
+
+### Server alert
+
+`/api/v1/server-alert`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/server-alert` | none | Any authenticated principal |
+| POST | `/api/v1/server-alert` | body | `server.settings.write` |
+
+### Server logs
+
+`/api/v1/server-logs`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/server-logs/get-aspire-url` | none | `server.telemetry.read` |
+
+Reports whether the Aspire dashboard is configured, and returns its URL with an auth token.
+
+### Server service accounts
+
+`/api/v1/server-service-accounts`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/server-service-accounts` | body | `server.service-accounts.write` |
+| GET | `/api/v1/server-service-accounts` | none | `server.service-accounts.read` |
+| GET | `/api/v1/server-service-accounts/{serviceAccountId}` | `serviceAccountId` (route) | `server.service-accounts.read` |
+| PUT | `/api/v1/server-service-accounts/{serviceAccountId}` | `serviceAccountId` (route), body | `server.service-accounts.write` |
+| DELETE | `/api/v1/server-service-accounts/{serviceAccountId}` | `serviceAccountId` (route) | `server.service-accounts.write` |
+| POST | `/api/v1/server-service-accounts/{serviceAccountId}/credentials` | `serviceAccountId` (route), body | `server.service-accounts.rotate-credentials` |
+| DELETE | `/api/v1/server-service-accounts/{serviceAccountId}/credentials/{credentialId}` | route ids | `server.service-accounts.rotate-credentials` |
+| DELETE | `/api/v1/server-service-accounts/{serviceAccountId}/credentials/{credentialId}/purge` | route ids | `server.service-accounts.rotate-credentials` |
+
+No route here takes `tenantId`. A server service account belongs to no tenant. `POST .../credentials` returns the credential secret once. `DELETE .../credentials/{credentialId}` revokes it and keeps the record, and the `purge` route removes the record.
+
+### Server stats
+
+`/api/v1/server-stats`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/server-stats` | none | `server.telemetry.read` |
+
+### Tags
+
+`/api/v1/tags`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/tags` | `tenantId` (query) | Any authenticated principal, filtered by device access scope |
+| GET | `/api/v1/tags/{tagId}` | `tagId` (route), `tenantId` (query) | Any authenticated principal, filtered by device access scope |
+| POST | `/api/v1/tags` | `tenantId` (query), body | `tenant.tags.write` |
+| PUT | `/api/v1/tags/{tagId}` | `tagId` (route), `tenantId` (query), body | `tenant.tags.write` |
+| DELETE | `/api/v1/tags/{tagId}` | `tagId` (route), `tenantId` (query) | `tenant.tags.write` |
+
+`GET /api/v1/tags` takes an optional `includeLinkedIds` query boolean, which adds the device ids linked to each tag. Renaming is `PUT` against the tag id, and V1 has no `/rename` route.
+
+### Tenant service accounts
+
+`/api/v1/tenant-service-accounts/{tenantId}`
+
+The tenant id is part of the route on every route in this group.
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/tenant-service-accounts/{tenantId}` | `tenantId` (route), body | `service-account.write` |
+| GET | `/api/v1/tenant-service-accounts/{tenantId}` | `tenantId` (route) | `service-account.read` |
+| GET | `/api/v1/tenant-service-accounts/{tenantId}/{serviceAccountId}` | route ids | `service-account.read` |
+| PUT | `/api/v1/tenant-service-accounts/{tenantId}/{serviceAccountId}` | route ids, body | `service-account.write` |
+| DELETE | `/api/v1/tenant-service-accounts/{tenantId}/{serviceAccountId}` | route ids | `service-account.write` |
+| POST | `/api/v1/tenant-service-accounts/{tenantId}/{serviceAccountId}/credentials` | route ids, body | `service-account.rotate-credentials` |
+| DELETE | `/api/v1/tenant-service-accounts/{tenantId}/{serviceAccountId}/credentials/{credentialId}` | route ids | `service-account.rotate-credentials` |
+| DELETE | `/api/v1/tenant-service-accounts/{tenantId}/{serviceAccountId}/credentials/{credentialId}/purge` | route ids | `service-account.rotate-credentials` |
+
+An empty `tenantId` in the route is rejected by the same required-tenant filter that guards the query parameter, so it answers `400`. A non-server principal naming a tenant other than its own is answered `403`.
+
+### Tenant settings
+
+`/api/v1/tenant-settings`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/tenant-settings` | `tenantId` (query) | `tenant.settings.read` |
+| GET | `/api/v1/tenant-settings/{settingName}` | `settingName` (route), `tenantId` (query) | `tenant.settings.read` |
+| POST | `/api/v1/tenant-settings` | `tenantId` (query), body | `tenant.settings.write` |
+| PUT | `/api/v1/tenant-settings` | `tenantId` (query), body | `tenant.settings.write` |
+| DELETE | `/api/v1/tenant-settings/{settingName}` | `settingName` (route), `tenantId` (query) | `tenant.settings.write` |
+
+### Tenants
+
+`/api/v1/tenants`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/tenants` | body | `server.tenants.write` |
+| GET | `/api/v1/tenants` | none | `server.tenants.read` |
+| GET | `/api/v1/tenants/{tenantId}` | `tenantId` (route) | `server.tenants.read` |
+| PUT | `/api/v1/tenants/{tenantId}` | `tenantId` (route), body | `server.tenants.write` |
+| DELETE | `/api/v1/tenants/{tenantId}` | `tenantId` (route) | `server.tenants.delete` |
+
+### Test email
+
+`/api/v1/test-email`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/test-email` | none | `server.settings.write` |
+
+Sends a test message to the email address of the calling user. A caller with no user record, such as a service account, is answered `400`.
+
+### User groups
+
+`/api/v1/user-groups`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/user-groups` | `tenantId` (query), body | `tenant.user-groups.write` |
+| GET | `/api/v1/user-groups` | `tenantId` (query) | `tenant.user-groups.read` |
+| GET | `/api/v1/user-groups/{userGroupId}` | `userGroupId` (route), `tenantId` (query) | `tenant.user-groups.read` |
+| PUT | `/api/v1/user-groups/{userGroupId}` | `userGroupId` (route), `tenantId` (query), body | `tenant.user-groups.write` |
+| DELETE | `/api/v1/user-groups/{userGroupId}` | `userGroupId` (route), `tenantId` (query) | `tenant.user-groups.write` |
+| POST | `/api/v1/user-groups/{userGroupId}/members` | `userGroupId` (route), `tenantId` (query), body | `user-group.assign-users` on that group |
+| DELETE | `/api/v1/user-groups/{userGroupId}/members` | `userGroupId` (route), `tenantId` (query), body | `user-group.assign-users` on that group |
+
+### User preferences
+
+`/api/v1/user-preferences`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/user-preferences` | `tenantId` (query) | Any authenticated principal, self-scoped |
+| GET | `/api/v1/user-preferences/{name}` | `name` (route), `tenantId` (query) | Any authenticated principal, self-scoped |
+| POST | `/api/v1/user-preferences` | `tenantId` (query), body | Any authenticated principal, self-scoped |
+| PUT | `/api/v1/user-preferences` | `tenantId` (query), body | Any authenticated principal, self-scoped |
+
+### User server settings
+
+`/api/v1/user-server-settings`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/user-server-settings/file-upload-max-size` | none | Any authenticated principal |
+| GET | `/api/v1/user-server-settings/decommission-status` | none | Any authenticated principal |
+
+Responses are cached for 30 seconds. Neither route takes `tenantId`, because both report server configuration.
+
+### User storage
+
+`/api/v1/user-storage`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/user-storage` | `tenantId` (query), body | Any authenticated principal, self-scoped |
+| GET | `/api/v1/user-storage/{key}` | `key` (route), `tenantId` (query) | Any authenticated principal, self-scoped |
+| DELETE | `/api/v1/user-storage/{key}` | `key` (route), `tenantId` (query) | Any authenticated principal, self-scoped |
+
+### Users
+
+`/api/v1/users`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| POST | `/api/v1/users` | `tenantId` (query), body | `tenant.users.write` |
+| GET | `/api/v1/users` | `tenantId` (query) | `tenant.users.read` |
+| DELETE | `/api/v1/users/{userId}` | `userId` (route), `tenantId` (query) | `tenant.users.delete` |
+| POST | `/api/v1/users/{userId}/reset-password` | `userId` (route), `tenantId` (query) | `tenant.users.write` |
+| POST | `/api/v1/users/{userId}/personal-access-tokens` | `userId` (route), `tenantId` (query), body | `personal-access-token.others.write` |
+| GET | `/api/v1/users/{userId}/personal-access-tokens` | `userId` (route), `tenantId` (query) | `personal-access-token.others.read` |
+| PUT | `/api/v1/users/{userId}/personal-access-tokens/{tokenId}` | route ids, `tenantId` (query), body | `personal-access-token.others.write` |
+| DELETE | `/api/v1/users/{userId}/personal-access-tokens/{tokenId}` | route ids, `tenantId` (query) | `personal-access-token.others.write` |
+
+There is no V1 route that updates a user's display name or roles. Creating a user can grant initial permissions through the request body, and permission changes after that go through [Permission assignments](#permission-assignments).
+
+### Version
+
+`/api/v1/version`
+
+| Method | Path | Required parameters | Permission |
+|---|---|---|---|
+| GET | `/api/v1/version/agent` | none | Anonymous |
+| GET | `/api/v1/version/server` | none | Anonymous |
+| GET | `/api/v1/version/release-notes` | none | Anonymous |
+
+Responses are cached for 60 seconds.
 
 ---
 
-## V1 Endpoints (S2S Automation)
+## Internal endpoints (deprecated)
 
-All V1 routes are under `/api/v1/*`. Auth requires a server-scoped service account (`x-api-key`) or a principal holding the relevant server-scoped permissions. All tenant, user, and device identifiers must be explicit in the request. The V1 surface uses ASP.NET Core API versioning with `[ApiVersion("1")]`.
+This is the surface ControlR's own Blazor front-end calls. It is documented so you can recognize it, migrate off it, and read the front-end's traffic. Do not build new integrations on it.
 
-### Tenant Service Accounts (`/api/v1/tenant-service-accounts/{tenantId}`)
+Three things about it matter when you move to V1:
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/tenant-service-accounts/{tenantId}` | `service-account.write` | Create a tenant service account |
-| GET | `/api/v1/tenant-service-accounts/{tenantId}` | `service-account.read` | List tenant service accounts |
-| GET | `/api/v1/tenant-service-accounts/{tenantId}/{id}` | `service-account.read` | Get a specific service account |
-| PUT | `/api/v1/tenant-service-accounts/{tenantId}/{id}` | `service-account.write` | Update a service account |
-| DELETE | `/api/v1/tenant-service-accounts/{tenantId}/{id}` | `service-account.write` | Delete a service account |
-| POST | `/api/v1/tenant-service-accounts/{tenantId}/{id}/credentials` | `service-account.rotate-credentials` | Add a credential (returns secret once) |
-| DELETE | `/api/v1/tenant-service-accounts/{tenantId}/{id}/credentials/{credId}` | `service-account.rotate-credentials` | Revoke a credential |
+- These routes take the tenant from the caller's own tenant claim, so they have no `tenantId` parameter. V1 requires one.
+- Deprecated actions carry `[ApiDeprecated]`. The `internal` OpenAPI document marks each `deprecated: true` and names the V1 route in `x-replacement-route`. 71 of the 79 routes carry it.
+- Failure shapes differ. V1 answers every failure with an RFC 9457 ProblemDetails body, while several Internal routes answer some failures with a bare string.
 
-### Server Service Accounts (`/api/v1/server-service-accounts`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/server-service-accounts` | `server.service-accounts.write` | Create a server service account |
-| GET | `/api/v1/server-service-accounts` | `server.service-accounts.read` | List all server service accounts |
-| GET | `/api/v1/server-service-accounts/{id}` | `server.service-accounts.read` | Get a specific service account |
-| PUT | `/api/v1/server-service-accounts/{id}` | `server.service-accounts.write` | Update a service account |
-| DELETE | `/api/v1/server-service-accounts/{id}` | `server.service-accounts.write` | Delete a service account |
-| POST | `/api/v1/server-service-accounts/{id}/credentials` | `server.service-accounts.rotate-credentials` | Add a credential (returns secret once) |
-| DELETE | `/api/v1/server-service-accounts/{id}/credentials/{credId}` | `server.service-accounts.rotate-credentials` | Revoke a credential |
-
-### Tenants (`/api/v1/tenants`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/tenants` | `server.tenants.write` | Create a tenant |
-| GET | `/api/v1/tenants/{id}` | `server.tenants.read` | Get a tenant |
-| PUT | `/api/v1/tenants/{id}` | `server.tenants.write` | Update a tenant |
-| DELETE | `/api/v1/tenants/{id}` | `server.tenants.delete` | Delete a tenant |
-
-### Installer Keys (`/api/v1/installer-keys`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/installer-keys` | `installer-key.write` | Create an installer key |
-
-### Devices (`/api/v1/devices`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v1/devices` | Any (device access scope) | Cross-tenant device listing |
-| GET | `/api/v1/devices/{deviceId}` | `device.read` | Get a specific device (any tenant) |
-| GET | `/api/v1/devices/{deviceId}/desktop-sessions` | `device.read` | Get active desktop sessions |
-| GET | `/api/v1/devices/summary` | Any (device access scope) | Get device summaries |
-| POST | `/api/v1/devices/search` | Any (device access scope) | Search/filter/paginate devices |
-| PATCH | `/api/v1/devices/{deviceId}/alias` | `device.alias.write` | Update device alias |
-| DELETE | `/api/v1/devices/{deviceId}` | `device.delete` | Delete a device |
-| POST | `/api/v1/devices/delete-many` | `device.delete` | Delete multiple devices |
-
-### Logon Tokens (`/api/v1/logon-tokens`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/logon-tokens/user` | `device.logon-token.create` | Create a user logon token |
-| POST | `/api/v1/logon-tokens/external` | `device.logon-token.create` | Create an external (transient user) logon token |
-
----
-
-## Internal Endpoints (`/api/*`)
-
-The Internal surface serves the Blazor WASM web UI (BFF) and device agents. These controllers assume a user context derived from the session. "Any" means any authenticated principal; device-scoped permissions are evaluated against the target device.
+79 routes, 22 controllers. Where the replacement column says a query parameter is required, add it to the V1 route.
 
 ### Auth (`/api/auth`)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/auth/change-password` | Any | Change the current user's password |
-| POST | `/api/auth/change-password-with-credentials` | None | Change password with email + current password (+ optional 2FA) |
-| POST | `/api/auth/complete-password-reset` | None | Complete a password reset using a code |
-| POST | `/api/auth/interactive-login` | None | Interactive bearer-token login (requires `EnableInteractiveBearerLogin`) |
-| POST | `/api/auth/logout` | Any | Sign out of the web UI |
-| GET | `/api/auth/me` | Any | Get the current user's profile, permissions, and tenant |
+Not deprecated. There is no V1 twin, because these routes exist to establish a browser session.
 
-> Note: routes inherited from ASP.NET Core Identity use camelCase (`forgotPassword`, `manage/2fa`, etc.). Routes added by ControlR use kebab-case (`change-password`, `complete-password-reset`, `interactive-login`).
+| Method | Path | Auth |
+|---|---|---|
+| POST | `/api/auth/change-password` | Any authenticated principal |
+| POST | `/api/auth/change-password-with-credentials` | Anonymous, rate limited |
+| POST | `/api/auth/complete-password-reset` | Anonymous, rate limited |
+| POST | `/api/auth/interactive-login` | Anonymous, rate limited. Answers `404` unless `EnableInteractiveBearerLogin` is set |
+| POST | `/api/auth/logout` | Any authenticated principal |
+| GET | `/api/auth/me` | Any authenticated principal |
 
----
+The framework's own `MapIdentityApi` set is mounted under the same `/api/auth` prefix, and only when `AppOptions:EnableInteractiveBearerLogin` is set. That flag is `false` in the shipped `appsettings.json`, so a production server maps none of these. When it is on, the mounted set is the framework's list, which is camelCase where ControlR's own routes are kebab-case:
 
-## Permission Assignments (`/api/permission-assignments`)
+`POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh`, `GET /api/auth/confirmEmail`, `POST /api/auth/resendConfirmationEmail`, `POST /api/auth/forgotPassword`, `POST /api/auth/resetPassword`, `POST /api/auth/manage/2fa`, `GET /api/auth/manage/info`, `POST /api/auth/manage/info`.
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/permission-assignments` | `tenant.permissions.read` | Get assignments for a principal |
-| GET | `/api/permission-assignments/catalog` | `tenant.permissions.read` | Get the permission catalog |
-| GET | `/api/permission-assignments/presets` | `tenant.permissions.read` | Get the permission presets |
-| POST | `/api/permission-assignments` | `tenant.permissions.write` | Create an assignment |
-| POST | `/api/permission-assignments/create-many` | `tenant.permissions.write` | Create multiple assignments |
-| POST | `/api/permission-assignments/presets/apply` | `tenant.permissions.write` | Apply presets to a principal |
-| POST | `/api/permission-assignments/replace` | `tenant.permissions.write` | Replace a principal's assignments |
-| PUT | `/api/permission-assignments/{assignmentId}` | `tenant.permissions.write` | Update an assignment |
-| DELETE | `/api/permission-assignments/{assignmentId}` | `tenant.permissions.write` | Delete an assignment |
-| POST | `/api/permission-assignments/delete-many` | `tenant.permissions.write` | Delete multiple assignments |
+`POST /api/auth/register` is intercepted by ControlR. It creates the user through the same path the web UI uses, and answers `404` when public registration is disabled in server settings.
 
-## Effective Permissions (`/api/effective-permissions`)
+### Devices (`/api/devices`)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/effective-permissions/query` | `tenant.permissions.read` | Evaluate whether a principal has a permission at a scope |
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| GET | `/api/devices` | `/api/v1/devices` |
+| GET | `/api/devices/summary` | `/api/v1/devices/summary` |
+| POST | `/api/devices/search` | `/api/v1/devices/search` |
+| GET | `/api/devices/{deviceId}` | `/api/v1/devices/{deviceId}` |
+| PATCH | `/api/devices/{deviceId}/alias` | `/api/v1/devices/{deviceId}/alias` |
+| DELETE | `/api/devices/{deviceId}` | `/api/v1/devices/{deviceId}` |
+| POST | `/api/devices/delete-many` | `/api/v1/devices/delete-many` |
 
-## Authorization Change Logs (`/api/authorization-change-logs`)
+The V1 search and delete-many routes evaluate device access per candidate rather than pre-filtering by the caller's tenant claim, so they also work for server-scoped principals. The V1 delete-many reports refused ids in the body instead of dropping them silently.
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/authorization-change-logs` | `tenant.authorization-logs.read` / `server.authorization-logs.read` | Get authorization change log entries |
+### Device file system (`/api/device-file-system`)
 
----
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| POST | `/api/device-file-system/contents` | `/api/v1/device-file-system/contents?tenantId={tenantId}` |
+| POST | `/api/device-file-system/path-segments` | `/api/v1/device-file-system/path-segments?tenantId={tenantId}` |
+| POST | `/api/device-file-system/root-drives` | `/api/v1/device-file-system/root-drives?tenantId={tenantId}` |
+| POST | `/api/device-file-system/subdirectories` | `/api/v1/device-file-system/subdirectories?tenantId={tenantId}` |
+| POST | `/api/device-file-system/validate-path/{deviceId}` | `/api/v1/device-file-system/validate-path/{deviceId}?tenantId={tenantId}` |
+| POST | `/api/device-file-system/create-directory/{deviceId}` | `/api/v1/device-file-system/create-directory/{deviceId}?tenantId={tenantId}` |
+| POST | `/api/device-file-system/upload/{deviceId}` | `/api/v1/device-file-system/upload/{deviceId}?tenantId={tenantId}` |
+| GET | `/api/device-file-system/download/{deviceId}` | `/api/v1/device-file-system/download/{deviceId}?tenantId={tenantId}` |
+| POST | `/api/device-file-system/download-archive/{deviceId}` | `/api/v1/device-file-system/download-archive/{deviceId}?tenantId={tenantId}` |
+| POST | `/api/device-file-system/download-archive/{deviceId}/form` | none |
+| DELETE | `/api/device-file-system/delete-path/{deviceId}` | `/api/v1/device-file-system/delete-path/{deviceId}?tenantId={tenantId}` |
+| GET | `/api/device-file-system/logs/{deviceId}` | `/api/v1/device-file-system/logs/{deviceId}?tenantId={tenantId}` |
+| GET | `/api/device-file-system/logs/{deviceId}/contents` | `/api/v1/device-file-system/logs/{deviceId}/contents?tenantId={tenantId}` |
 
-## Users (`/api/users`)
+The `form` route has no replacement. It exists for the browser's form-encoded upload in the web front-end. Where the V1 route names the device in the path, its request body does not repeat a device id.
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/users` | `tenant.users.write` | Create a new user |
-| GET | `/api/users` | `tenant.users.read` | List all users in tenant |
-| DELETE | `/api/users/{userId}` | `tenant.users.delete` | Delete a user |
-| POST | `/api/users/{userId}/reset-password` | `tenant.users.write` | Reset user password |
-| POST | `/api/users/{userId}/personal-access-tokens` | `personal-access-token.others.write` | Create PAT for a user |
-| GET | `/api/users/{userId}/personal-access-tokens` | `personal-access-token.others.read` | List PATs for a user |
-| PUT | `/api/users/{userId}/personal-access-tokens/{tokenId}` | `personal-access-token.others.write` | Update a PAT for a user |
-| DELETE | `/api/users/{userId}/personal-access-tokens/{tokenId}` | `personal-access-token.others.write` | Delete a PAT for a user |
+### Desktop preview (`/api/desktop-preview`)
 
-## User Groups (`/api/user-groups`)
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| GET | `/api/desktop-preview/{deviceId}/{targetProcessId}` | `/api/v1/desktop-preview/{deviceId}/{targetProcessId}?tenantId={tenantId}` |
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/user-groups` | `tenant.user-groups.write` | Create a user group |
-| GET | `/api/user-groups` | `tenant.user-groups.read` | List all user groups |
-| GET | `/api/user-groups/{userGroupId}` | `tenant.user-groups.read` | Get a specific user group |
-| PUT | `/api/user-groups/{userGroupId}` | `tenant.user-groups.write` | Update a user group |
-| DELETE | `/api/user-groups/{userGroupId}` | `tenant.user-groups.write` | Delete a user group |
-| POST | `/api/user-groups/{userGroupId}/members` | `user-group.assign-users` | Add members to a user group |
-| DELETE | `/api/user-groups/{userGroupId}/members` | `user-group.assign-users` | Remove members from a user group |
+### Device tags (`/api/device-tags`)
 
-## Device Groups (`/api/device-groups`)
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| POST | `/api/device-tags` | `/api/v1/device-tags?tenantId={tenantId}` |
+| DELETE | `/api/device-tags/{deviceId}/{tagId}` | `/api/v1/device-tags/{deviceId}/{tagId}?tenantId={tenantId}` |
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/device-groups` | `tenant.device-groups.write` | Create a device group |
-| GET | `/api/device-groups` | `tenant.device-groups.read` | List all device groups |
-| GET | `/api/device-groups/{deviceGroupId}` | `tenant.device-groups.read` | Get a specific device group |
-| PUT | `/api/device-groups/{deviceGroupId}` | `tenant.device-groups.write` | Update a device group |
-| DELETE | `/api/device-groups/{deviceGroupId}` | `tenant.device-groups.write` | Delete a device group |
-| POST | `/api/device-groups/{deviceGroupId}/members` | `device-group.assign-devices` | Add devices to a device group |
-| DELETE | `/api/device-groups/{deviceGroupId}/members` | `device-group.assign-devices` | Remove devices from a device group |
+### Effective user preferences (`/api/effective-user-preferences`)
 
-## Customers (`/api/customers`)
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| GET | `/api/effective-user-preferences` | `/api/v1/effective-user-preferences?tenantId={tenantId}` |
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/customers` | `tenant.customers.write` | Create a customer |
-| GET | `/api/customers` | `tenant.customers.read` | List all customers |
-| GET | `/api/customers/{customerId}` | `tenant.customers.read` | Get a specific customer |
-| PUT | `/api/customers/{customerId}` | `tenant.customers.write` | Update a customer |
-| DELETE | `/api/customers/{customerId}` | `tenant.customers.write` | Delete a customer |
-| POST | `/api/customers/{customerId}/devices` | `tenant.customers.write` | Assign devices to a customer |
+### Installer keys (`/api/installer-keys`)
 
-## Tenant Service Accounts (`/api/tenant-service-accounts`)
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| POST | `/api/installer-keys` | `/api/v1/installer-keys`, with `TenantId` in the body |
+| GET | `/api/installer-keys` | `/api/v1/installer-keys?tenantId={tenantId}` |
+| GET | `/api/installer-keys/usages/{keyId}` | `/api/v1/installer-keys/{keyId}/usages?tenantId={tenantId}` |
+| PUT | `/api/installer-keys/rename` | `/api/v1/installer-keys/{keyId}?tenantId={tenantId}`, body carries only `friendlyName`, answers `204` |
+| DELETE | `/api/installer-keys/{id}` | `/api/v1/installer-keys/{keyId}?tenantId={tenantId}` |
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/tenant-service-accounts` | `service-account.write` | Create a tenant service account |
-| GET | `/api/tenant-service-accounts` | `service-account.read` | List tenant service accounts |
-| GET | `/api/tenant-service-accounts/{id}` | `service-account.read` | Get a specific service account |
-| PUT | `/api/tenant-service-accounts/{id}` | `service-account.write` | Update a service account |
-| DELETE | `/api/tenant-service-accounts/{id}` | `service-account.write` | Delete a service account |
-| POST | `/api/tenant-service-accounts/{id}/credentials` | `service-account.rotate-credentials` | Add a credential (returns secret once) |
-| DELETE | `/api/tenant-service-accounts/{id}/credentials/{credId}` | `service-account.rotate-credentials` | Revoke a credential |
+Note the two shape changes. The V1 usages route puts the id in the path before `usages`, and the V1 rename is a `PUT` against the key id rather than a fixed `/rename` path. V1 list routes also return an `Items` envelope rather than a bare array.
 
-## Server Service Accounts (`/api/server-service-accounts`)
+### Invites (`/api/invites`)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/server-service-accounts` | `server.service-accounts.write` | Create a server service account |
-| GET | `/api/server-service-accounts` | `server.service-accounts.read` | List server service accounts |
-| GET | `/api/server-service-accounts/{id}` | `server.service-accounts.read` | Get a specific service account |
-| PUT | `/api/server-service-accounts/{id}` | `server.service-accounts.write` | Update a service account |
-| DELETE | `/api/server-service-accounts/{id}` | `server.service-accounts.write` | Delete a service account |
-| POST | `/api/server-service-accounts/{id}/credentials` | `server.service-accounts.rotate-credentials` | Add a credential (returns secret once) |
-| DELETE | `/api/server-service-accounts/{id}/credentials/{credId}` | `server.service-accounts.rotate-credentials` | Revoke a credential |
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| POST | `/api/invites` | `/api/v1/invites?tenantId={tenantId}` |
+| GET | `/api/invites` | `/api/v1/invites?tenantId={tenantId}` |
+| DELETE | `/api/invites/{inviteId}` | `/api/v1/invites/{inviteId}?tenantId={tenantId}` |
+| POST | `/api/invites/accept` | none |
 
----
+`POST /api/invites/accept` is anonymous and has no V1 twin. An accepted invite signs the invitee in, so it stays on the session surface.
 
-## Devices (`/api/devices`)
+### Logon tokens (`/api/logon-tokens`)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/devices` | Any (device access scope) | List all devices for the tenant |
-| GET | `/api/devices/{deviceId}` | `device.read` | Get a specific device |
-| GET | `/api/devices/summary` | Any (device access scope) | Get a summary list of all devices |
-| POST | `/api/devices/search` | Any (device access scope) | Search/filter/paginate devices |
-| PATCH | `/api/devices/{deviceId}/alias` | `device.alias.write` | Update device alias |
-| DELETE | `/api/devices/{deviceId}` | `device.delete` | Delete a device |
-| POST | `/api/devices/delete-many` | `device.delete` | Delete multiple devices |
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| POST | `/api/logon-tokens` | `/api/v1/logon-tokens/user`, with `TenantId` in the body. Server-scoped callers use `/api/v1/logon-tokens/external` |
 
-## Tags (`/api/tags`)
+### Personal access tokens (`/api/personal-access-tokens`)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/tags` | Any | List all tags |
-| POST | `/api/tags` | `tenant.tags.write` | Create a tag |
-| PUT | `/api/tags` | `tenant.tags.write` | Rename a tag |
-| DELETE | `/api/tags/{tagId}` | `tenant.tags.write` | Delete a tag |
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| POST | `/api/personal-access-tokens` | `/api/v1/personal-access-tokens?tenantId={tenantId}`, answers `201` |
+| GET | `/api/personal-access-tokens` | `/api/v1/personal-access-tokens?tenantId={tenantId}` |
+| PUT | `/api/personal-access-tokens/{id}` | `/api/v1/personal-access-tokens/{id}?tenantId={tenantId}` |
+| DELETE | `/api/personal-access-tokens/{id}` | `/api/v1/personal-access-tokens/{id}?tenantId={tenantId}`, answers `204` |
 
-## Device Tags (`/api/device-tags`)
+### Tags (`/api/tags`)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/device-tags` | `device.tags.write` | Add a tag to a device |
-| DELETE | `/api/device-tags/{deviceId}/{tagId}` | `device.tags.write` | Remove a tag from a device |
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| GET | `/api/tags` | `/api/v1/tags?tenantId={tenantId}` |
+| POST | `/api/tags` | `/api/v1/tags?tenantId={tenantId}`, answers `201` |
+| PUT | `/api/tags` | `/api/v1/tags/{tagId}?tenantId={tenantId}`, body carries only `name` |
+| DELETE | `/api/tags/{tagId}` | `/api/v1/tags/{tagId}?tenantId={tenantId}` |
 
----
+The V1 rename takes the tag id in the route instead of in the body.
 
-## File System (`/api/device-file-system`)
+### Tenant settings (`/api/tenant-settings`)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/device-file-system/contents` | `device.file-system.read` | Get directory listing |
-| POST | `/api/device-file-system/path-segments` | `device.file-system.read` | Path segments for autocomplete |
-| POST | `/api/device-file-system/root-drives` | `device.file-system.read` | Get root drives |
-| POST | `/api/device-file-system/subdirectories` | `device.file-system.read` | Get subdirectories |
-| POST | `/api/device-file-system/validate-path/{deviceId}` | `device.file-system.read` | Validate a file path |
-| POST | `/api/device-file-system/create-directory/{deviceId}` | `device.file-system.write` | Create directory |
-| POST | `/api/device-file-system/upload/{deviceId}` | `device.file-system.transfer-upload` | Upload file |
-| GET | `/api/device-file-system/download/{deviceId}` | `device.file-system.transfer-download` | Download single file |
-| POST | `/api/device-file-system/download-archive/{deviceId}` | `device.file-system.transfer-download` | Download archive |
-| POST | `/api/device-file-system/download-archive/{deviceId}/form` | `device.file-system.transfer-download` | Download archive (form-encoded) |
-| DELETE | `/api/device-file-system/delete-path/{deviceId}` | `device.file-system.delete` | Delete file/directory |
-| GET | `/api/device-file-system/logs/{deviceId}` | `device.logs.read` | Get log files |
-| GET | `/api/device-file-system/logs/{deviceId}/contents` | `device.logs.read` | Get log file contents |
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| GET | `/api/tenant-settings` | `/api/v1/tenant-settings?tenantId={tenantId}` |
+| GET | `/api/tenant-settings/{name}` | `/api/v1/tenant-settings/{name}?tenantId={tenantId}` |
+| POST | `/api/tenant-settings` | `/api/v1/tenant-settings?tenantId={tenantId}` |
+| PUT | `/api/tenant-settings` | `/api/v1/tenant-settings?tenantId={tenantId}` |
+| DELETE | `/api/tenant-settings/{name}` | `/api/v1/tenant-settings/{name}?tenantId={tenantId}` |
 
-## Desktop Preview (`/api/desktop-preview`)
+### Test email (`/api/test-email`)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/desktop-preview/{deviceId}/{targetProcessId}` | `device.desktop-preview.read` | Get a JPEG preview of a process window |
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| POST | `/api/test-email` | `/api/v1/test-email` |
 
-## Logon Tokens (`/api/logon-tokens`)
+### User preferences (`/api/user-preferences`)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/logon-tokens` | `device.logon-token.create` | Create a user logon token (returns device access URL) |
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| GET | `/api/user-preferences` | `/api/v1/user-preferences?tenantId={tenantId}` |
+| GET | `/api/user-preferences/{name}` | `/api/v1/user-preferences/{name}?tenantId={tenantId}` |
+| POST | `/api/user-preferences` | `/api/v1/user-preferences?tenantId={tenantId}` |
+| PUT | `/api/user-preferences` | `/api/v1/user-preferences?tenantId={tenantId}` |
 
----
+### User server settings (`/api/user-server-settings`)
 
-## Personal Access Tokens (`/api/personal-access-tokens`)
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| GET | `/api/user-server-settings/file-upload-max-size` | `/api/v1/user-server-settings/file-upload-max-size` |
+| GET | `/api/user-server-settings/decommission-status` | `/api/v1/user-server-settings/decommission-status` |
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/personal-access-tokens` | Any (self-scoped) | Create a PAT |
-| GET | `/api/personal-access-tokens` | Any (self-scoped) | List own PATs |
-| PUT | `/api/personal-access-tokens/{id}` | Any (self-scoped) | Update a PAT |
-| DELETE | `/api/personal-access-tokens/{id}` | Any (self-scoped) | Delete a PAT |
+### User storage (`/api/user-storage`)
 
-## Installer Keys (`/api/installer-keys`)
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| POST | `/api/user-storage` | `/api/v1/user-storage?tenantId={tenantId}` |
+| GET | `/api/user-storage/{key}` | `/api/v1/user-storage/{key}?tenantId={tenantId}` |
+| DELETE | `/api/user-storage/{key}` | `/api/v1/user-storage/{key}?tenantId={tenantId}` |
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/installer-keys` | `installer-key.write` | Create an installer key |
-| GET | `/api/installer-keys` | `installer-key.read` | List all installer keys |
-| GET | `/api/installer-keys/usages/{keyId}` | `installer-key.read` | Get usage history for a key |
-| PUT | `/api/installer-keys/rename` | `installer-key.write` | Rename an installer key |
-| DELETE | `/api/installer-keys/{id}` | `installer-key.write` | Delete an installer key |
+### Users (`/api/users`)
 
-Installer-key usage is recorded server-side when an agent installs using a key. There is no separate increment endpoint.
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| POST | `/api/users` | `/api/v1/users?tenantId={tenantId}` |
+| GET | `/api/users` | `/api/v1/users?tenantId={tenantId}` |
+| DELETE | `/api/users/{userId}` | `/api/v1/users/{userId}?tenantId={tenantId}` |
+| POST | `/api/users/{userId}/reset-password` | `/api/v1/users/{userId}/reset-password?tenantId={tenantId}` |
+| POST | `/api/users/{userId}/personal-access-tokens` | `/api/v1/users/{userId}/personal-access-tokens?tenantId={tenantId}`, answers `201` |
+| GET | `/api/users/{userId}/personal-access-tokens` | `/api/v1/users/{userId}/personal-access-tokens?tenantId={tenantId}` |
+| PUT | `/api/users/{userId}/personal-access-tokens/{tokenId}` | `/api/v1/users/{userId}/personal-access-tokens/{tokenId}?tenantId={tenantId}` |
+| DELETE | `/api/users/{userId}/personal-access-tokens/{tokenId}` | `/api/v1/users/{userId}/personal-access-tokens/{tokenId}?tenantId={tenantId}` |
 
-## Invites (`/api/invites`)
+### Server administration
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/invites` | `tenant.users.write` | Create an invite |
-| GET | `/api/invites` | `tenant.users.read` | List all invites for tenant |
-| DELETE | `/api/invites/{inviteId}` | `tenant.users.write` | Delete an invite |
-| POST | `/api/invites/accept` | None | Accept an invite (anonymous) |
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| GET | `/api/server-stats` | `/api/v1/server-stats` |
+| GET | `/api/server-logs/get-aspire-url` | `/api/v1/server-logs/get-aspire-url` |
+| GET | `/api/server-alert` | `/api/v1/server-alert` |
+| POST | `/api/server-alert` | `/api/v1/server-alert` |
+| GET | `/api/public-server-settings` | `/api/v1/public-server-settings` |
 
-## Tenant Settings (`/api/tenant-settings`)
+`/api/public-server-settings` is anonymous on both surfaces. Its V1 replacement adds `IsPublicRegistrationEnabled` and `DisableDesktopPreview` fields under V1 type names.
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/tenant-settings` | `tenant.settings.read` | Get all tenant settings |
-| GET | `/api/tenant-settings/{name}` | `tenant.settings.read` | Get a specific setting |
-| POST | `/api/tenant-settings` | `tenant.settings.write` | Set a single setting |
-| PUT | `/api/tenant-settings` | `tenant.settings.write` | Set multiple settings |
-| DELETE | `/api/tenant-settings/{name}` | `tenant.settings.write` | Delete a setting |
+### Version (`/api/version`)
 
-## Server Settings (`/api/user-server-settings`)
+| Method | Deprecated route | V1 replacement |
+|---|---|---|
+| GET | `/api/version/agent` | `/api/v1/version/agent` |
+| GET | `/api/version/server` | `/api/v1/version/server` |
+| GET | `/api/version/release-notes` | `/api/v1/version/release-notes` |
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/user-server-settings/file-upload-max-size` | Any | Get max file upload size |
-| GET | `/api/user-server-settings/decommission-status` | Any | Get server decommission status |
+### Groups with no Internal surface
 
-## Server Admin (`/api/server-*`)
+These groups exist only under `/api/v1/`. There is no `/api/...` controller for any of them, so a route you construct there returns `404`.
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/server-stats` | `server.telemetry.read` | Get server statistics |
-| GET | `/api/server-logs/get-aspire-url` | `server.telemetry.read` | Get Aspire Dashboard URL with auth token |
-| GET | `/api/server-alert` | Any | Get server-wide alert |
-| POST | `/api/server-alert` | `server.settings.write` | Update server alert |
-| POST | `/api/test-email` | `server.settings.write` | Send test email to current user |
-| GET | `/api/public-server-settings` | None | Get public server settings: whether public registration is enabled, and whether desktop preview is disabled |
-
-## Deployment Options (`/api/deployment-options`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/deployment-options` | `agent.install` | Get agent deployment options |
-| POST | `/api/deployment-options/tag-capability` | `agent.install` | Get tag capability for a deployment |
-
-## User Preferences (`/api/user-preferences`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/user-preferences` | Any (self-scoped) | Get all user preferences |
-| GET | `/api/user-preferences/{name}` | Any (self-scoped) | Get a specific preference |
-| POST | `/api/user-preferences` | Any (self-scoped) | Set a preference |
-| PUT | `/api/user-preferences` | Any (self-scoped) | Set multiple preferences |
-
-## Effective User Preferences (`/api/effective-user-preferences`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/effective-user-preferences` | Any | Get merged tenant + user preferences |
-
-## User Storage (`/api/user-storage`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/user-storage` | Any (self-scoped) | Set a stored item |
-| GET | `/api/user-storage/{key}` | Any (self-scoped) | Get a stored item |
-| DELETE | `/api/user-storage/{key}` | Any (self-scoped) | Delete a stored item |
-
-## Tenants (`/api/tenants`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/tenants` | `server.tenants.read` | List all tenants on the server |
-
-## Version (`/api/version`)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/version/agent` | None | Get current agent version |
-| GET | `/api/version/server` | None | Get server assembly version |
-| GET | `/api/version/release-notes` | None | Get release notes |
+- Permission assignments, including the catalog, presets, batch, and replace routes
+- Effective permissions
+- Authorization change logs
+- User groups
+- Device groups
+- Customers
+- Tenant service accounts
+- Server service accounts
+- Deployment options
+- The tenants list
 
 ---
 
-## Agent Endpoints (`/api/agent/*`)
+## Agent endpoints (`/api/agent/*`)
 
-Agent endpoints are for device agent communication and are separate from the BFF and S2S surfaces. They are anonymous (no user authentication required); the agent authenticates via its installer-key credentials in the request body.
+These are the HTTP calls a device agent makes. They are anonymous, and the agent authenticates with installer-key credentials. Both controllers are also mounted under a legacy root for agents that predate the `/api/agent` prefix.
 
-### Agent Update
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/agent/devices` | Installer key in body | Register a device. `InstallerKeyId` and `InstallerKeySecret` in the body are validated, and the device inherits the key's tenant |
+| POST | `/api/devices` | Installer key in body | Legacy alias of the route above |
+| GET | `/api/agent/updates/get-bundle-metadata/{runtime}` | Anonymous | Download metadata for the agent bundle. `runtime` is a runtime identifier such as `win-x64` |
+| GET | `/api/agent-update/get-bundle-metadata/{runtime}` | Anonymous | Legacy alias of the route above |
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/agent/updates/get-bundle-metadata/{runtime}` | None | Get download metadata (URLs + SHA256) for agent bundle |
-
-### Device Registration
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/agent/devices` | Installer key | Register/install agent on a device |
+Responses from the bundle-metadata route are cached for 600 seconds. Everything else an agent does travels over the `AgentHub`.
 
 ---
 
-## SignalR Hubs
+## SignalR hubs
 
-Both hubs use the MessagePack protocol with JSON fallback. The `AgentHub` validates device identity on first update; the `ViewerHub` requires an authenticated session.
+Two hubs are mapped: `/hubs/agent` and `/hubs/viewer`.
+
+**Protocol.** The server registers both the MessagePack and JSON hub protocols. No ControlR client adds MessagePack, and JSON is the .NET client default, so real traffic negotiates JSON. MessagePack is offered, not used. The server registers the JSON protocol with case-insensitive property names. Contract DTOs carry `MessagePackObject` attributes, so the MessagePack path is wired on the DTO side, and a client that asks for it can work. Nothing in the shipped product asks for it.
 
 ### AgentHub (`/hubs/agent`)
 
-Agents connect to this hub to register, send updates, and receive commands.
+The hub class carries no `[Authorize]`, so the connection is anonymous. Device identity is carried by the update payload rather than by the connection. `UpdateDevice` is rejected once the device has a stored public key, which forces that device onto `UpdateDeviceSigned`. The signed route verifies the signature against the stored key, or against the key the payload presents when the device has none yet, and rejects a stale timestamp. A payload naming a device the server has never seen is rejected as an unknown device unless `AllowAgentsToSelfBootstrap` is enabled, and self-bootstrap only works on a single-tenant server.
 
-**Server methods (called by agent):**
-- `CloseChatSession(sessionId, targetProcessId)`
-- `CloseTerminalSession(terminalSessionId)`
-- `CreateDirectory(dto)`
-- `CreateRemoteControlSession(dto)`
-- `CreateTerminalSession(terminalSessionId, viewerConnectionId)`
-- `CreateVncSession(dto)`
-- `DeleteFile(dto)`
-- `DownloadFileFromViewer(dto)`
-- `GetActiveDesktopSessions()`
-- `GetLogFiles()`
-- `GetPathSegments(dto)`
-- `GetPwshCompletions(request)`
-- `GetRootDrives(request)`
-- `InvokeCtrlAltDel(request)`
-- `InvokeWakeDevice(dto)`
-- `ReceiveAgentUpdateTrigger()`
-- `ReceivePowerStateChange(changeType)`
-- `ReceiveTerminalInput(dto)`
-- `RefreshDeviceInfo()`
-- `RequestDesktopPreview(dto)`
-- `RequestRemoteControlPermission(targetProcessId)`
-- `SendChatMessage(dto)`
-- `StreamDirectoryContents(dto)`
-- `StreamFileContents(dto)`
-- `StreamSubdirectories(dto)`
-- `TestVncConnection(port)`
-- `UninstallAgent(reason)`
-- `UploadArchiveToViewer(dto)`
-- `UploadFileToViewer(dto)`
-- `ValidateFilePath(dto)`
+**Agent to server.** These are the methods the agent invokes. They are the `IAgentHub` surface, and it is the whole invokable surface of this hub.
 
-The server publishes real-time device updates, terminal output, and chat messages back through these methods.
+| Method | Parameters | Returns |
+|---|---|---|
+| `UpdateDevice` | `DeviceUpdateRequestDto` | `HubResult<DeviceResponseDto>` |
+| `UpdateDeviceSigned` | `SignedDto<DeviceUpdateRequestDto>` | `HubResult<DeviceResponseDto>` |
+| `SendChatResponse` | `ChatResponseHubDto` | `bool` |
+| `SendTerminalOutputToViewer` | `viewerConnectionId`, `TerminalOutputDto` | `void` |
+| `GetFileStreamFromViewer` | `FileUploadHubDto` | `ChannelReader<byte[]>` |
+| `SendDesktopPreviewStream` | `streamId`, `ChannelReader<byte[]>` | `void` |
+| `SendDirectoryContentsStream` | `streamId`, `directoryExists`, `ChannelReader<FileSystemEntryDto[]>` | `void` |
+| `SendFileContentStream` | `streamId`, `ChannelReader<byte[]>` | `HubResult` |
+| `SendSubdirectoriesStream` | `streamId`, `ChannelReader<FileSystemEntryDto[]>` | `void` |
+
+`UpdateDevice` and `UpdateDeviceSigned` are how a device reports state. The stream methods push chunked file, directory, and preview data toward the viewer that asked for it, keyed by the `streamId` the server issued.
+
+**Server to agent.** These are `IAgentHubClient` methods. The server invokes them on the agent, so an agent implements them, and a viewer never calls them directly. A viewer's request reaches the agent through the `ViewerHub` method that relays it.
+
+| Method | Parameters |
+|---|---|
+| `CloseChatSession` | `sessionId`, `targetProcessId` |
+| `CloseTerminalSession` | `terminalSessionId` |
+| `CreateDirectory` | `CreateDirectoryHubDto` |
+| `CreateRemoteControlSession` | `RemoteControlSessionRequestDto` |
+| `CreateTerminalSession` | `terminalSessionId`, `viewerConnectionId` |
+| `CreateVncSession` | `VncSessionRequestDto` |
+| `DeleteFile` | `FileDeleteHubDto` |
+| `DownloadFileFromViewer` | `FileUploadHubDto` |
+| `GetActiveDesktopSessions` | none |
+| `GetLogFiles` | none |
+| `GetPathSegments` | `GetPathSegmentsHubDto` |
+| `GetPwshCompletions` | `PwshCompletionsRequestDto` |
+| `GetRootDrives` | `GetRootDrivesRequestDto` |
+| `InvokeCtrlAltDel` | `InvokeCtrlAltDelRequestDto` |
+| `InvokeWakeDevice` | `WakeDeviceDto` |
+| `ReceiveAgentUpdateTrigger` | none |
+| `ReceivePowerStateChange` | `PowerStateChangeType` |
+| `ReceiveTerminalInput` | `TerminalInputDto` |
+| `RefreshDeviceInfo` | none |
+| `RequestDesktopPreview` | `DesktopPreviewRequestDto` |
+| `RequestRemoteControlPermission` | `targetProcessId` |
+| `SendChatMessage` | `ChatMessageHubDto` |
+| `StreamDirectoryContents` | `DirectoryContentsStreamRequestHubDto` |
+| `StreamFileContents` | `StreamFileContentsRequestHubDto` |
+| `StreamSubdirectories` | `SubdirectoriesStreamRequestHubDto` |
+| `TestVncConnection` | `port` |
+| `UninstallAgent` | `reason` |
+| `UploadArchiveToViewer` | `FileArchiveDownloadHubDto` |
+| `UploadFileToViewer` | `FileDownloadHubDto` |
+| `ValidateFilePath` | `ValidateFilePathHubDto` |
 
 ### ViewerHub (`/hubs/viewer`)
 
-Authenticated viewers connect to this hub for device control.
+The hub carries `[Authorize]`, so a viewer needs an authenticated session. Beyond that, an operation authorizes the caller against the specific device permission it needs, through one shared check. Terminal input needs `device.terminal.use`, a remote-control or VNC request needs `device.remote-control.connect` or `device.vnc-relay.connect`, a refresh needs `device.read`, and so on. A refused check comes back as a `HubResult` failure whose reason is "Forbidden." Holding the connection does not grant access to a device.
 
-**Server methods (called by viewer):**
-- `CloseChatSession(deviceId, sessionId, targetProcessId)`
-- `CloseTerminalSession(deviceId, terminalSessionId)`
-- `CreateTerminalSession(deviceId, terminalSessionId)`
-- `GetActiveDesktopSessions(deviceId)`
-- `GetPwshCompletions(request)`
-- `InvokeCtrlAltDel(deviceId, targetDesktopProcessId, sessionType)`
-- `RefreshDeviceInfo(deviceId)`
-- `RequestRemoteControlPermission(deviceId, targetProcessId)`
-- `RequestRemoteControlSession(deviceId, sessionRequest)`
-- `RequestVncSession(deviceId, sessionRequest)`
-- `SendAgentUpdateTrigger(deviceId)`
-- `SendChatMessage(deviceId, dto)`
-- `SendDtoToAgent(deviceId, wrapper)`
-- `SendDtoToUserGroups(wrapper)`
-- `SendPowerStateChange(deviceId, changeType)`
-- `SendTerminalInput(deviceId, dto)`
-- `SendWakeDevice(deviceId, macAddresses)`
-- `TestVncConnection(deviceId, port)`
-- `UninstallAgent(deviceId, reason)`
-- `UploadFile(metadata, fileStream)`
+**Viewer to server.** This is the `IViewerHub` surface, 46 methods. Most of it was doubled during 2026-09 (v0.28.x). The positional-argument form became `[Obsolete]` in favor of a DTO-based `*2` method, and the device id moved inside the DTO. 21 methods carry the obsolete marker. Call the `*2` form. The obsolete form is still invokable, and several of them return a bare value where the replacement wraps the answer in `HubResult`, so a null or empty answer is ambiguous on the old form and explicit on the new one.
 
-Pushed from server to the viewer client: `ReceiveDeviceUpdate`, `ReceiveChatResponse`, `ReceiveTerminalOutput`, `ReceiveServerStats`, `InvokeToast`.
+| Method | Status | Parameters |
+|---|---|---|
+| `AddViewerActivity` | Obsolete, use `AddViewerActivity2` | `activityName` |
+| `AddViewerActivity2` | current | `AddViewerActivityRequestDto` |
+| `CloseChatSession` | Obsolete, use `CloseChatSession2` | `deviceId`, `sessionId`, `targetProcessId` |
+| `CloseChatSession2` | current | `CloseChatSessionRequestDto` |
+| `CloseTerminalSession` | Obsolete, use `CloseTerminalSession2` | `deviceId`, `terminalSessionId` |
+| `CloseTerminalSession2` | current | `CloseTerminalSessionRequestDto` |
+| `CreateTerminalSession` | Obsolete, use `CreateTerminalSession2` | `deviceId`, `terminalSessionId` |
+| `CreateTerminalSession2` | current | `CreateTerminalSessionRequestDto` |
+| `DisposeDeviceAccessActivity` | current | none |
+| `GetActiveDesktopSessions` | Obsolete, use `GetActiveDesktopSessions2` | `deviceId` |
+| `GetActiveDesktopSessions2` | current | `GetActiveDesktopSessionsRequestDto` |
+| `GetDeviceAccessPermissions` | Obsolete, use `GetDeviceAccessPermissions2` | `deviceId` |
+| `GetDeviceAccessPermissions2` | current | `GetDeviceAccessPermissionsRequestDto` |
+| `GetPwshCompletions` | current | `PwshCompletionsRequestDto` |
+| `InvokeCtrlAltDel` | Obsolete, use `InvokeCtrlAltDel2` | `deviceId`, `targetDesktopProcessId`, `desktopSessionType` |
+| `InvokeCtrlAltDel2` | current | `InvokeCtrlAltDelViewerRequestDto` |
+| `RefreshDeviceInfo` | Obsolete, use `RefreshDeviceInfo2` | `deviceId` |
+| `RefreshDeviceInfo2` | current | `RefreshDeviceInfoRequestDto` |
+| `RequestRemoteControlPermission` | Obsolete, use `RequestRemoteControlPermission2` | `deviceId`, `targetProcessId` |
+| `RequestRemoteControlPermission2` | current | `RequestRemoteControlPermissionRequestDto` |
+| `RequestRemoteControlSession` | Obsolete, use `RequestRemoteControlSession2` | `deviceId`, `RemoteControlSessionRequestDto` |
+| `RequestRemoteControlSession2` | current | `RemoteControlSessionRequestDto` |
+| `RequestVncSession` | Obsolete, use `RequestVncSession2` | `deviceId`, `VncSessionRequestDto` |
+| `RequestVncSession2` | current | `VncSessionRequestDto` |
+| `SendAgentUpdateTrigger` | Obsolete, use `SendAgentUpdateTrigger2` | `deviceId` |
+| `SendAgentUpdateTrigger2` | current | `SendAgentUpdateTriggerRequestDto` |
+| `SendChatMessage` | Obsolete, use `SendChatMessage2` | `deviceId`, `ChatMessageHubDto` |
+| `SendChatMessage2` | current | `ChatMessageHubDto` |
+| `SendDtoToAgent` | current | `SendDtoToAgentRequestDto` |
+| `SendPowerStateChange` | Obsolete, use `SendPowerStateChange2` | `deviceId`, `PowerStateChangeType` |
+| `SendPowerStateChange2` | current | `SendPowerStateChangeRequestDto` |
+| `SendTerminalInput` | Obsolete, use `SendTerminalInput2` | `deviceId`, `TerminalInputDto` |
+| `SendTerminalInput2` | current | `SendTerminalInputRequestDto` |
+| `SendWakeDevice` | Obsolete, use `SendWakeDevice2` | `deviceId`, `macAddresses` |
+| `SendWakeDevice2` | current | `SendWakeDeviceRequestDto` |
+| `StartDeviceAccessActivity` | Obsolete, use `StartDeviceAccessActivity2` | `deviceId` |
+| `StartDeviceAccessActivity2` | current | `StartDeviceAccessActivityRequestDto` |
+| `SubscribeToDeviceHeartbeats` | Obsolete, use `SubscribeToDeviceHeartbeats2` | `deviceIds` |
+| `SubscribeToDeviceHeartbeats2` | current | `SubscribeToDeviceHeartbeatsRequestDto` |
+| `TestVncConnection` | Obsolete, use `TestVncConnection2` | `deviceId`, `port` |
+| `TestVncConnection2` | current | `TestVncConnectionRequestDto` |
+| `UninstallAgent` | Obsolete, use `UninstallAgent2` | `deviceId`, `reason` |
+| `UninstallAgent2` | current | `UninstallAgentRequestDto` |
+| `UnsubscribeFromDeviceHeartbeats` | Obsolete, use `UnsubscribeFromDeviceHeartbeats2` | `deviceIds` |
+| `UnsubscribeFromDeviceHeartbeats2` | current | `UnsubscribeFromDeviceHeartbeatsRequestDto` |
+| `UploadFile` | current | `FileUploadMetadata`, `ChannelReader<byte[]>` |
 
-## Next
+There is no `SendDtoToUserGroups` method on this hub, in either direction. Subscribing to heartbeats is capped at 100 device ids per call.
 
-- **[NuGet Packages](/docs/api-reference/nuget-packages)**: API client and viewer packages
-- **[Scalar API Browser](/docs/scalar-api-browser)**: Interactive API exploration
-- **[API Overview](/docs/api/overview)**: API structure and conventions
+**Server to viewer.** These are `IViewerHubClient` methods. The server pushes them to connected viewers.
 
+| Method | Parameters |
+|---|---|
+| `ReceiveDeviceUpdate` | `DeviceResponseDto` |
+| `ReceiveTerminalOutput` | `TerminalOutputDto` |
+| `ReceiveChatResponse` | `ChatResponseHubDto` |
+| `ReceiveServerStats` | `ServerStatsDto` |
+| `InvokeToast` | `ToastInfo` |
+
+---
+
+## Route inventory
+
+| Surface | Routes | Notes |
+|---|---|---|
+| V1 (`/api/v1/*`) | 130 | 31 groups |
+| Internal (`/api/*`) | 79 | 22 controllers, 71 marked deprecated |
+| Agent (`/api/agent/*`, plus two legacy aliases) | 4 | 2 controllers, each mounted twice |
+| Identity API under `/api/auth` | 10 | Framework-provided, mapped only when `EnableInteractiveBearerLogin` is set |
+
+Every HTTP route above traces to a route attribute on a controller or to a `HttpConstants` entry. Every hub method traces to `IAgentHub`, `IAgentHubClient`, `IViewerHub`, `IViewerHubClient`, or the hub implementation. The hub method lists are complete, and a method not named there is not invokable.
