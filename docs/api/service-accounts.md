@@ -299,7 +299,7 @@ curl -X POST https://your-server/api/v1/installer-keys \
   -H "Content-Type: application/json" \
   -d '{
     "tenantId": "<tenant-guid>",
-    "keyType": 1,
+    "keyType": "UsageBased",
     "friendlyName": "Field laptops",
     "allowedUses": 25
   }'
@@ -307,15 +307,15 @@ curl -X POST https://your-server/api/v1/installer-keys \
 
 `tenantId` and `keyType` are required. `friendlyName`, `allowedUses`, and `expiration` are optional. There is no `keyName` field. The response is `200 OK` and includes `keySecret`, which is only returned at creation. The same controller's `GET`, `PUT`, and `DELETE` routes take `tenantId` as a **query** parameter instead.
 
-`keyType` is sent as a **number**, not a name:
+`keyType` is sent as a **name**:
 
-| Value | Meaning |
-|---|---|
-| `1` | Usage-based. Capped by `allowedUses`. The server overwrites any `expiration` you send with 24 hours from creation. |
-| `2` | Time-based. Valid until `expiration`, so `expiration` is required in practice. |
-| `3` | Persistent. Never expires. |
+| Name | Number | Meaning |
+|---|---|---|
+| `UsageBased` | `1` | Capped by `allowedUses`. The server overwrites any `expiration` you send with 24 hours from creation. |
+| `TimeBased` | `2` | Valid until `expiration`, so `expiration` is required in practice. |
+| `Persistent` | `3` | Never expires. |
 
-`0` is `Unknown` and is not a usable key type. Unlike `accessMode` on a service account, `keyType` has no string form on the wire, so `"keyType": "UsageBased"` is rejected.
+`Unknown` is not a usable key type. It is what an omitted `keyType` becomes, so send one of the names above. Name matching is case-insensitive, and the numeric form `1` to `3` is still accepted on read. `accessMode` on a service account behaves the same way.
 
 ### Device listing is not tenant-filterable
 

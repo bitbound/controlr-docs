@@ -44,35 +44,35 @@ curl -X POST https://your-server/api/v1/server-alert \
   -H "Content-Type: application/json" \
   -d '{
     "message": "Scheduled maintenance tonight at 2 AM UTC. Expect brief interruptions.",
-    "severity": 1,
+    "severity": "Warning",
     "isEnabled": true,
     "isDismissable": true,
     "isSticky": false
   }'
 ```
 
-Send every field. The request is a single record with no defaults applied from the stored row. Omitted fields fall back to their type defaults. `severity` becomes `0` (Information), and the three booleans become `false`. Leaving out `isEnabled` saves the alert in a disabled state, so it never shows.
+Send every field. The request is a single record with no defaults applied from the stored row. Omitted fields fall back to their type defaults. `severity` becomes `Information`, and the three booleans become `false`. Leaving out `isEnabled` saves the alert in a disabled state, so it never shows.
 
 **Request body:**
 
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `message` | string | Yes | The alert text. At most 500 characters. An empty or whitespace value means no alert |
-| `severity` | integer | Yes | Numeric enum, `0` to `3`. See Severity Levels. A text value is rejected with `400` |
+| `severity` | string | Yes | `Information`, `Warning`, `Error`, or `Success`. Names are matched case-insensitively. The numeric form `0` to `3` is also accepted. See Severity Levels |
 | `isEnabled` | bool | Yes | When `false`, the alert is saved but not shown |
 | `isDismissable` | bool | Yes | When `false`, the banner shows no close button |
 | `isSticky` | bool | Yes | Controls whether a user's dismissal is remembered. See below |
 
 ### Severity Levels
 
-`severity` travels as a number, not a word. The enum is `Information = 0`, `Warning = 1`, `Error = 2`, `Success = 3`. There is no string converter registered for it, so a value like `"warning"` fails to deserialize.
+`severity` travels as a name. The names are `Information`, `Warning`, `Error`, and `Success`. Matching is case-insensitive, so `"Warning"` and `"warning"` both work. The numeric form is still read, so `"severity": 1` and `"severity": "Warning"` describe the same alert. Responses always use the name.
 
-| Number | Enum name | Banner style |
+| Name | Number | Banner style |
 |---|---|---|
-| `0` | `Information` | Info |
-| `1` | `Warning` | Warning |
-| `2` | `Error` | Error |
-| `3` | `Success` | Success |
+| `Information` | `0` | Info |
+| `Warning` | `1` | Warning |
+| `Error` | `2` | Error |
+| `Success` | `3` | Success |
 
 ## Reading the Active Alert
 
@@ -89,14 +89,14 @@ curl https://your-server/api/v1/server-alert \
 {
   "id": "00000000-0000-0000-0000-000000000001",
   "message": "Scheduled maintenance tonight at 2 AM UTC.",
-  "severity": 1,
+  "severity": "Warning",
   "isDismissable": true,
   "isSticky": false,
   "isEnabled": true
 }
 ```
 
-The response has no `createdAt` field. `severity` is a number, matching the request.
+The response has no `createdAt` field. `severity` is the enum name, even when the request sent a number.
 
 The alert row is seeded by a database migration, so it normally always exists. When no alert is active, the endpoint returns `200` with an empty `message` and `isEnabled: false`, not `404`. Treat a blank `message` as "no alert." A missing row only happens if the row was deleted, which the app does not do.
 
@@ -110,7 +110,7 @@ curl -X POST https://your-server/api/v1/server-alert \
   -H "Content-Type: application/json" \
   -d '{
     "message": "",
-    "severity": 0,
+    "severity": "Information",
     "isEnabled": false,
     "isDismissable": true,
     "isSticky": false
