@@ -29,9 +29,21 @@ Required. This picks the ControlR version the slot builds. The picker lists Cont
 
 A brand-new slot has no source ref selected. Until you choose one and save, the form shows the error "Choose a build ref." and triggering a build fails with "A source ref must be selected." The portal verifies the tag against the ControlR repository when you save, so a tag you type by hand must actually exist.
 
+### Delivery Format
+
+Required. The select sits above **Server runtime**. The two options are **Docker image** and **ZIP download**. A `docker` slot is preselected for a new slot and for any slot that never changed this field. Pick the format that matches how you plan to run the built server.
+
+**Docker image** builds a container image and pushes it to the private registry. On a successful build the builds panel shows a pull command, as described in [Getting Your Image](/docs/subscriber-portal/getting-your-image).
+
+**ZIP download** builds a self-contained server archive for the chosen runtime and stores it privately instead of building an image. On a successful build the builds panel shows a **Download server** button in place of the pull command. The panel notes that each download link is valid for a few minutes.
+
+The format also gates the server runtime. Container delivery is Linux-only, so a **Docker image** slot offers only `linux-x64` and `linux-arm64`. **ZIP download** adds `win-x64` (Windows) to the list. See [Server Runtime](#server-runtime).
+
+Switching a slot from ZIP back to Docker clears a `win-x64` runtime and resets it to `linux-x64`. If a saved combination is invalid, the form blocks it with "win-x64 requires ZIP delivery." and the server rejects the same combination. When the delivery format select has no value at all, the form shows "Choose a delivery format."
+
 ### Server Runtime
 
-Required, with `linux-x64` preselected. The two choices are `linux-x64` (AMD/Intel hosts) and `linux-arm64` (ARM hosts). Pick the runtime that matches the machine that will host your ControlR server.
+Required, with `linux-x64` preselected. The available choices depend on the [Delivery format](#delivery-format). A **Docker image** slot can build `linux-x64` (AMD/Intel hosts) or `linux-arm64` (ARM hosts). A **ZIP download** slot adds `win-x64` (Windows hosts). Pick the runtime that matches the machine that will host your ControlR server.
 
 ### ControlR Server URL
 
@@ -43,13 +55,19 @@ Be aware of what this field does not do. The value is not part of the customizat
 
 Fourteen color fields, seven under **Dark theme colors** and seven under **Light theme colors**: Primary, Secondary, Tertiary, Info, Success, Warning, and Error. All fourteen are required on every save, both in the form and on the server. Accepted format is `#RRGGBB` or `#RRGGBBAA`, and stored values are uppercased. Empty color fields are rejected with "Color is required." The form opens with the standard ControlR palette already filled in, so you only need to touch the colors you actually want to change. Each field has a swatch that opens a picker, and you can type the hex value directly.
 
+### Custom CSS
+
+Optional. A free-text stylesheet stored on the slot. Two inputs feed the same saved value. **Edit CSS** opens an editor where you paste CSS or select **Load .css file**. The **Upload .css** button beside the section loads a `.css` file straight into the form. A chip shows whether CSS is saved and how large it is. The limit is 64 KB. An oversized value is rejected with "Custom CSS must be at most 64 KB." Control characters are rejected with "Custom CSS must not contain control characters."
+
+The portal stores the CSS on the slot, carries it in configuration JSON export, and sends it to the builder inside the one-time customization payload the build downloads. Whether that CSS reaches the built server depends on the build applying it. The build support that reads the value and writes it into the server is not in current ControlR releases, so on a current release saving CSS does not change the built product. The form's own on-screen text describes the CSS as applied to every page, which describes the intended behavior rather than what a current build does with the stored value.
+
 ## Save Behavior
 
 Saving writes every field at once. Partial saves are not a thing. If any required field is blank or malformed, nothing saves and the offending fields show their errors. Server-side validation mirrors the form's rules and returns the same kind of messages, for example a brand name that starts with a digit is rejected with "Brand name must start with a letter and contain only alphanumeric characters, underscores, hyphens, spaces, and periods."
 
 ## Export And Import Configuration JSON
 
-**Export JSON** downloads a file named `slot-{N}-configuration.json` holding the form values: brand name, publisher, ControlR server URL, source ref, server runtime, and the full fourteen-color scheme, wrapped in a `controlr.slot-configuration` envelope with a version marker. Assets are not in the export. Build history is not in the export. Nothing about the slot's identity, like its number, is encoded, so an export from slot 1 imports cleanly into slot 2.
+**Export JSON** downloads a file named `slot-{N}-configuration.json` holding the form values: brand name, publisher, ControlR server URL, source ref, server runtime, delivery format, saved custom CSS, and the full fourteen-color scheme, wrapped in a `controlr.slot-configuration` envelope with a version marker. Assets are not in the export. Build history is not in the export. Nothing about the slot's identity, like its number, is encoded, so an export from slot 1 imports cleanly into slot 2.
 
 **Import JSON** loads such a file into the form. Import does not save. The portal tells you it imported and reminds you to review and save. On import the file must be valid JSON with the expected envelope kind and version, and the color entries must be valid hex or blank, or the import is rejected with a message naming the problem. A file that passes import still goes through the normal validation on save.
 
@@ -101,7 +119,7 @@ None of the following are configurable through the portal, and each stays at the
 - Support, help, and documentation links.
 - Login-page artwork, banners, or marketing content beyond the colors and the logo described above.
 - Any behavioral change to ControlR. The build does not patch how ControlR works, it replaces strings and image files.
-- Theme structure. You supply 14 colors into the existing dark and light themes. You cannot add themes, remove UI elements, or restyle anything the 14 colors do not touch.
+- Theme structure. You supply 14 colors into the existing dark and light themes. You cannot add themes or remove UI elements. Styling beyond what those 14 colors reach, if you need it, goes through [Custom CSS](#custom-css).
 - The server's public URL, deployment topology, or database choice. Those are deployment-time server configuration, not build inputs. See the note on [ControlR Server URL](#controlr-server-url) above.
 
 If a requirement on that list is a hard blocker for you, the portal will not solve it. Evaluate running the open-source ControlR server directly before committing sponsorship money to a customization that cannot happen.

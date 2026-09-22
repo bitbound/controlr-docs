@@ -18,7 +18,8 @@ Fill in the slot configuration form and select **Save configuration**. The form 
 | Brand name | The brand or company name shown in the built app. Required. |
 | Publisher | The publisher shown as the author of the built app. |
 | Source ref | The ControlR version the slot builds. Choose from the available releases. |
-| Server runtime | The platform the server image is built for. Either linux-x64 (AMD/Intel) or linux-arm64 (ARM). |
+| Delivery format | How the built server reaches you. Either Docker image (a container image in the private registry) or ZIP download (a self-contained server archive). See [Delivery format](/docs/subscriber-portal/slot-configuration#delivery-format). |
+| Server runtime | The platform the server is built for. Docker offers linux-x64 (AMD/Intel) or linux-arm64 (ARM). ZIP adds win-x64 (Windows). |
 | ControlR server URL | A required, full http/https URL stored on the slot. The reference page covers what this field does and does not do. |
 
 Under **Dark theme colors** and **Light theme colors** you set seven colors for each theme: Primary, Secondary, Tertiary, Info, Success, Warning, and Error. All fourteen are required. Each color is a hex value such as `#RRGGBB` or `#RRGGBBAA`. The fields start with the standard ControlR colors. Select the swatch next to a field to pick a color, or type the value.
