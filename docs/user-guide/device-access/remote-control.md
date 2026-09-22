@@ -9,6 +9,12 @@ Remote Control streams and controls the screen of a remote desktop session from 
 
 Access requires the `device.remote-control.connect` permission. It gates the menu entry, the session list, and starting a session.
 
+## Accessing Remote Control
+
+1. Open the device in Device Access. On the [Dashboard](/docs/user-guide/dashboard), open that device's **Actions** menu and choose **Device Access**
+2. Click **Remote Control** in the device access menu
+3. Or go directly to `/device-access/remote-control?deviceId={id}`
+
 ## Desktop Session Select
 
 The page lists the device's active desktop sessions as cards. This step runs on every supported platform (Windows, macOS, and Linux), not just Windows. Each card shows:
