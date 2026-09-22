@@ -15,7 +15,7 @@ When an exporter is enabled, the same signals flow to whichever destination you 
 
 | Signal | What is instrumented |
 |---|---|
-| **Traces** | Inbound ASP.NET Core HTTP requests (paths under `/health` are excluded), outbound HTTP client calls, and one application activity named `DeviceAccessSession` started from the viewer hub. There is no general SignalR, Entity Framework, or background-service tracing |
+| **Traces** | Inbound ASP.NET Core HTTP requests (paths under `/health` are excluded), outbound HTTP client calls, and one application activity named `remote_access_session`, reported by the activity source `ControlR.Web.Server`. The viewer hub starts it when a Device Access session begins. There is no general SignalR, Entity Framework, or background-service tracing |
 | **Metrics** | ASP.NET Core request metrics, HTTP client metrics, and .NET runtime metrics (process, GC, thread pool, CPU, memory) |
 | **Logs** | Anything written through `Microsoft.Extensions.Logging`, which includes application code and framework logs, including logs from background services |
 
