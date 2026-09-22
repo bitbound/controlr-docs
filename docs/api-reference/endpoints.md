@@ -54,7 +54,7 @@ Authorization is enforced by the fine-grained permission system. Names in the ta
 
 Device-scoped permissions (`device.*`) are evaluated against the target device, so a grant over one device does not carry to another. Device group and user group permissions (`device-group.*`, `user-group.*`) are evaluated against the named group.
 
-### Tenant scoping {#tenant-scoping}
+### Tenant scoping
 
 Most V1 actions take a `Guid tenantId`. An action-model convention adds a filter to every V1 action that takes one, and the filter answers `400` with a ProblemDetails body when the value is absent or `00000000-0000-0000-0000-000000000000`. Treat `tenantId` as required on every row that names it.
 
