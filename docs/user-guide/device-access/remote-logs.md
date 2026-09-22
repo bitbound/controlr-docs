@@ -22,7 +22,7 @@ The Remote Logs page uses a split-pane layout:
 | **Log Files** | Left panel, a tree of log files on the remote device |
 | **Log Contents** | Right panel, a Monaco-based viewer for the selected file |
 
-The tree is built by the agent and contains three groups: **Agent Logs**, **Installer Logs**, and **DesktopClient Logs**. On macOS and Linux the desktop client logs are split into **DesktopClient Logs (root)** plus a **DesktopClient Logs ({username})** group for every user home directory the agent can read.
+The tree is built by the agent and contains three groups: **Agent Logs**, **Installer Logs**, and **DesktopClient Logs**. On macOS and Linux the desktop client logs are split into **DesktopClient Logs (root)** plus a **DesktopClient Logs (\{username\})** group for every user home directory the agent can read.
 
 ## Operations
 
