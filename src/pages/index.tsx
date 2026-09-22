@@ -31,12 +31,6 @@ function HomepageHeader() {
             to="/docs/getting-started">
             Getting Started
           </Link>
-          {' '}
-          <Link
-            className="button button--secondary button--lg"
-            to="https://demo.controlr.app">
-            Live Demo
-          </Link>
         </div>
       </div>
     </header>

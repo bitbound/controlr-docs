@@ -96,11 +96,6 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://demo.controlr.app',
-          label: 'Live Demo',
-          position: 'right',
-        },
-        {
           href: 'https://discord.gg/JWJmMPc72H',
           label: 'Discord',
           position: 'right',
