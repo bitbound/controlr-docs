@@ -141,6 +141,10 @@ The generated command always fills in `-s`, `-t`, and `-ks`. It adds `-ki` when 
 
 The generated scripts are the reference for what a manual install does. These are the same commands with only the required arguments. Everything else is listed under [Installer Arguments](#installer-arguments-reference).
 
+Before you run any of them, get the tenant GUID from the read-only **Your Tenant ID** field on the [Settings](/docs/user-guide/settings) page. The copy icon at the end of that field puts it on your clipboard.
+
+Note that the commands below omit `--installer-key-id` (`-ki`) and `--installer-key-secret` (`-ks`). Under the shipped defaults an agent installed without those two registers nothing, so the software lands and no device appears. Add both when you want the device on the server. See [Device Registration](#device-registration) for the exact rules and [Installer Keys](/docs/user-guide/installer-keys) to create a key.
+
 #### Linux
 
 ```bash
