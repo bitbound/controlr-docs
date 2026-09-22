@@ -46,7 +46,7 @@ The server forwards every request to one handler based on what the request carri
 | Logon token | `?logonToken=` on `/device-access` | Device access links, not an API credential. |
 | Anonymous | none | Marked per route below. Agent registration authenticates with installer-key credentials in the request body. |
 
-The OpenAPI documents advertise the cookie, `x-personal-token`, and `x-api-key` schemes. The `internal` document omits `x-api-key`, although the dynamic scheme selector still accepts that header on Internal routes.
+The OpenAPI documents advertise the cookie, `x-personal-token`, and `x-api-key` schemes. The `internal` document does not attach `x-api-key` to any operation, although its scheme definition is still listed there and the dynamic scheme selector accepts that header on Internal routes.
 
 ## Authorization
 
