@@ -7,6 +7,8 @@ title: Chat
 
 Chat is real-time messaging with the user of a desktop session on a connected device. It works across all supported platforms (Windows, macOS, and Linux). Access requires the `device.chat.send` permission. It gates the menu entry, sending messages, and opening or closing a chat session.
 
+The page also needs `device.remote-control.connect`. The desktop session list that Usage starts from is fetched by a remote-control method, not a chat method. A caller holding only `device.chat.send` sees the **Chat** entry in the menu, then gets "An error occurred while loading desktop sessions." and an empty list.
+
 Messages are delivered over the agent's local IPC channel to the ControlR desktop client running in the chosen session. The device therefore needs a desktop client for that session. If none is running, sending fails with "Failed to send message" and your composed text is kept in the input field.
 
 ## Accessing Chat
