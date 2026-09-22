@@ -270,7 +270,7 @@ Note that the projection uses the *user's* identity, not the session's credentia
 
 Listing devices cannot afford a per-device evaluator call, so `IDeviceAccessScopeResolver` derives a `DeviceAccessScope` from the principal's `device.read` rules, and `ApplyAccessScope` compiles it into the device `IQueryable` at the database level.
 
-`DeviceAccessScope` is a record with a tenant boundary, a server-wide flag, included and excluded id sets for Tenant, DeviceGroup, Customer, and Device, and an optional `RequiredOwnerScope`. There is no scope-kind enum and no tag-based category. Tags are device metadata and carry no authorization role anywhere in the permission or device-scope layer (tag *management* is gated by `device.tags.read`, `device.tags.write`, and `tenant.tags.write`).
+`DeviceAccessScope` is a record with a tenant boundary, a server-wide flag, included and excluded id sets for Tenant, DeviceGroup, Customer, and Device, and an optional `RequiredOwnerScope`. There is no scope-kind enum and no tag-based category. Tags are device metadata and carry no authorization role anywhere in the permission or device-scope layer. Tag *management* is gated by `device.tags.write` and `tenant.tags.write`. The catalog also ships `device.tags.read`, but no code evaluates it and tag ids ride along on the device record, so seeing a device's tags follows `device.read`.
 
 Resolution order:
 
