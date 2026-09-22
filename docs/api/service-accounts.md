@@ -89,7 +89,8 @@ Only the first three groups are rearranged. The last two-byte group and the fina
 
 Two consequences worth knowing:
 
-- Do not compute the hex string yourself. Take it from a server response. Creating a credential returns a value that already contains it, and the bootstrap path gives you the credential GUID directly.
+- A credential you create through the API or the web UI comes back with the hex form already built. Take it from that response and do not reassemble it.
+- The bootstrap path is the one case where you have to produce the hex yourself. You pick `ServerServiceAccountTokenId` as a GUID, nothing afterwards shows you the encoded form, and the header has to carry it. Build it the way the server does, with `Convert.ToHexString(Guid.Parse(id).ToByteArray())`, instead of deleting hyphens by hand.
 - The server emits uppercase hex but accepts any case on the way in.
 
 GUIDs whose first three groups are palindromic, such as `11111111-2222-3333-4444-666666666666`, are identical in both forms. That coincidence is what makes a hand-derived key fail only in production.
