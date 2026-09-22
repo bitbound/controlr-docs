@@ -184,7 +184,7 @@ switch (result.Status)
 
 `IControlrAuthSession` also exposes `ChangePasswordWithCredentials`, `GetBearerToken`, `SignOut`, `SetPersonalAccessToken`, `SetServiceAccountApiKey`, `GetAuthSnapshot`, `RestoreAuthSnapshot`, and a `StateChanged` event. Refresh runs on a background loop that wakes before expiry, using the `BearerRefreshLeadTime` option, and a request that still lands a `401` is retried once after a forced refresh.
 
-The DI path registers typed clients through `IHttpClientFactory`, which handles socket exhaustion and DNS rotation. The static-builder path wraps one `HttpClient` in an internal factory instead, so it does not pick up handler lifetimes the way the DI path does.
+The DI path registers typed clients through `IHttpClientFactory`, which handles socket exhaustion and DNS rotation. The static-builder path protects those the same way through a different mechanism. Each client it creates gets a `SocketsHttpHandler` with a two-minute pooled connection lifetime, so connections still rotate. Pass your own handler through the factory options if you want to replace that.
 
 ### ControlR.Viewer.Avalonia
 

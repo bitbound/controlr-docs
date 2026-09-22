@@ -25,20 +25,27 @@ A virtual display driver or headless HDMI dongle tricks the system into thinking
 
 ### 1. Virtual-Display-Driver (Recommended, Windows)
 
-The [Virtual-Display-Driver](https://github.com/VirtualDrivers/Virtual-Display-Driver) is an open-source, open-frame display driver for Windows (x64). It creates a virtual monitor that Windows treats as a real display.
+The [Virtual-Display-Driver](https://github.com/VirtualDrivers/Virtual-Display-Driver) is an open-source display driver for Windows. It creates virtual monitors that Windows treats as real displays.
 
 **Key features:**
 - Free and open source (MIT license)
-- Supports up to four virtual monitors
-- Customizable resolutions (up to 8K)
-- Works with headless systems, no physical GPU needed
-- Signed driver available for easy installation
+- Monitor count, resolutions, and refresh rates are configured in the driver's own settings, so it is not limited to a fixed list
+- Custom EDIDs, so a virtual monitor can emulate a display you already have
+- Works on headless systems
 
 **Installation steps:**
-1. Download the latest `VirtualDisplayDriver.msi` from the [releases page](https://github.com/VirtualDrivers/Virtual-Display-Driver/releases)
-2. Run the MSI and follow the installer prompts
-3. Reboot the machine
-4. After reboot, Windows will detect a new display that you can configure in **Settings > Display**
+
+Install with winget, which is the shortest path:
+
+```powershell
+winget install --id=VirtualDrivers.Virtual-Display-Driver -e
+```
+
+Or download the `VDD.Control` archive from the [releases page](https://github.com/VirtualDrivers/Virtual-Display-Driver/releases), extract it, run Virtual Driver Control, and choose **Install**. The releases page also carries driver-only archives if you would rather not install the control app.
+
+Two things the project calls out about living with the driver. It needs the Microsoft Visual C++ Redistributable on the machine, and the usual symptom of a missing one is an error about `vcruntime140.dll`. Before you apply a major GPU or chipset driver update, uninstall the virtual display driver first. If the machine comes back with a black screen or the display priority looks scrambled, boot into Safe Mode and uninstall it there.
+
+After the driver is installed, Windows exposes a new display that you can configure in **Settings > Display**.
 
 ### 2. Headless HDMI / DisplayPort Dongle
 
