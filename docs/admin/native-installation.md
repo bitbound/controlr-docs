@@ -412,7 +412,7 @@ sudo lsof -i :5120
 # ExecStart=... --urls "http://*:5121"
 ```
 
-Update `proxy_pass` in the reverse proxy config to match, then run `sudo systemctl daemon-reload` after editing the unit.
+Editing the unit means running `sudo systemctl daemon-reload` afterwards. If you changed the port, also update `proxy_pass` in the reverse proxy config to match.
 
 ### Lost data after recreating the Postgres container
 
