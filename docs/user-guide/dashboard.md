@@ -31,7 +31,7 @@ The columns appear in this order.
 | **Storage** | Used space on the OS drive as a percentage. |
 | Row expander | The final column has no header text. Its chevron expands the row detail. |
 
-**Online** and **Name** carry built-in sort definitions, and the grid allows sorting on several columns at once. Every column except **Actions** can be hidden from the column options and can carry its own filter. The pager defaults to 25 rows per page and reports the filtered result set as `Online: n`, `Offline: n`, `Total: n`.
+**Online** and **Name** carry built-in sort definitions, and the grid allows sorting on several columns at once. Every column except **Actions** can be hidden from the column options. Filters exist on every column except **Actions** and **Current Users**, which declare no sorting and no filtering. The pager defaults to 25 rows per page and reports the filtered result set as `Online: n`, `Offline: n`, `Total: n`.
 
 ## Row Detail
 

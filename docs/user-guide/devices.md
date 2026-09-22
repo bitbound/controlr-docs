@@ -42,7 +42,7 @@ Tags are string labels used to organize and filter devices. They do not grant ac
 2. The page has two tabs. On the **Tags** tab, create a tag in the **Create New Tag** field (press Enter or click the tag icon), select a tag, then use the **Rename Tag** and **Delete Tag** buttons. The device list beside it lets you toggle which devices carry the selected tag.
 3. The **Devices** tab works in the other direction. Pick a device, then toggle each tag on or off with its switch.
 
-Assigning or removing a tag on a device requires the `device.tags.write` permission on that device. Viewing a device's tags requires `device.tags.read`.
+Assigning or removing a tag on a device requires the `device.tags.write` permission on that device. There is no matching gate for reading them. Tag ids travel as part of the device record, so anyone who can read the device can see its tags. The permission catalog lists `device.tags.read` and the assignment screens offer it, but no server code checks it today, so withholding it hides nothing.
 
 ### Tag Validation
 

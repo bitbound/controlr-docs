@@ -16,7 +16,7 @@ ControlR does not send invitation emails. Creating an invite immediately creates
 3. In the new row, click the copy icon in the **Invite URL** column. The link is copied to your clipboard and a snackbar reports "Copied to clipboard".
 4. Send the link to the invitee yourself. ControlR sends no email.
 
-The invite link has the shape `https://your-server/invite-confirmation/{activation-code}`. The activation code is a 64-character secret. Anyone who has the link and knows the invited email address can set the account password, so share the link only with the intended person.
+The invite link has the shape `https://your-server/invite-confirmation/{activation-code}`. The activation code is 86 characters. It is 64 random bytes rendered as URL-safe base64 with the padding removed, the same construction used for a personal access token secret. Anyone who has the link and knows the invited email address can set the account password, so share the link only with the intended person.
 
 Creation is rejected in these cases:
 
