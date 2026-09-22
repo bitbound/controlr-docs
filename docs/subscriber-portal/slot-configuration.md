@@ -15,7 +15,7 @@ The whole form is stored on the slot and reused by every build. A build reads th
 
 ### Brand Name
 
-Required. At most 120 characters. It must start with a letter and may contain letters, digits, spaces, underscores, hyphens, and periods. The same rule is enforced in the form and on the server.
+Required. At most 120 characters. It must start with a letter and may contain letters, digits, spaces, underscores, hyphens, and periods. The form and the server both check the character rule. The 120-character limit is not one of the checks either of them runs.
 
 The brand name is the heart of the customization. The build pipeline also derives a machine identifier from it by replacing every non-alphanumeric character with an underscore. That derived key ends up in assembly prefixes, installer file names, and package names, so two brand names that differ only in punctuation collide.
 
