@@ -24,3 +24,5 @@ The portal stops at producing the build. Installing, configuring, and operating 
 - [Configuration](/docs/configuration), for server settings once it is running.
 
 This site has no guide for running the archive on Windows. A **win-x64** ZIP build only exists on a **ZIP download** slot, and you operate it with your own Windows tooling. The portal's job ends once it hands you the archive.
+
+There is also no ARM walkthrough. A slot built for `linux-arm64` runs on ARM hardware and the pipeline builds it, but every guide above assumes an AMD64 host. A **Docker image** slot built for ARM gives you a `linux/arm64` image you run with your own Docker setup. A **ZIP download** slot built for ARM gives you an unpacked archive you run with your own service unit. The [Native Installation](/docs/admin/native-installation) guide's note that ARM64 is not a published target is about the public release downloads, not about your own build.
