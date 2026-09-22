@@ -1,58 +1,154 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 title: Upgrading
 ---
 
-## Before Upgrading
+## What An Upgrade Touches
 
-> **Important**: Until ControlR reaches v1.0, breaking changes between minor version increments are possible.
+An upgrade replaces the server image or the server files. The server migrates the database schema itself during startup. Every agent then upgrades itself by downloading the new bundle from that server. No other component has a manual migration step.
+
+ControlR is pre-1.0. Behavior changes between version increments, and each release notes page opens with a **Breaking Changes** section. Read it for every version between your current one and the target.
+
+### Version tags
+
+The image tag and the GitHub release tag are different strings.
+
+| Artifact | Example | Rule |
+| --- | --- | --- |
+| Docker image | `bitbound/controlr:0.27.6.0` | Version, no `v` |
+| GitHub release | `v0.27.6.0` | Version with a leading `v` |
+
+The image version comes from `wwwroot/downloads/Version.txt` inside the build, which holds a plain numeric version. `.github/workflows/publish-docker.yml` pushes that value as the image tag, while the release workflow prefixes it with `v`. Copying a release tag straight into the `image:` key produces `manifest unknown`.
+
+Docker Hub also carries the channel tags `latest`, `preview`, and `dev`. Pin a version instead. The release workflow passes `docker_tag: latest` unconditionally, so `latest` can move to a build whose GitHub release is marked pre-release.
+
+### The database
+
+`Program.cs` calls `ApplyMigrations()` before `app.RunAsync()`, and that method calls `Database.MigrateAsync()` (`Startup/IHostExtensions.cs`). Every migration the database has not yet applied runs before the server accepts a single request. There is no migration command in the published image or in the release ZIP.
+
+Two consequences follow from that ordering. The `/health` endpoint stays unreachable while migrations run, so a long first request is normal. A server that cannot reach PostgreSQL during the upgrade window never gets past migrations, and the `restart: unless-stopped` policy keeps retrying it until the database answers.
+
+Migrations in this project add columns and backfill them, so existing records survive. What they do not preserve is the old shape. The 0.28 permission restructure, `20260813192551_Permissions_Phase2`, copies each user's legacy role memberships into permission assignments and only then drops `AspNetRoles`, `AspNetUserRoles`, and `AspNetRoleClaims`. Access is carried forward. Those three tables are gone, which is what makes [Rollback](#rollback) a database restore rather than an image swap.
+
+### The agents
+
+Every agent compares its installed bundle against the bundle the server publishes, on start, on every hub reconnect, and on a six hour timer. When the two SHA-256 hashes differ, the agent downloads the installer the server is currently offering and runs it, which replaces the installed bundle and restarts the agent process. A server upgrade therefore fans out to your whole fleet without anyone clicking anything. There is no server-side setting that holds agents on the old version. The only brake is the per-agent developer option `DisableAutoUpdate`, which has to be set on each agent before the upgrade.
+
+Each server start also marks every device and every user offline in the database. Devices reappear as agents reconnect. Expect remote control and terminal sessions to drop, both at the server restart and at each agent's own reinstall.
 
 ## Pre-Upgrade Checklist
 
-1. Snapshot the server and database (see [Backup & Restore](/docs/admin/backup-restore)).
-2. Read the [release notes](https://github.com/bitbound/ControlR/releases) for all versions in between your current version and the target version before upgrading.
-3. If any manual steps are required, follow the instructions for migrating.
-4. Schedule a brief maintenance window, especially for the agent self-update.
-5. Check the latest [docker-compose.yml](https://github.com/bitbound/ControlR/blob/main/docker-compose/docker-compose.yml) for any new configuration values that might need to be added to your setup, as new settings are added over time.
+1. Back up the database with `pg_dump`. See [Backup & Restore](/docs/admin/backup-restore). A rollback needs it, and it is the only way back.
+2. Read the release notes for every version in between, current through target. Start at the [releases page](https://github.com/bitbound/ControlR/releases).
+3. Download the `docker-compose.yml` asset attached to the release you are moving to. Diff its `environment` block against the file you run and add any new keys. Do not diff against `main`, because `main` carries settings that your target release does not have.
+4. Check the `postgres:` image tag in that file against the major version your `controlr-data` volume holds. Postgres stores the initializing version in the data directory, and a new major release refuses to open a cluster it did not create. A major bump is a separate migration using `pg_dump` and reload, or `pg_upgrade`.
+5. Size the maintenance window around the agent count, not around the server. The server restart is the short part.
 
-## Upgrade Steps
+## Upgrade Steps, Docker Compose
 
-1. **Pin the target tag in your `docker-compose.yml`.** Set `image: bitbound/controlr:<release-tag>` for the `controlr` service (replace `<release-tag>` with the version you want, e.g. `v0.10.0`). `latest` is convenient for hobby deployments but it skips the upgrade step entirely and removes your ability to roll back to a known tag.
-2. **Pull the image:**
+Run these from the directory that holds your Compose file and your `.env`. The bundled file declares `ControlR_POSTGRES_USER`, `ControlR_POSTGRES_PASSWORD`, and `ControlR_ASPIRE_BROWSER_TOKEN` as mandatory, so compose commands abort when the environment is missing.
+
+1. **Pin the target version.** In the `controlr` service, set the image to the version, without a `v`:
+
+   ```yaml
+   services:
+     controlr:
+       image: bitbound/controlr:0.27.6.0
+   ```
+
+2. **Confirm which image Compose will actually use.** A `docker-compose.override.yml` sitting next to the file replaces the image, and the one checked into the repository points at a locally built `controlrwebserver`.
+
+   ```bash
+   sudo docker compose config | grep image
+   ```
+
+   Expect `bitbound/controlr:0.27.6.0` for the `controlr` service.
+
+3. **Merge any new configuration keys** from the release's Compose file into the `controlr` service. Keep your own database credentials and any values you deliberately changed.
+
+4. **Pull.**
+
    ```bash
    sudo docker compose pull
    ```
-3. **Recreate the container:**
+
+   This pulls all three services in the file, including `postgres:18` and the Aspire dashboard. Minor Postgres updates are applied by that pull. Minor releases need no dump and reload, so that is safe.
+
+5. **Recreate the containers.**
+
    ```bash
    sudo docker compose up -d
    ```
-   Compose restarts only the services whose image changed. Migrations run automatically on the server's first startup at the new version.
 
-## Verifying the Upgrade
+   Compose stops and recreates a service only when its image or configuration changed, and it preserves mounted volumes. Migrations run on the ControlR container's first start at the new version.
 
-Open the ControlR web UI in your browser and sign in to confirm:
+Do not run `docker compose down -v` as part of an upgrade. That flag removes named volumes, and `controlr-data` is the database.
 
-- The login page loads (the app accepts connections).
-- You can sign in with server administrator permissions.
-- The agent list shows the new agent version pulling down from the server.
-- The Aspire dashboard (if enabled; see [Telemetry](/docs/admin/telemetry)) shows no errors during the migration window.
+## Upgrade Steps, Native systemd Install
 
-If you automate checks, the server exposes `GET /health` which returns `Healthy` once startup completes:
+The native path is the same shape with more steps you perform by hand. [Native Installation](/docs/admin/native-installation) describes the layout these steps assume.
+
+1. Stop the service.
+
+   ```bash
+   sudo systemctl stop controlr
+   ```
+
+2. Download the `server-*.zip` asset for your runtime from the release. The runtime set differs between releases, so pick from what that release actually attaches.
+3. Extract into a clean directory. The archive is flat, and unzipping straight over an old install leaves files from the previous version in place beside the new ones.
+4. Copy your `appsettings.Production.json` into the new directory. The archive ships its own `appsettings.json` defaults, so re-check that file for keys you need to carry over, and keep the mode at `600`.
+5. Point the unit at the new directory if the path changed, then hand ownership to the service user.
+
+   ```bash
+   sudo chown -R controlr:controlr /var/www/dev.controlr.app
+   sudo systemctl daemon-reload
+   sudo systemctl start controlr
+   ```
+
+Migrations apply on that start, the same way they do in Docker.
+
+## Verifying The Upgrade
 
 ```bash
 curl http://127.0.0.1:5120/health
+# Healthy
 ```
+
+`Healthy` means the process got past migrations and is answering requests, because migrations complete before the app starts listening. It does not mean the database is fine. The only registered check is the built-in self check, so this endpoint reports `Healthy` while PostgreSQL is unreachable.
+
+Confirm which build is serving:
+
+```bash
+curl -s http://127.0.0.1:5120/downloads/Version.txt
+```
+
+That file ships inside the image, so the value is the version the server hands to agents as the update target.
+
+To confirm the schema reached the migration set that ships with the release, read the EF Core history table. [Native Installation](/docs/admin/native-installation#step-8-database-migrations) gives the query for both the Docker and the native database. The newest `MigrationId` should match the last file in `ControlR.Web.Server/Data/Migrations` for that release.
+
+Then sign in to the web UI and check that the login page loads and that an account with server administrator permissions can sign in.
+
+Agents need longer. Sign-in works while the fleet is still on the old version, and the device list shows the version each agent last reported. Give an agent a reconnect or a six hour tick before reading its row. To move one device now, use the **Update** action in that device's Actions menu on the dashboard.
+
+If the Aspire dashboard is enabled, watch it across the migration window. See [Telemetry](/docs/admin/telemetry).
 
 ## Rollback
 
-EF Core migrations applied during the upgrade are forward-only. Rolling back the server image without restoring the database may leave the schema in a state the older server does not understand.
+There is no supported downgrade path. `Database.MigrateAsync()` only moves a database forward, and neither the image nor the release ZIP ships a tool that moves it back. The newest cleanup migration, `20260912020000_RemoveOrphanedServerAlertsReadGrants`, documents its own down step as a deliberate no-op because it cannot know which rows it deleted.
 
-The cleanest rollback sequence:
+Swapping only the image tag is not a rollback. The database schema stays ahead of the code, and a pre-0.28 server expects the Identity role tables that `Permissions_Phase2` dropped. That fails at startup or on the first authorization query rather than degrading quietly.
 
-1. Restore the pre-upgrade database backup (see [Backup & Restore](/docs/admin/backup-restore)).
-2. Edit `docker-compose.yml` and pin the image to the previous tag (`bitbound/controlr:<previous-tag>`).
-3. Apply:
+The rollback sequence is a restore:
+
+1. Restore the pre-upgrade dump. See [Backup & Restore](/docs/admin/backup-restore) for the empty-the-database-first step a plain dump requires.
+2. Pin the `controlr` service to the previous version, without the `v`.
+3. Apply it.
+
    ```bash
    sudo docker compose pull
    sudo docker compose up -d
    ```
+
+Anything written between the dump and the rollback is gone with the restore. That includes devices registered in that window, permission assignments, and alert history. Say so to whoever approved the window before you start, not after.
+
+The agents follow the server. The update check compares hashes, not versions, so an agent that already moved ahead sees a mismatch and reinstalls the older bundle the restored server publishes. If you want the fleet left on the newer build while you sort out the server, set `DisableAutoUpdate` on those agents before you restore. A manual **Update** action on a device bypasses that flag.

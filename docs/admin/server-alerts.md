@@ -5,98 +5,127 @@ title: Server Alerts
 
 ## Overview
 
-Server Administrators can broadcast a single banner message across the whole web interface. The banner shows for every authenticated user until cleared.
+Server Administrators can broadcast one banner message across the whole web interface. The banner reads from a single server-wide record, so there is only ever one alert at a time.
 
 Use cases include planned maintenance windows, incident notifications, security advisories, and upgrade reminders.
 
-## Setting a Server Alert
+## How the banner reaches users
 
-Only users with the `server.settings.write` permission can manage server alerts.
+The banner is not pushed to open browser tabs. The web client fetches the current alert each time an interactive page loads, then shows it. So a new or cleared alert appears for a user the next time they load or navigate to a page. It does not appear in a tab that is already open and idle.
+
+The alert is read straight from the database. It is not served from an output cache, so a save takes effect on the next page load without a cache-expiry delay.
+
+## Permissions
+
+Only users with the `server.settings.write` permission can create or change the alert. That policy is server-scoped, so the permission must be granted at the Server scope.
+
+Any authenticated user can read the current alert. There is no separate read permission.
+
+## Setting a Server Alert
 
 ### Using the Web Interface
 
-1. Navigate to the server admin section
-2. Enter the alert message text
-3. Save. The alert immediately appears for all users.
+The controls live on the **Server Settings** page at `/server-settings`. There is a single **Server Alert** section.
+
+1. Open **Server Settings** from the sidebar.
+2. Type the alert message, pick a **Severity**, and set the three toggles.
+3. Turn on **Enabled**. An alert with the switch off is saved but not shown.
+4. Select **Save**. Users see it on their next page load.
+
+There is no **Clear Alert** button. To clear the banner, delete the message text and select **Save**. An empty message means no alert.
 
 ### Using the API
 
+The supported endpoint is `POST /api/v1/server-alert`. The older `POST /api/server-alert` still responds, but it is deprecated.
+
 ```bash
-curl -X POST https://your-server/api/server-alert \
+curl -X POST https://your-server/api/v1/server-alert \
   -H "x-personal-token: <tokenId>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{
     "message": "Scheduled maintenance tonight at 2 AM UTC. Expect brief interruptions.",
-    "severity": "warning"
+    "severity": 1,
+    "isEnabled": true,
+    "isDismissable": true,
+    "isSticky": false
   }'
 ```
+
+Send every field. The request is a single record with no defaults applied from the stored row. Omitted fields fall back to their type defaults. `severity` becomes `0` (Information), and the three booleans become `false`. Leaving out `isEnabled` saves the alert in a disabled state, so it never shows.
 
 **Request body:**
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `message` | string | Yes | The alert text displayed to all users |
-| `severity` | string | No | One of `info`, `warning`, `error`, or `success`. Defaults to `warning` |
-| `isEnabled` | bool | No | When `false`, hides the alert from the UI without deleting it |
-| `isDismissable` | bool | No | When `false`, the alert cannot be dismissed by the user |
-| `isSticky` | bool | No | When `true`, the alert re-appears after page navigation |
+| `message` | string | Yes | The alert text. At most 500 characters. An empty or whitespace value means no alert |
+| `severity` | integer | Yes | Numeric enum, `0` to `3`. See Severity Levels. A text value is rejected with `400` |
+| `isEnabled` | bool | Yes | When `false`, the alert is saved but not shown |
+| `isDismissable` | bool | Yes | When `false`, the banner shows no close button |
+| `isSticky` | bool | Yes | Controls whether a user's dismissal is remembered. See below |
 
 ### Severity Levels
 
-| Level | Description |
-|---|---|
-| `info` | Informational announcement |
-| `warning` | Important notice (default) |
-| `error` | Critical alert |
-| `success` | Positive confirmation (e.g., upgrade complete) |
+`severity` travels as a number, not a word. The enum is `Information = 0`, `Warning = 1`, `Error = 2`, `Success = 3`. There is no string converter registered for it, so a value like `"warning"` fails to deserialize.
 
-## Viewing the Active Alert
+| Number | Enum name | Banner style |
+|---|---|---|
+| `0` | `Information` | Info |
+| `1` | `Warning` | Warning |
+| `2` | `Error` | Error |
+| `3` | `Success` | Success |
+
+## Reading the Active Alert
 
 Any authenticated user can read the current alert:
 
 ```bash
-curl https://your-server/api/server-alert
+curl https://your-server/api/v1/server-alert \
+  -H "x-personal-token: <tokenId>:<secret>"
 ```
 
 **Response** (`ServerAlertResponseDto`):
 
 ```json
 {
+  "id": "00000000-0000-0000-0000-000000000001",
   "message": "Scheduled maintenance tonight at 2 AM UTC.",
-  "severity": "warning",
-  "createdAt": "2026-06-23T10:00:00Z",
-  "isEnabled": true,
+  "severity": 1,
   "isDismissable": true,
-  "isSticky": false
+  "isSticky": false,
+  "isEnabled": true
 }
 ```
 
-If no alert is active, the endpoint returns `404 Not Found`.
+The response has no `createdAt` field. `severity` is a number, matching the request.
+
+The alert row is seeded by a database migration, so it normally always exists. When no alert is active, the endpoint returns `200` with an empty `message` and `isEnabled: false`, not `404`. Treat a blank `message` as "no alert." A missing row only happens if the row was deleted, which the app does not do.
 
 ## Clearing a Server Alert
 
-### Using the Web Interface
-
-1. Go to the server admin section
-2. Click **Clear Alert** or delete the alert message
-3. The alert is removed immediately for all users
-
-### Using the API
-
-To clear the current alert, POST an empty message:
+Clearing means saving an empty message. The banner disappears on each user's next page load.
 
 ```bash
-curl -X POST https://your-server/api/server-alert \
+curl -X POST https://your-server/api/v1/server-alert \
   -H "x-personal-token: <tokenId>:<secret>" \
   -H "Content-Type: application/json" \
   -d '{
-    "message": ""
+    "message": "",
+    "severity": 0,
+    "isEnabled": false,
+    "isDismissable": true,
+    "isSticky": false
   }'
 ```
 
+## Dismiss and sticky behavior
+
+`isDismissable` decides whether the banner shows a close button. When `false`, users cannot dismiss it.
+
+`isSticky` decides whether a dismissal is remembered. When `isSticky` is `false`, a dismissal is stored in that browser's local storage and the banner stays hidden for that user until the message or severity changes. When `isSticky` is `true`, dismissals are not remembered, so the banner shows again on the next load. A sticky alert still shows a close button when `isDismissable` is `true`. That dismissal just does not persist.
+
 ## Configuration
 
-Server alerts are stored in the database. No additional environment variables are required to use them. The alert is served from an output cache for performance, so changes propagate quickly but may have a brief delay.
+Server alerts need no configuration. There are no related environment variables or options keys. The alert lives in the single-row `ServerAlerts` table, so it is covered by a normal database backup.
 
 ## Next
 

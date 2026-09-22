@@ -8,6 +8,7 @@ const sidebars: SidebarsConfig = {
     'agent-os-support',
     'configuration',
     'authentication-guide',
+    'permission-system',
     'multi-tenancy',
     'architecture',
     {
@@ -33,6 +34,7 @@ const sidebars: SidebarsConfig = {
             'user-guide/device-access/vnc-relay',
           ],
         },
+        'user-guide/headless-remote-control',
         'user-guide/deploy',
         'user-guide/installer-keys',
         'user-guide/personal-access-tokens',
@@ -40,7 +42,27 @@ const sidebars: SidebarsConfig = {
         'user-guide/permissions',
         'user-guide/invitations',
         'user-guide/tenant-settings',
-        'user-guide/headless-remote-control',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Subscriber Portal',
+      link: {
+        type: 'generated-index',
+        description: 'Guides for sponsors using the ControlR Subscriber Portal.',
+      },
+      items: [
+        'subscriber-portal/overview',
+        'subscriber-portal/sign-in',
+        'subscriber-portal/sponsorship-and-build-slots',
+        'subscriber-portal/sponsorship-changes-and-lapse',
+        'subscriber-portal/manage-a-build-slot',
+        'subscriber-portal/slot-configuration',
+        'subscriber-portal/build-lifecycle',
+        'subscriber-portal/getting-your-image',
+        'subscriber-portal/connect-to-controlr',
+        'subscriber-portal/organization-access',
+        'subscriber-portal/notifications',
       ],
     },
     {
@@ -58,6 +80,7 @@ const sidebars: SidebarsConfig = {
         'admin/backup-restore',
         'admin/server-alerts',
         'admin/telemetry',
+        'admin/troubleshooting',
       ],
     },
     {
