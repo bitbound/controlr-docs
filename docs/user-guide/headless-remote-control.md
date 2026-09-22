@@ -73,4 +73,4 @@ If the screen still appears blank, try adjusting the resolution to a standard va
 
 ## Multiple Monitors
 
-When using multiple virtual displays (e.g., with Virtual-Display-Driver's four-monitor support), all monitors belong to the Console session. You can switch between them during the remote control session.
+When using multiple virtual displays, all monitors belong to the Console session. You can switch between them during the remote control session.
