@@ -9,7 +9,7 @@ The File System browser shows a remote device's folders and files in a split-pan
 
 ## Accessing the File System
 
-1. Open a device page. Click a device card on the Dashboard.
+1. Open the device in Device Access. On the [Dashboard](/docs/user-guide/dashboard), open that device's **Actions** menu and choose **Device Access**.
 2. Click **File System** in the device access menu.
 3. Or go directly to `/device-access/file-system?deviceId={id}`.
 

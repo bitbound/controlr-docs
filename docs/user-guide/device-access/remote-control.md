@@ -24,6 +24,8 @@ The page lists the device's active desktop sessions as cards. This step runs on 
 
 A card can carry a **"Permissions not granted."** warning when the session needs an in-session grant (such as the macOS screen recording permission) before streaming works. **"Request Now"** sends that request to the remote user.
 
+On macOS the request can be refused on the device side, where the desktop client reports `Application restart required before Screen Recording permission can be requested.` The remote user has to quit the ControlR desktop client and open it again before the system prompt can appear. After the restart they grant it from the client, or in **System Settings > Privacy & Security > Screen Recording**. If the toggle in System Settings refuses to stick, follow the client's advice and remove the app with the **−** button in that pane, then add it again. The desktop client carries the screen stream, so restarting it interrupts any active remote-control session. Reconnect once the grant is in place.
+
 Other controls on this step:
 
 - **Connect** starts the stream for that session

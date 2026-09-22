@@ -73,7 +73,7 @@ Permission management is consistent across principal types. The **Users**, **Use
 - **Effective Permissions** (`/effective-permissions`) -- an evaluation tool. Pick a principal (User, User Group, or Service Account), a permission, a scope kind (Server, Tenant, Device, or Device Group), and a scope, then evaluate whether access is allowed or denied. Denials include the reason.
 - **User Groups** (`/user-groups`) -- group users so a single assignment applies to all members.
 - **Device Groups** (`/device-groups`) -- group devices so a single assignment applies to all members.
-- **Customers** (`/customers`) -- organize devices by customer for customer-scoped grants.
+- **Customers** (`/customers`) -- organize devices by customer for customer-scoped grants. To create a customer or assign devices to one, see [Customers](/docs/user-guide/devices#customers).
 - **Tags** (`/tags`) -- device tagging for organization and filtering (no longer used for access control).
 
 ## Next

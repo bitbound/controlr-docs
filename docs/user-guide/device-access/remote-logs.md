@@ -9,7 +9,7 @@ The Remote Logs page shows log files from a connected agent. You can filter with
 
 ## Accessing Remote Logs
 
-1. Navigate to a device's page
+1. Open the device in Device Access. On the [Dashboard](/docs/user-guide/dashboard), open that device's **Actions** menu and choose **Device Access**
 2. Click **Remote Logs** in the device access menu
 3. Or go directly to `/device-access/remote-logs?deviceId={id}`
 

@@ -17,7 +17,7 @@ Access requires the `device.vnc-relay.connect` permission. It gates the menu ent
 
 ## Accessing VNC Relay
 
-1. Navigate to a device's page
+1. Open the device in Device Access. On the [Dashboard](/docs/user-guide/dashboard), open that device's **Actions** menu and choose **Device Access**
 2. Click **VNC Relay** in the device access menu
 3. Or go directly to `/device-access/vnc-relay?deviceId={id}`
 

@@ -11,7 +11,7 @@ Access requires the `device.terminal.use` permission. It gates the menu entry an
 
 ## Accessing the Terminal
 
-1. Navigate to a device's page
+1. Open the device in Device Access. On the [Dashboard](/docs/user-guide/dashboard), open that device's **Actions** menu and choose **Device Access**
 2. Click **Terminal** in the device access menu (or go to `/device-access/terminal?deviceId={id}`)
 
 ## Features

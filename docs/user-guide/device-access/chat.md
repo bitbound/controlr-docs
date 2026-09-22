@@ -13,7 +13,7 @@ Messages are delivered over the agent's local IPC channel to the ControlR deskto
 
 ## Accessing Chat
 
-1. Navigate to a device's page
+1. Open the device in Device Access. On the [Dashboard](/docs/user-guide/dashboard), open that device's **Actions** menu and choose **Device Access**
 2. Click **Chat** in the device access menu
 3. Or go directly to `/device-access/chat?deviceId={id}`
 

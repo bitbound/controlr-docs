@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-title: Devices & Tags
+title: Devices, Customers, And Tags
 ---
 
 ## Device Access
@@ -25,6 +25,29 @@ Device management lives on the Dashboard. Each device row has an Actions menu. T
 Both actions require the `device.delete` permission, evaluated against the target device.
 
 Server decommissioning is a separate, configuration-only switch (`ServerLifecycle:DecommissionServer`, default off). When it is on, every agent that connects is told to uninstall itself and its device record is deleted. The web interface shows a banner to all signed-in users while it is active. There is no in-product toggle for it.
+
+## Customers
+
+A customer is a named grouping used to bill or segment devices, and it is one of the scopes a permission assignment can target. A grant scoped to a customer covers every device assigned to it, which makes it the usual way to give someone access to one client's fleet and nothing else.
+
+Customers are managed on the **Customers** page at `/customers`. Opening the page requires `tenant.customers.read`. Every change requires `tenant.customers.write`, which covers creating, renaming, deleting, and assigning devices. There is no separate permission for assignment. Without the write permission the page still opens, and the create button and row menu are absent.
+
+### Creating and Editing a Customer
+
+1. On the **Customers** page, choose **New Customer**.
+2. Fill in the **Create Customer** dialog. **Name** is required. **Description** and **Notes** are optional. Choose **Save**.
+3. Names are trimmed, limited to 100 characters, and unique within the tenant. A duplicate is refused with `A customer with that name already exists.`
+4. Row menu **Edit** opens the same fields as **Edit Customer**.
+
+### Assigning Devices
+
+1. On the row for the customer, choose **Assign Devices**. The dialog is titled `Assign Devices to {customer name}`.
+2. Tick the devices you want, using the **Search devices** field to narrow the list. The save button reports how many changes are pending, in the form `Save changes (n)`.
+3. A device belongs to at most one customer. Assigning a device that already has one moves it to the new customer.
+
+Deleting a customer unassigns its devices rather than deleting them. The confirmation says so: `Devices assigned to this customer will become unassigned.`
+
+The grid lists **Name**, **Description**, **Notes**, a **Devices** count, **ID**, **Created**, and the **Actions** menu. The search box filters those rows on the browser side, matching name, description, and notes. There is no view of unassigned devices on this page. To find them, use **Filter by customer** on the [Dashboard](/docs/user-guide/dashboard), where a device with no customer shows a single dash in the **Customer** column. Devices can also be assigned at install time with the installer's `--customer` argument. See [Deploy](/docs/user-guide/deploy).
 
 ## Device Groups
 
