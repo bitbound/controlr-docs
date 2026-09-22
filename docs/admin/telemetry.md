@@ -43,7 +43,7 @@ So if both are set, `OTEL_EXPORTER_OTLP_ENDPOINT` wins. Because the exporter is 
 
 The server and the agent read the same configuration keys, but through different environment providers.
 
-- The **server** loads environment variables with a `ControlR_` prefix. Set `ControlR_OTLP_ENDPOINT_URL`, `ControlR_OTEL_EXPORTER_OTLP_ENDPOINT`, and `ControlR_AzureMonitor__ConnectionString`. A bare `OTLP_ENDPOINT_URL` is ignored by the server.
+- The **server** reads environment variables from two providers. One carries the `ControlR_` prefix, and the other is the ASP.NET Core default provider with no prefix. Set `ControlR_OTLP_ENDPOINT_URL`, `ControlR_OTEL_EXPORTER_OTLP_ENDPOINT`, and `ControlR_AzureMonitor__ConnectionString`. The bare forms work too, since the default provider is registered as well. The `ControlR_` form wins when both are set for the same key.
 - The **agent** loads environment variables with no prefix. Set `OTLP_ENDPOINT_URL`, `OTEL_EXPORTER_OTLP_ENDPOINT`, and `AzureMonitor__ConnectionString` on the agent, or put them in the agent's `appsettings.json`.
 
 ## Aspire Dashboard

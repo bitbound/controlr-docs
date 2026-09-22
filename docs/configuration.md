@@ -54,7 +54,7 @@ The shipped `appsettings.json` supplies the defaults below. Startup throws when 
 
 The main application settings section. It is bound from the `AppOptions` section, so the environment variable form is always `ControlR_AppOptions__<Key>`.
 
-The Default column shows what an operator actually gets. Most keys are set explicitly in the shipped `appsettings.json`. Three keys are absent from that file and fall back to the C# initializer: `AuthorizationChangeLogRetentionDays` (365), `ExternalUserCleanupAfterDays` (30), and `LogonTokenGrantCleanupAfterDays` (21). String options ship as empty strings, which read the same as unset.
+The Default column shows what an operator actually gets. Most keys are set explicitly in the shipped `appsettings.json`. Five keys are absent from that file and fall back to the C# initializer: `AuthorizationChangeLogRetentionDays` (365), `ExternalUserCleanupAfterDays` (30), `LogonTokenGrantCleanupAfterDays` (21), `ServiceAccountAuthFailureLimit` (5), and `ServiceAccountAuthFailureWindowMinutes` (5). String options ship as empty strings, which read the same as unset.
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
