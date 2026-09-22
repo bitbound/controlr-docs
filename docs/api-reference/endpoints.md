@@ -60,7 +60,7 @@ Most V1 actions take a `Guid tenantId`. An action-model convention adds a filter
 
 After that check, the server resolves the tenant against the caller:
 
-- A server-scoped principal (server service account, or a user holding server permissions) may name any tenant.
+- A server-scoped principal may name any tenant. That means a server service account. A signed-in user is not one of these for this check, even a user holding server-scope permissions.
 - Any other principal must name the tenant in its own claim. A mismatch is answered `403`, not `404`.
 
 Deprecated Internal routes have no such filter. They derive the tenant from the caller's claim and answer `403` for an unusable one, which is one reason a migrated caller should send the parameter explicitly.
