@@ -5,19 +5,21 @@ title: Build Lifecycle
 
 ## What A Slot Build Is
 
-A slot build is a run of ControlR's CI pipeline on GitHub's infrastructure. The portal records the build, asks GitHub to run the workflow against the ControlR repository, the pipeline compiles ControlR from your chosen release tag, applies your saved branding configuration and stored assets, and pushes the resulting server image to your private registry. This page covers every stage a sponsor can observe, from trigger to retention.
+A slot build is a run of ControlR's CI pipeline on GitHub's infrastructure. The portal records the build, asks GitHub to run the workflow against the ControlR repository, the pipeline compiles ControlR from your chosen release tag, applies your saved branding configuration and stored assets, and publishes the result in the format your slot is set to. A **Docker image** slot pushes the server image to your private registry. A **ZIP download** slot uploads a server archive that the portal hands you a download link for. This page covers every stage a sponsor can observe, from trigger to retention.
 
 ## What Must Be True Before A Build Starts
 
-The portal checks these in order when you select **Trigger build**, and the trigger fails with a specific error if any check fails:
+The portal runs these checks in this order when you select **Trigger build**. The trigger stops at the first one that fails and answers with a specific error.
 
 1. You have **Execute** access on the slot. Triggering and cancelling builds use Execute, which is granted separately from Write.
-2. Your current entitlement covers the slot. Locked slots answer with "Slot N is locked for the current sponsorship entitlement."
-3. The slot's saved configuration has a valid source ref. A slot that has never been saved fails with "A source ref must be selected."
-4. No other build is already active for the slot. See [One Build At A Time](#one-build-at-a-time).
-5. The saved server runtime is one of the supported values.
+2. The slot number is in range. Slots are numbered from 1 to 10. Out of range answers "Slot number must be between 1 and 10."
+3. Your current entitlement covers the slot. Locked slots answer with "Slot N is locked for the current sponsorship entitlement."
+4. The slot's saved configuration has a valid source ref. A slot that has never been saved fails with "A source ref must be selected."
+5. The saved server runtime is one of the supported values. A **ZIP download** slot may target `win-x64`, while a **Docker image** slot is limited to the Linux runtimes. See [Delivery Format](/docs/subscriber-portal/slot-configuration#delivery-format).
+6. On a **ZIP download** slot, the release tag has to convert into a valid version name. A tag that does not fails the trigger with "Release tag '...' cannot be delivered as a ZIP: its version name '...' must use only lowercase letters, digits, dots, dashes, and underscores." This fires before any build record is created, so it is a trigger error, not a failed build.
+7. No other build is already active for the slot. See [One Build At A Time](#one-build-at-a-time).
 
-There is no asset requirement. A build with zero uploaded assets runs and produces an image with default ControlR artwork. There is no separate "ready" state on the slot page.
+There is no asset requirement. A build with zero uploaded assets runs and ships default ControlR artwork. There is no separate "ready" state on the slot page.
 
 ## The Status Sequence
 
@@ -32,8 +34,9 @@ Two irregular paths exist. A `pending_validation` build that never gets a workfl
 
 ### What Each Status Looks Like In The Panel
 
-- While the build is in `pending_validation`, `queued`, or `running`, the trigger button is replaced by **Cancel build**, and the duration shown under **Latest build details** keeps growing.
-- `succeeded` fills the **Image delivery** block with the produced image reference and the pull command. See [Getting Your Image](/docs/subscriber-portal/getting-your-image).
+- While the build is in `pending_validation`, `queued`, or `running`, the trigger button is replaced by **Cancel build**.
+- The **Duration** line under **Latest build details** is a value the portal computes on the server and shows as-is. There is no on-page timer, so it does not tick up while you watch. It refreshes when you open the slot page, when you select **Refresh status**, and during the cancellation poll described under [Cancelling A Build](#cancelling-a-build). While a build runs, each refresh recomputes it from the recorded start time, so it climbs in steps rather than smoothly.
+- On a **Docker image** slot, `succeeded` fills the **Image delivery** block with the produced image reference and the pull command. On a **ZIP download** slot it fills the **ZIP delivery** card with a **Download server** button. See [Getting Your Image](/docs/subscriber-portal/getting-your-image).
 - `failed` shows a failure summary when the pipeline produced one. It typically names the job and the step that failed.
 - `canceled` shows a summary saying GitHub Actions reported the build as canceled.
 
@@ -72,13 +75,15 @@ Because the configuration link is one-time, your configuration cannot be downloa
 
 ## Build History And Retention
 
-The **Recent build history** list shows this slot's builds newest first, 20 per page. A row shows the requested time in its title, a status chip, the source ref, the duration, and the requested and completed timestamps, plus a failure summary if there was one. Rows are plain list items. They are not clickable, and they never show an image reference or a pull command. Image delivery belongs to the latest build alone.
+The **Recent build history** list shows this slot's builds newest first, 20 per page. A row shows the requested time in its title, a status chip, the source ref, the duration, and the requested and completed timestamps, plus a failure summary if there was one. Rows are plain list items. They are not clickable, and they never show an image reference or a pull command. Image delivery for the latest build belongs to the delivery card above the list.
+
+One exception is clickable. A row for a ZIP build that reached `succeeded` carries its own **Download server** button, so you can retrieve any successful build in the window, not just the latest. Failed and cancelled rows carry no button, and a **Docker image** build's rows never do, including older Docker rows left in a ZIP slot's history after a format change.
 
 Retention has teeth. A background job runs every 6 hours and deletes any build that finished (`succeeded`, `failed`, or `canceled`) more than 30 days ago. Builds that never reached a final state are kept until they do. So your build history is a rolling 30-day window, not an archive. If you need a permanent record of what shipped when, keep it yourself.
 
 ## If Something Goes Wrong
 
-- A trigger error message is specific: locked slot, missing source ref, or an active build already running. Read it before retrying.
+- A trigger error message is specific: locked slot, slot number out of range, missing source ref, a ZIP slot's release tag that cannot become a version name, or an active build already running. Read it before retrying. See [What Must Be True Before A Build Starts](#what-must-be-true-before-a-build-starts).
 - A `failed` build's summary names the failing job and step. Fix the cause and trigger again, older failed attempts do not block retries.
 - A build stuck at `pending_validation` with no status change after several refreshes means GitHub never accepted the run. It will be marked failed on its own.
 - A `succeeded` build that you cannot pull is almost always a registry access problem, not a build problem. See [Getting Your Image](/docs/subscriber-portal/getting-your-image) and [Sponsorship Changes And Lapse](/docs/subscriber-portal/sponsorship-changes-and-lapse).

@@ -33,6 +33,8 @@ The table shows the count at common levels.
 
 A portal operator can grant you complimentary slots on top of what your sponsorship earns. Complimentary slots add to your sponsorship-earned slots and are not limited by the 10-slot sponsorship cap. The dashboard counts them in your total.
 
+One limit sits behind that total. The portal only ever creates slots numbered 1 through 10. When your earned slots plus complimentary slots add up to more than 10, the dashboard total can read higher than the slots you can actually open, because there is no slot beyond slot 10.
+
 ## What A Slot Holds
 
 A slot holds the configuration that turns into your branded ControlR image. That includes:

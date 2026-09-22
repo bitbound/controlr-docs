@@ -5,7 +5,28 @@ title: Getting Your Image
 
 ## Overview
 
-A successful build publishes a ControlR server image to a private Azure Container Registry that belongs to the ControlR service, not to you. This page explains exactly where your image lives, how you authenticate to pull it, how that credential behaves over time, and how to confirm the image you pulled is the one you think you built. For what happens to images when sponsorship lapses, see [Sponsorship Changes And Lapse](/docs/subscriber-portal/sponsorship-changes-and-lapse).
+A build delivers your ControlR server in one of two formats, chosen per slot by the [Delivery format](/docs/subscriber-portal/slot-configuration#delivery-format) field. A **Docker image** slot publishes an image to a private container registry that belongs to the ControlR service, not to you. A **ZIP download** slot stores a self-contained server archive instead and never touches a registry. This page covers both paths. For what happens when sponsorship lapses, see [Sponsorship Changes And Lapse](/docs/subscriber-portal/sponsorship-changes-and-lapse).
+
+## Which Path Applies To Your Slot
+
+Open the slot and look at its **Delivery format**. Then read the matching half of this page and skip the other.
+
+- **Docker image**: read [Your Image Reference](#your-image-reference) downward. The builds panel hands you a pull command.
+- **ZIP download**: read [If Your Slot Uses ZIP Download](#if-your-slot-uses-zip-download). No image reference and no pull command ever appear, because nothing is pushed to a registry for such a build.
+
+If you are not sure which format the slot uses, the panel tells you. A Docker slot's delivery card is headed **Image delivery**. A ZIP slot's is headed **ZIP delivery**.
+
+## If Your Slot Uses ZIP Download
+
+A ZIP build produces no image and no pull command. The builds panel hands you a file instead.
+
+On a successful build the delivery card reads **ZIP delivery**. It names the version and the runtime, and shows a **Download server** button. Select it and your browser downloads a server archive. The download link is created fresh when you ask for it and is short-lived. The card states that each download link is valid for a few minutes. If a link you copied earlier stops working, come back and select **Download server** again.
+
+Every successful ZIP build in **Recent build history** carries its own **Download server** button, so you can retrieve an earlier build, not just the latest. Failed and cancelled rows carry no button.
+
+While a ZIP build is still running, the card says a downloadable server archive becomes available once the build succeeds. There is nothing to download until it does.
+
+The archive is an ordinary ControlR server for the runtime you picked, with your branding baked in. Running it is covered in [Connect To ControlR](/docs/subscriber-portal/connect-to-controlr).
 
 ## Your Image Reference
 
