@@ -20,7 +20,7 @@ The double underscore (`__`) is the nesting separator. It becomes a colon intern
 - `ControlR_AppOptions__SmtpHost` maps to `AppOptions:SmtpHost`
 - `ControlR_AppOptions__CorsAllowedOrigins__0` sets the first item in the `CorsAllowedOrigins` array
 
-Section names are load-bearing. Only keys that live under `AppOptions` take the `AppOptions__` segment. `KeyProtectionOptions`, `Bootstrap`, `ServerLifecycle`, `AspireDashboard`, `Logging`, `AzureMonitor`, and the `POSTGRES_*` keys are root sections. A key placed under the wrong section binds nothing and fails silently.
+Section names are load-bearing. Only keys that live under `AppOptions` take the `AppOptions__` segment. `KeyProtectionOptions`, `Bootstrap`, `ServerLifecycle`, `DeveloperOptions`, `AspireDashboard`, `Logging`, `AzureMonitor`, `AllowedHosts`, and the `POSTGRES_*` keys are root sections. A key placed under the wrong section binds nothing and fails silently.
 
 ## Docker Secrets
 
@@ -60,7 +60,6 @@ The Default column shows what an operator actually gets. Most keys are set expli
 |----------|------|---------|-------------|
 | `ControlR_AppOptions__AgentClockSkewTolerance` | TimeSpan? | `00:01:00` | Max allowed time difference between agent's signed timestamp and server time. `null` disables verification |
 | `ControlR_AppOptions__AgentInstallerKeyHistoryDays` | int | `90` | Days to retain installer key usage history. `<= 0` retains indefinitely |
-| `ControlR_AppOptions__AllowAgentsToSelfBootstrap` | bool | `false` | Registers an unknown device when it connects, instead of requiring an installer key. See the restriction below |
 | `ControlR_AppOptions__AuthenticatorIssuerName` | string? | `ControlR` | Name shown in TOTP authenticator apps for 2FA setup |
 | `ControlR_AppOptions__AuthorizationChangeLogRetentionDays` | int | `365` | Days to keep authorization change log entries. A background service prunes older rows. `<= 0` disables pruning |
 | `ControlR_AppOptions__CorsAllowedOrigins__N` | string[] | `[]` | Array of allowed origins for CORS. Index by `N` (0, 1, 2...). Used only when `EnableCors` is `true` |
@@ -91,6 +90,7 @@ The Default column shows what an operator actually gets. Most keys are set expli
 | `ControlR_AppOptions__MicrosoftClientId` | string? | None | Microsoft OAuth client ID |
 | `ControlR_AppOptions__MicrosoftClientSecret` | string? | None | Microsoft OAuth client secret |
 | `ControlR_AppOptions__PersistPasskeyLogin` | bool | `false` | Makes passkey login equivalent to "remember me" |
+| `ControlR_AppOptions__PublicBaseUrl` | string? | None | The absolute URL this server is reachable at by its users, e.g. `https://controlr.example.com`. Every link in an outbound account email is built from it. See Email links in account emails below |
 | `ControlR_AppOptions__RequireUserEmailConfirmation` | bool | `false` | Users must confirm email before logging in. Requires SMTP |
 | `ControlR_AppOptions__RequireUserUniqueEmail` | bool | `true` | Whether each user must have a unique email address across all tenants |
 | `ControlR_AppOptions__ServiceAccountAuthFailureLimit` | int | `5` | Maximum failed `x-api-key` authentication attempts allowed per rate-limit window. Tracked separately per source IP and per credential. `0` or less does not turn the limiter off. It lets one failure through, then rejects that IP or credential for the rest of the window |
@@ -107,11 +107,16 @@ The Default column shows what an operator actually gets. Most keys are set expli
 | `ControlR_AppOptions__UseHttpLogging` | bool | `false` | Enables HTTP request/response logging |
 | `ControlR_AppOptions__UseInMemoryDatabase` | bool | `false` | Uses EF Core in-memory DB instead of PostgreSQL (dev/test only) |
 
-### AllowAgentsToSelfBootstrap and tenants
+### Email links in account emails
 
-The setting only matters when the connecting agent presents no tenant. In that case the server requires exactly one tenant to exist and places the device in it. With two or more tenants the connection is refused with `Self-bootstrap is only allowed on single-tenant servers. Use an installer key instead.` An agent that presents a valid tenant ID is not affected by this setting.
+Every link the server puts into an email (password reset, email confirmation, email change) is built from `PublicBaseUrl`, not from the arriving request. A request can carry a forged `Host` or `X-Forwarded-Host`, and a link built from that would deliver a genuine email carrying a valid token to a host the caller picked.
 
-So this is a single-tenant convenience. Multi-tenant deployments must use installer keys, which carry an explicit tenant.
+When `PublicBaseUrl` is unset, the server uses the request origin only when `AllowedHosts` pins it to hostnames the operator chose. Otherwise no link is built, and that is the safe default:
+
+- A password-reset email carries the reset code with no clickable link. The code works on its own, so the flow stays usable.
+- Confirmation emails are not sent, and the server logs an error where it declined one.
+
+The server prints a warning at startup when neither `PublicBaseUrl` nor a pinned `AllowedHosts` is configured. Set `PublicBaseUrl` to get clickable links. A configured value that is not an absolute `http` or `https` URL is rejected, logged, and treated as unset.
 
 ### File transfer size
 
@@ -121,6 +126,18 @@ So this is a single-tenant convenience. Multi-tenant deployments must use instal
 - The web client substitutes `long.MaxValue` only when the value is less than zero. It compares file sizes against the raw value otherwise.
 
 A limit of exactly `0` therefore lets the server accept a transfer while the browser blocks it. Use `-1` for unlimited.
+
+## Host Filtering
+
+`AllowedHosts` is a root-level key, enforced by ASP.NET Core's host-filtering middleware. `WebApplication.CreateBuilder` registers that middleware automatically, so the setting takes effect with no ControlR code involved.
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `AllowedHosts` | string[] | `*` | Semicolon-separated hostnames the server answers to, without port numbers. A request whose `Host` is not in the list is rejected with `400 Bad Request` before it reaches the app. `*` accepts any host. Prefix form: `ControlR_AllowedHosts` |
+
+Pinning the list does two things. A request carrying a forged `Host` is rejected instead of served. And when `AppOptions:PublicBaseUrl` is unset, a pinned list is what makes the request host safe to build email links from, as described in Email links in account emails above.
+
+The shipped `appsettings.json` sets `AllowedHosts` to `*`, so a default deployment accepts any host and its account emails go out without links until `PublicBaseUrl` is set or this list is pinned.
 
 ## Bootstrap Options
 
@@ -197,6 +214,20 @@ The unversioned route `/api/user-server-settings/decommission-status` still resp
 **After decommissioning:**
 
 Once all agents have been removed, you can safely stop the server containers and delete any remaining resources (volumes, etc.).
+
+## Developer Options
+
+Root section `DeveloperOptions`. These settings are for development and load testing only. Never enable one on a server that users can reach. The server prints a warning at startup while any of them is on.
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `ControlR_DeveloperOptions__AllowAgentsToSelfBootstrap` | bool | `false` | Registers an unknown device when it connects, instead of requiring an installer key. Development and load testing only |
+
+### AllowAgentsToSelfBootstrap and tenants
+
+The setting only matters when the connecting agent presents no tenant. In that case the server requires exactly one tenant to exist and places the device in it. With two or more tenants the connection is refused with `Self-bootstrap is only allowed on single-tenant servers. Use an installer key instead.` An agent that presents a valid tenant ID is not affected by this setting.
+
+So this is a development and load-testing tool, not a way to skip installer keys in production. Never enable it on a server that users can reach. Multi-tenant deployments must use installer keys, which carry an explicit tenant.
 
 ## Logging Configuration
 
@@ -309,9 +340,20 @@ services:
       # Public registration (set to true if you want open signup)
       ControlR_AppOptions__EnablePublicRegistration: false
 
-      # Lets an agent register itself when it presents no tenant. Single-tenant
-      # servers only. Multi-tenant servers must use installer keys.
-      ControlR_AppOptions__AllowAgentsToSelfBootstrap: false
+      # The absolute URL this server is reachable at by its users. Every link
+      # in an account email (password reset, email confirmation, email change)
+      # is built from it. Unset, those emails go out without a clickable link.
+      ControlR_AppOptions__PublicBaseUrl: https://your-server.example.com
+
+      # The hostnames this server answers to. A request carrying any other
+      # Host gets a 400. Pinning it also lets email links fall back to the
+      # request origin when PublicBaseUrl is unset. "*" accepts any host.
+      ControlR_AllowedHosts: your-server.example.com
+
+      # DEVELOPMENT AND LOAD TESTING ONLY. Never enable on a server that users
+      # can reach. Lets an agent register itself without an installer key, and
+      # the server prints a warning at startup while it is on.
+      ControlR_DeveloperOptions__AllowAgentsToSelfBootstrap: false
 
       # Email confirmation required for new accounts
       ControlR_AppOptions__RequireUserEmailConfirmation: true

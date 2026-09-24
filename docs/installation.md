@@ -261,7 +261,7 @@ Defaults that matter at install time:
 
 - `ControlR_AppOptions__EnablePublicRegistration`: keep registration open after the first account. Default `false`.
 - `ControlR_AppOptions__DisableFirstUserSelfRegistration`: close the one-time first-account signup. Default `false`.
-- `ControlR_AppOptions__AllowAgentsToSelfBootstrap`: let agents register without a key on a single-tenant server. Default `false`.
+- `ControlR_DeveloperOptions__AllowAgentsToSelfBootstrap`: lets agents register without a key on a single-tenant server. Development and load testing only. Default `false`.
 - `ControlR_AppOptions__RequireUserEmailConfirmation`: application default `false`, shipped Compose value `true`.
 - `ControlR_AppOptions__MaxFileTransferSize`: cap in bytes for the remote file manager. Shipped value `104857600`. Use a negative number for unlimited, never `0`. The configuration page explains why zero is a trap.
 

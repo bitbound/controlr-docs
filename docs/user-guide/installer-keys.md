@@ -99,7 +99,7 @@ Both flags are optional to the installer itself, but passing `--installer-key-se
 
 ## Self-Registration Without a Key
 
-`ControlR_AppOptions__AllowAgentsToSelfBootstrap` (default `false`) does not make keys optional at install time. The device registration endpoint the installer calls always requires a valid key, and that option is not consulted there.
+`ControlR_DeveloperOptions__AllowAgentsToSelfBootstrap` (default `false`, development and load testing only) does not make keys optional at install time. The device registration endpoint the installer calls always requires a valid key, and that option is not consulted there.
 
 The option affects only the agent connection path. When enabled, an agent the server does not know can create its own device record when it connects, without presenting any key. When the agent supplies no tenant, this fallback works only on servers with exactly one tenant, and the device lands in that tenant. On multi-tenant servers the agent's configured tenant id must name an existing tenant. With the option disabled, connections from unknown devices are rejected.
 

@@ -136,7 +136,7 @@ The installer also provides `uninstall` and `repair-desktop`. Both accept only `
 
 `AllowAgentsToSelfBootstrap` does not change this page. The page never shows scripts without a key secret, and an install run without `-ks` and `-ki` cannot register a new device, because the device-creation endpoint validates the key ID and secret before it creates anything.
 
-The setting affects the agent connection path instead. When it is enabled (`ControlR_AppOptions__AllowAgentsToSelfBootstrap=true`), the server accepts an agent that has no stored public key and lets it create its own device record rather than only updating an existing one. The agent is then placed in the only tenant on the server, and that placement is refused on a server with more than one tenant. Enable it for a single-tenant server where you want agents to register themselves. Leave it off, which is the default, when more than one tenant exists or when registration must go through an installer key.
+The setting affects the agent connection path instead. When it is enabled (`ControlR_DeveloperOptions__AllowAgentsToSelfBootstrap=true`), the server accepts an agent that has no stored public key and lets it create its own device record rather than only updating an existing one. The agent is then placed in the only tenant on the server, and that placement is refused on a server with more than one tenant. This is a development and load-testing setting. Never enable it on a server that users can reach, and note that the server prints a warning at startup while it is on. Leave it off, which is the default, for any deployment people use.
 
 ## Next
 

@@ -24,7 +24,9 @@ You can usually tell from the address bar. A ControlR URL that carries `http://`
 
 ## Which Proxies ControlR Trusts by Default
 
-The server consumes four headers: `X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-Prefix`. It applies them only when the immediate connection comes from a trusted address. Chain depth is unlimited, so every proxy between the client and the server needs to be in that trust list before the client address in `X-Forwarded-For` is read.
+The server consumes two forwarded headers: `X-Forwarded-For` and `X-Forwarded-Proto`. It applies them only when the immediate connection comes from a trusted address. Chain depth is unlimited, so every proxy between the client and the server needs to be in that trust list before the client address in `X-Forwarded-For` is read.
+
+`X-Forwarded-Host` and `X-Forwarded-Prefix` are deliberately not read. A caller can supply `X-Forwarded-Host` itself, and Cloudflare passes it through to the origin rather than overwriting it, so trusting it would let a caller point the links inside genuine account emails at a host they own. A proxy that rewrites `Host` to the public hostname, as the nginx example below does, works as expected because the server reads `Host`. A load balancer that only sets `X-Forwarded-Host` and leaves `Host` at the upstream address is no longer believed. Pin `AllowedHosts` and set `AppOptions:PublicBaseUrl` so the server still knows its public origin, see [Configuration](/docs/configuration).
 
 `X-Real-IP` is not one of the headers the server reads. The nginx example below sends it because that is the common convention, and ControlR ignores it.
 
@@ -133,7 +135,7 @@ Nothing rejects the connection. Agents and viewers authenticate with tokens, not
 
 - **Device public IPs**: the address recorded for a connected device comes from the TCP connection. When forwarded headers are ignored, every device looks like it connects from your proxy's address.
 - **Anonymous-auth rate limiting**: `/api/auth/interactive-login`, `/api/auth/complete-password-reset`, and `/api/auth/change-password-with-credentials` are limited to 20 requests per minute, partitioned by client address and endpoint. Behind an untrusted proxy all of your users land in the proxy's buckets, so ordinary sign-ins start failing with HTTP 429.
-- **Email links**: the account-confirmation link in a registration email is built from the request scheme and host. If `X-Forwarded-Proto` and `X-Forwarded-Host` are ignored, that link carries `http://` and an internal host name, and it does not work when clicked.
+- **Email links**: links in account emails are built from `AppOptions:PublicBaseUrl`, not from request headers. Without it they fall back to the request origin only when `AllowedHosts` pins it, and the scheme of such a fallback link still comes from `X-Forwarded-Proto`. With neither setting configured, a password-reset email carries the reset code with no link and confirmation emails are not sent. See [Configuration](/docs/configuration).
 - **Audit trails**: authorization change logs, installer-key usage records, and streaming-session log entries record the connecting address. They show the proxy's address instead of the real client.
 - **HTTPS redirects**: in production the server uses HTTPS redirection and HSTS, and it takes the incoming scheme from `X-Forwarded-Proto`. Ignoring that header leaves the app believing it is serving plain HTTP, and redirect behavior breaks in whichever direction your proxy is wired.
 

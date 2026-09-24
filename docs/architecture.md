@@ -135,7 +135,7 @@ Because the machine-to-machine credentials are read from dedicated headers, a cr
 
 The hubs relay messages between each other. When a viewer sends a terminal command via `ViewerHub`, the server invokes the matching method on the target agent's `AgentHub` connection. The agent's response flows back the same path.
 
-The two sides prove their identity differently. ViewerHub connections carry an ordinary authenticated user principal. AgentHub connections are not authenticated by an ASP.NET Core scheme. Each agent holds an Ed25519 key pair generated at install time, and its device status updates are sent as `UpdateDeviceSigned`, which the server verifies against the public key stored during registration. An unknown device is rejected unless `ControlR_AppOptions__AllowAgentsToSelfBootstrap` is enabled, and self-bootstrap is only accepted on a server that has exactly one tenant.
+The two sides prove their identity differently. ViewerHub connections carry an ordinary authenticated user principal. AgentHub connections are not authenticated by an ASP.NET Core scheme. Each agent holds an Ed25519 key pair generated at install time, and its device status updates are sent as `UpdateDeviceSigned`, which the server verifies against the public key stored during registration. An unknown device is rejected unless `ControlR_DeveloperOptions__AllowAgentsToSelfBootstrap` is enabled, and self-bootstrap is only accepted on a server that has exactly one tenant.
 
 ### WebSocket Relay
 
