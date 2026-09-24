@@ -149,7 +149,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Bitbound. | Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Jared Goodwin. | Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
