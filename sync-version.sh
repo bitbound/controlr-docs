@@ -8,7 +8,7 @@ if [[ "$#" -gt 1 ]]; then
 fi
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-version_file="$repo_root/.github/docs-sync-version.txt"
+version_file="$repo_root/controlr-version.txt"
 target_version="${1:-}"
 
 if [[ -z "$target_version" ]]; then

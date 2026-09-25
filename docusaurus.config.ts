@@ -3,7 +3,7 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import * as fs from 'fs';
 
-const controlrVersion = fs.readFileSync('.github/docs-sync-version.txt', 'utf-8').trim();
+const controlrVersion = fs.readFileSync('controlr-version.txt', 'utf-8').trim();
 
 const config: Config = {
   title: 'ControlR Docs',
@@ -96,7 +96,7 @@ const config: Config = {
           value: '<span class="navbar-preview-chip">Preview</span>',
         },
         {
-          href: 'https://github.com/bitbound/controlr-docs/blob/main/README.md#help-wanted',
+          href: 'https://github.com/bitbound/controlr-docs#help-wanted',
           label: 'Help Wanted',
           position: 'right',
           className: 'navbar-help-wanted',

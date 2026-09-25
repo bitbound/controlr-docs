@@ -3,7 +3,7 @@
 # sync-docs.sh — Sync controlr-docs with ControlR source changes
 #
 # This script compares the last-synced version (stored in
-# .github/docs-sync-version.txt) against the latest ControlR release,
+# controlr-version.txt) against the latest ControlR release,
 # analyzes the source diff using the `qwen` CLI agent, and either
 # creates an update plan (.plans/) or directly edits the docs.
 #
@@ -21,7 +21,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-VERSION_FILE="$REPO_ROOT/.github/docs-sync-version.txt"
+VERSION_FILE="$REPO_ROOT/controlr-version.txt"
 PLANS_DIR="$REPO_ROOT/.plans"
 CONTROLr_CLONE="$REPO_ROOT/.controlr-src"
 DOCS_DIR="$REPO_ROOT/docs"
