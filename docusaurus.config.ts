@@ -92,13 +92,13 @@ const config: Config = {
         },
         {
           type: 'html',
-          position: 'right',
+          position: 'left',
           value: '<span class="navbar-preview-chip">Preview</span>',
         },
         {
           href: 'https://github.com/bitbound/controlr-docs#help-wanted',
           label: 'Help Wanted',
-          position: 'right',
+          position: 'left',
           className: 'navbar-help-wanted',
         },
         {
