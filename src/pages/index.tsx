@@ -1,17 +1,13 @@
 import type {ReactNode} from 'react';
-import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
-import {useColorMode} from '@docusaurus/theme-common';
 
 import styles from './index.module.css';
 
 function HomepageHeader() {
   const {siteConfig} = useDocusaurusContext();
-  const {colorMode} = useColorMode();
-  const logoSrc = colorMode === 'dark' ? '/img/logo-transparent-dark.png' : '/img/logo-transparent-light.png';
 
   return (
     <header className={styles.heroBanner}>
