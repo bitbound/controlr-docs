@@ -6,6 +6,10 @@ This repository contains the documentation site for [ControlR](https://github.co
 
 Visit [docs.controlr.app](https://docs.controlr.app) to view the documentation.
 
+## Help Wanted
+
+Most of this documentation was generated automatically while I focused on ControlR's core features, and it needs a full review for accuracy. Any help reviewing it would be greatly appreciated. If you happen to spot an inaccuracy, you're welcome to open a pull request with a correction or file an issue describing the affected section.
+
 ## Development
 
 ### Prerequisites

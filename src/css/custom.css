@@ -34,3 +34,23 @@
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
+
+.navbar-preview-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.5rem;
+  border: 1px solid var(--ifm-color-secondary);
+  border-radius: 999px;
+  background-color: var(--ifm-color-secondary-lightest);
+  color: var(--ifm-color-secondary-darkest);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.navbar-help-wanted {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}

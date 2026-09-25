@@ -41,6 +41,12 @@ export default function Home(): ReactNode {
       description={siteConfig.tagline}>
       <HomepageHeader />
       <main>
+        <aside className={styles.accuracyNotice} aria-label="Documentation accuracy notice">
+          <p>
+            <strong>Important:</strong> This docs site is still being refined and reviewed for correctness. Please{' '}
+            <a href="https://github.com/bitbound/controlr-docs/issues">report inaccuracies on GitHub</a>.
+          </p>
+        </aside>
       </main>
     </Layout>
   );

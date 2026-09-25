@@ -27,8 +27,24 @@
   gap: 1rem;
 }
 
+.accuracyNotice {
+  max-width: 960px;
+  margin: 1.5rem auto 3rem;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--ifm-color-secondary);
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.accuracyNotice p {
+  margin: 0;
+}
+
 @media screen and (max-width: 996px) {
   .heroBanner {
     padding: 3rem 0 2rem;
+  }
+
+  .accuracyNotice {
+    margin: 1.25rem 1rem 2rem;
   }
 }

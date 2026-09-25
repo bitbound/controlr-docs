@@ -91,6 +91,17 @@ const config: Config = {
           value: `<span class="navbar-version-badge" title="ControlR ${controlrVersion}">${controlrVersion}</span>`,
         },
         {
+          type: 'html',
+          position: 'right',
+          value: '<span class="navbar-preview-chip">Preview</span>',
+        },
+        {
+          href: 'https://github.com/bitbound/controlr-docs/blob/main/README.md#help-wanted',
+          label: 'Help Wanted',
+          position: 'right',
+          className: 'navbar-help-wanted',
+        },
+        {
           href: 'https://github.com/bitbound/ControlR',
           label: 'GitHub',
           position: 'right',
