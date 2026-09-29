@@ -49,7 +49,7 @@ Required, with `linux-x64` preselected. The available choices depend on the [Del
 
 Required. A full absolute URL using http or https, at most 2048 characters. It is validated and stored on the slot and shown back to you in the form, on the dashboard slot card, and in exported configuration JSON.
 
-Be aware of what this field does not do. The value is not part of the customization payload the builder downloads, and it is not one of the workflow inputs the portal sends when it triggers a build. No portal code path applies it to the built image. Your server's actual public address is runtime configuration you set when you deploy the image, as covered in [Connect To ControlR](/docs/subscriber-portal/connect-to-controlr) and the server [Configuration](/docs/configuration) docs. Treat the form field as metadata that travels with the slot.
+Be aware of what this field does and does not do. The value is validated and stored on the slot, and unlike brand, colors, and CSS it also rides in the one-time customization payload the builder downloads. It is not, however, one of the workflow inputs the portal sends when it triggers a build, and no portal code path applies it to the built image. Whether a build actually uses it is up to the build pipeline. Your server's real public address is runtime configuration you set when you deploy the image, as covered in [Connect To ControlR](/docs/subscriber-portal/connect-to-controlr) and the server [Configuration](/docs/configuration) docs.
 
 ### Theme Colors
 

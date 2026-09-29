@@ -11,7 +11,7 @@ When you trigger a build, the portal emails you the result. You receive an email
 - fails, or
 - is canceled.
 
-The email is sent to the person who started the build. It is addressed to the email address on that person's own account, and nowhere else. It is not sent to an organization mailing list or to other members.
+The email is sent to the person who started the build. It is addressed to the email address on that person's own account. It is not sent to an organization mailing list or to other organization members. Portal administrators also receive a copy of build outcome emails.
 
 ## Where The Email Goes
 

@@ -26,7 +26,7 @@ You can usually tell from the address bar. A ControlR URL that carries `http://`
 
 The server consumes two forwarded headers: `X-Forwarded-For` and `X-Forwarded-Proto`. It applies them only when the immediate connection comes from a trusted address. Chain depth is unlimited, so every proxy between the client and the server needs to be in that trust list before the client address in `X-Forwarded-For` is read.
 
-`X-Forwarded-Host` and `X-Forwarded-Prefix` are deliberately not read. A caller can supply `X-Forwarded-Host` itself, and Cloudflare passes it through to the origin rather than overwriting it, so trusting it would let a caller point the links inside genuine account emails at a host they own. A proxy that rewrites `Host` to the public hostname, as the nginx example below does, works as expected because the server reads `Host`. A load balancer that only sets `X-Forwarded-Host` and leaves `Host` at the upstream address is no longer believed. Pin `AllowedHosts` and set `AppOptions:PublicBaseUrl` so the server still knows its public origin, see [Configuration](/docs/configuration).
+`X-Forwarded-Host` and `X-Forwarded-Prefix` are deliberately not read. A caller can supply `X-Forwarded-Host` itself, and Cloudflare passes it through to the origin rather than overwriting it, so trusting it would let a caller point the links inside genuine account emails at a host they own. A proxy that rewrites `Host` to the public hostname, as the nginx example below does, works as expected because the server reads `Host`. A load balancer that only sets `X-Forwarded-Host` and leaves `Host` at the upstream address is no longer believed. Set `AppOptions:PublicBaseUrl` so the server knows its public origin for account-email links, and pin `AllowedHosts` if you want a forged `Host` rejected. See [Configuration](/docs/configuration).
 
 `X-Real-IP` is not one of the headers the server reads. The nginx example below sends it because that is the common convention, and ControlR ignores it.
 
@@ -96,8 +96,6 @@ This makes the server fetch Cloudflare's published IP ranges over HTTPS during s
 
 The option depends on that outbound request. Both range lists are fetched with a status check, so if `www.cloudflare.com` cannot be reached from the server, startup fails. Do not enable this on a deployment that cannot make that request.
 
-Known issue: when parsing the fetched ranges, the server reuses the `ips-v4` response body for the `ips-v6` list, so Cloudflare IPv6 addresses are never added. The IPv4 ranges end up in the list twice, which is harmless. If Cloudflare fronts your server over IPv6, also add the ranges from `https://www.cloudflare.com/ips-v6` to `KnownNetworks` yourself.
-
 ## Network Trust
 
 If your service is guaranteed to only receive traffic from a trusted reverse proxy (e.g., behind a firewall), you can trust all forwarded headers by setting:
@@ -106,7 +104,7 @@ If your service is guaranteed to only receive traffic from a trusted reverse pro
 ControlR_AppOptions__EnableNetworkTrust: true
 ```
 
-This turns on every forwarded header and clears the trust list entirely. The server then believes `X-Forwarded-For` from whichever address it can actually be reached on, and `KnownProxies`, `KnownNetworks`, and `DockerGatewayIp` are ignored.
+This clears the trust list entirely and removes the chain-depth limit. The server still reads only `X-Forwarded-For` and `X-Forwarded-Proto`, but it now believes them from whichever address it can actually be reached on, and `KnownProxies`, `KnownNetworks`, and `DockerGatewayIp` are ignored. `X-Forwarded-Host` and `X-Forwarded-Prefix` are never read, in this mode or any other.
 
 **Warning:** Only enable this if untrusted clients cannot connect directly to your service.
 
@@ -135,7 +133,7 @@ Nothing rejects the connection. Agents and viewers authenticate with tokens, not
 
 - **Device public IPs**: the address recorded for a connected device comes from the TCP connection. When forwarded headers are ignored, every device looks like it connects from your proxy's address.
 - **Anonymous-auth rate limiting**: `/api/auth/interactive-login`, `/api/auth/complete-password-reset`, and `/api/auth/change-password-with-credentials` are limited to 20 requests per minute, partitioned by client address and endpoint. Behind an untrusted proxy all of your users land in the proxy's buckets, so ordinary sign-ins start failing with HTTP 429.
-- **Email links**: links in account emails are built from `AppOptions:PublicBaseUrl`, not from request headers. Without it they fall back to the request origin only when `AllowedHosts` pins it, and the scheme of such a fallback link still comes from `X-Forwarded-Proto`. With neither setting configured, a password-reset email carries the reset code with no link and confirmation emails are not sent. See [Configuration](/docs/configuration).
+- **Email links**: links in account emails are built from `AppOptions:PublicBaseUrl`, never from request headers. There is no request-origin fallback, so without a usable `PublicBaseUrl` no account-email link is produced and a password-reset request fails outright. Pinning `AllowedHosts` does not change this. See [Configuration](/docs/configuration).
 - **Audit trails**: authorization change logs, installer-key usage records, and streaming-session log entries record the connecting address. They show the proxy's address instead of the real client.
 - **HTTPS redirects**: in production the server uses HTTPS redirection and HSTS, and it takes the incoming scheme from `X-Forwarded-Proto`. Ignoring that header leaves the app believing it is serving plain HTTP, and redirect behavior breaks in whichever direction your proxy is wired.
 

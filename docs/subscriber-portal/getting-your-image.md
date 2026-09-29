@@ -22,7 +22,9 @@ A ZIP build produces no image and no pull command. The builds panel hands you a 
 
 On a successful build the delivery card reads **ZIP delivery**. It names the version and the runtime, and shows a **Download server** button. Select it and your browser downloads a server archive. The download link is created fresh when you ask for it and is short-lived. The card states that each download link is valid for a few minutes. If a link you copied earlier stops working, come back and select **Download server** again.
 
-Every successful ZIP build in **Recent build history** carries its own **Download server** button, so you can retrieve an earlier build, not just the latest. Failed and cancelled rows carry no button.
+The **Download server** button needs the slot's **Credentials** permission, titled "View registry credentials" in the portal's own warning text. A member who holds Read, Write, or Execute but not **Credentials** does not see the button on the card or in the history, and must ask an account owner for the download or for that permission.
+
+Every successful ZIP build in **Recent build history** carries its own **Download server** button, so you can retrieve an earlier build, not just the latest. Each one is gated on the same **Credentials** permission. Failed and cancelled rows carry no button.
 
 While a ZIP build is still running, the card says a downloadable server archive becomes available once the build succeeds. There is nothing to download until it does.
 

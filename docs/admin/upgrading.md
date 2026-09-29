@@ -20,7 +20,7 @@ The image tag and the GitHub release tag are different strings.
 
 The image version comes from `wwwroot/downloads/Version.txt` inside the build, which holds a plain numeric version. `.github/workflows/publish-docker.yml` pushes that value as the image tag, while the release workflow prefixes it with `v`. Copying a release tag straight into the `image:` key produces `manifest unknown`.
 
-Docker Hub also carries the channel tags `latest`, `preview`, and `dev`. Pin a version instead. The release workflow passes `docker_tag: latest` unconditionally, so `latest` can move to a build whose GitHub release is marked pre-release.
+Docker Hub also carries the channel tags `latest`, `preview`, and `dev`. Pin a version anyway. The release workflow does not pass `docker_tag`; `publish-docker.yml` derives the tag from the build's metadata. A pre-release build publishes only to `dev`, so `latest` cannot move onto a build whose GitHub release is marked pre-release.
 
 ### The database
 

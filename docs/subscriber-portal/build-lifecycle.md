@@ -77,7 +77,7 @@ Because the configuration link is one-time, your configuration cannot be downloa
 
 The **Recent build history** list shows this slot's builds newest first, 20 per page. A row shows the requested time in its title, a status chip, the source ref, the duration, and the requested and completed timestamps, plus a failure summary if there was one. Rows are plain list items. They are not clickable, and they never show an image reference or a pull command. Image delivery for the latest build belongs to the delivery card above the list.
 
-One exception is clickable. A row for a ZIP build that reached `succeeded` carries its own **Download server** button, so you can retrieve any successful build in the window, not just the latest. Failed and cancelled rows carry no button, and a **Docker image** build's rows never do, including older Docker rows left in a ZIP slot's history after a format change.
+One exception is clickable. A row for a ZIP build that reached `succeeded` carries its own **Download server** button, so you can retrieve any successful build in the window, not just the latest. The button needs the slot's **Credentials** permission, so a member without it does not see it. Failed and cancelled rows carry no button, and a **Docker image** build's rows never do, including older Docker rows left in a ZIP slot's history after a format change.
 
 Retention has teeth. A background job runs every 6 hours and deletes any build that finished (`succeeded`, `failed`, or `canceled`) more than 30 days ago. Builds that never reached a final state are kept until they do. So your build history is a rolling 30-day window, not an archive. If you need a permanent record of what shipped when, keep it yourself.
 

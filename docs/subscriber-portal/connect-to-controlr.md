@@ -12,7 +12,7 @@ A successful build produces a ControlR server. It carries your brand name, color
 1. Configure a slot with your branding and settings. See [Manage A Build Slot](/docs/subscriber-portal/manage-a-build-slot).
 2. Trigger a build and wait for it to succeed. See [Build Lifecycle](/docs/subscriber-portal/build-lifecycle) for what each status means.
 3. Get the built server off the builds panel. A **Docker image** slot shows a pull command in the **Image delivery** block. A **ZIP download** slot shows a **Download server** button under a **ZIP delivery** heading. Either way, see [Getting Your Image](/docs/subscriber-portal/getting-your-image).
-4. Run that server as your ControlR server. The built server is the server side of ControlR. Your agents connect to it as they would to any ControlR server, using the address your server is actually reached at. That address is deployment-time server configuration. The **ControlR server URL** field on the slot is stored metadata and is not baked into the build. See [Slot Configuration Reference](/docs/subscriber-portal/slot-configuration#controlr-server-url).
+4. Run that server as your ControlR server. The built server is the server side of ControlR. Your agents connect to it as they would to any ControlR server, using the address your server is actually reached at. That address is deployment-time server configuration. The **ControlR server URL** field on the slot is shipped to the builder in the customization payload, but the portal does not bake it into the image and whether a build uses it is up to the pipeline. See [Slot Configuration Reference](/docs/subscriber-portal/slot-configuration#controlr-server-url).
 
 ## Where To Go For Server Setup
 

@@ -79,10 +79,10 @@ Every device-access page also needs `device.read`. Opening this page and every b
 | Code | Grants |
 |------|--------|
 | `device.file-system.read` | Opens the page. Folder tree, address-bar navigation, directory contents, and path validation. |
-| `device.file-system.write` | **New Folder**. Also gates the uploads this page sends over the SignalR hub. |
+| `device.file-system.write` | **New Folder**. Nothing else on this page needs it. |
 | `device.file-system.delete` | **Delete**. |
 | `device.file-system.transfer-download` | **Download**, single files and archives alike. |
-| `device.file-system.transfer-upload` | Uploads through the HTTP API at `POST /api/v1/device-file-system/upload/{deviceId}`. This page does not use that route. |
+| `device.file-system.transfer-upload` | All uploads. This covers both the uploads the page sends over the SignalR hub and the HTTP API at `POST /api/v1/device-file-system/upload/{deviceId}`. |
 
 A user with only the read code can open the page and browse. The page does not hide or disable the other buttons for that user. A blocked **New Folder** or **Delete** comes back as an error snackbar. A blocked upload is refused with `Unauthorized`. A blocked **Download** still reports that it started, because the page reports success before the server answers.
 

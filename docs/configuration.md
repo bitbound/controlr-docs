@@ -68,12 +68,12 @@ The Default column shows what an operator actually gets. Most keys are set expli
 | `ControlR_AppOptions__DisableEmailSending` | bool | `false` | Disables ALL email sending (account confirmation, password reset, etc.) |
 | `ControlR_AppOptions__DisableFirstUserSelfRegistration` | bool | `false` | Disables the one-time first-user self-registration bootstrap. Set `true` with `EnablePublicRegistration: false` for service-account-only deployments. Independent of `EnablePublicRegistration` |
 | `ControlR_AppOptions__DockerGatewayIp` | string? | None | A single IP address that is added to `KnownProxies` at startup. The shipped `appsettings.json` is an empty string, which adds nothing, and there is no gateway default in source. A value that does not parse as an IP address is logged and skipped. The repo `docker-compose.yml` sets `::ffff:172.29.0.1` to match its fixed `172.29.0.0/16` network, so a compose deployment gets that value |
-| `ControlR_AppOptions__EnableCloudflareProxySupport` | bool | `false` | Fetches Cloudflare's `ips-v4` and `ips-v6` lists at startup and adds the ranges to `KnownNetworks`. Only the `ips-v4` ranges actually land, because the IPv6 branch reads the IPv4 response body, so a visitor arriving over Cloudflare IPv6 is seen as the proxy address. See [Reverse Proxy](/docs/admin/reverse-proxy) for the workaround. The fetch runs during startup, and a Cloudflare endpoint that is unreachable or returns an error status aborts startup |
+| `ControlR_AppOptions__EnableCloudflareProxySupport` | bool | `false` | Fetches Cloudflare's `ips-v4` and `ips-v6` lists at startup and adds both ranges to `KnownNetworks`. Each list is fetched on its own, and a Cloudflare endpoint that is unreachable or returns an error status aborts startup. See [Reverse Proxy](/docs/admin/reverse-proxy) |
 | `ControlR_AppOptions__EnableCors` | bool | `false` | Enables CORS middleware |
 | `ControlR_AppOptions__EnableDatabaseDetailedErrors` | bool | `false` | Enables EF Core detailed error messages (debug only, may leak sensitive info) |
 | `ControlR_AppOptions__EnableDockerSecrets` | bool | `false` | Reads secrets from `/run/secrets` via `AddKeyPerFile`. Windows not supported |
 | `ControlR_AppOptions__EnableInteractiveBearerLogin` | bool | `false` | Enables ASP.NET Core Identity interactive bearer-token login flow |
-| `ControlR_AppOptions__EnableNetworkTrust` | bool | `false` | Bypasses `KnownProxies`/`KnownNetworks` checks and trusts all forwarded headers |
+| `ControlR_AppOptions__EnableNetworkTrust` | bool | `false` | Trusts the forwarded `X-Forwarded-For` and `X-Forwarded-Proto` headers from any address, clearing the `KnownProxies`/`KnownNetworks` allowlist. Host and path-prefix headers are still never read |
 | `ControlR_AppOptions__EnablePublicRegistration` | bool | `false` | Allows public self-registration without an invitation. Independent of `DisableFirstUserSelfRegistration` |
 | `ControlR_AppOptions__EnableScalarUi` | bool | `false` | Serves the Scalar API reference UI and OpenAPI document |
 | `ControlR_AppOptions__EnableSignalrDetailedErrors` | bool | `false` | Sends detailed SignalR error messages to clients |
@@ -109,14 +109,14 @@ The Default column shows what an operator actually gets. Most keys are set expli
 
 ### Email links in account emails
 
-Every link the server puts into an email (password reset, email confirmation, email change) is built from `PublicBaseUrl`, not from the arriving request. A request can carry a forged `Host` or `X-Forwarded-Host`, and a link built from that would deliver a genuine email carrying a valid token to a host the caller picked.
+Every link the server puts into an email (password reset, email confirmation, email change) is built from `PublicBaseUrl`, never from the arriving request. A request can carry a forged `Host` or `X-Forwarded-Host`, and a link built from that would deliver a genuine email carrying a valid token to a host the caller picked.
 
-When `PublicBaseUrl` is unset, the server uses the request origin only when `AllowedHosts` pins it to hostnames the operator chose. Otherwise no link is built, and that is the safe default:
+There is no request-origin fallback. When `PublicBaseUrl` is unset or unusable, no account-email link is built, and the actions that depend on such a link do not half-succeed:
 
-- A password-reset email carries the reset code with no clickable link. The code works on its own, so the flow stays usable.
+- A password-reset request fails instead of sending an email, because the server has no trustworthy origin to put in front of the reset token.
 - Confirmation emails are not sent, and the server logs an error where it declined one.
 
-The server prints a warning at startup when neither `PublicBaseUrl` nor a pinned `AllowedHosts` is configured. Set `PublicBaseUrl` to get clickable links. A configured value that is not an absolute `http` or `https` URL is rejected, logged, and treated as unset.
+The server prints a warning at startup when `PublicBaseUrl` is unset or unusable. Set `PublicBaseUrl` to get clickable links and working password resets. A configured value that is not an absolute `http` or `https` URL is rejected, logged, and treated as unset. Pinning `AllowedHosts` does not enable these links; only `PublicBaseUrl` does.
 
 ### File transfer size
 
@@ -135,9 +135,9 @@ A limit of exactly `0` therefore lets the server accept a transfer while the bro
 |----------|------|---------|-------------|
 | `AllowedHosts` | string[] | `*` | Semicolon-separated hostnames the server answers to, without port numbers. A request whose `Host` is not in the list is rejected with `400 Bad Request` before it reaches the app. `*` accepts any host. Prefix form: `ControlR_AllowedHosts` |
 
-Pinning the list does two things. A request carrying a forged `Host` is rejected instead of served. And when `AppOptions:PublicBaseUrl` is unset, a pinned list is what makes the request host safe to build email links from, as described in Email links in account emails above.
+Pinning the list rejects a request carrying a forged `Host` with `400 Bad Request` instead of serving it. It does not affect account-email links, which are built only from `PublicBaseUrl` (see Email links in account emails above).
 
-The shipped `appsettings.json` sets `AllowedHosts` to `*`, so a default deployment accepts any host and its account emails go out without links until `PublicBaseUrl` is set or this list is pinned.
+The shipped `appsettings.json` sets `AllowedHosts` to `*`, so a default deployment accepts any host, and until `PublicBaseUrl` is set a password-reset request fails and the link-bearing account emails are refused rather than sent without a link.
 
 ## Bootstrap Options
 
@@ -342,12 +342,13 @@ services:
 
       # The absolute URL this server is reachable at by its users. Every link
       # in an account email (password reset, email confirmation, email change)
-      # is built from it. Unset, those emails go out without a clickable link.
+      # is built from it, and only from it. Unset, no account-email link is
+      # produced and a password-reset request fails outright.
       ControlR_AppOptions__PublicBaseUrl: https://your-server.example.com
 
       # The hostnames this server answers to. A request carrying any other
-      # Host gets a 400. Pinning it also lets email links fall back to the
-      # request origin when PublicBaseUrl is unset. "*" accepts any host.
+      # Host gets a 400. Pinning it does not affect account-email links, which
+      # are built only from PublicBaseUrl above. "*" accepts any host.
       ControlR_AllowedHosts: your-server.example.com
 
       # DEVELOPMENT AND LOAD TESTING ONLY. Never enable on a server that users

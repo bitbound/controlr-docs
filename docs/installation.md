@@ -11,9 +11,11 @@ Prerequisites are listed in the [Getting Started guide](/docs/getting-started).
 
 ### Using Environment Variables
 
-The Compose file requires four values. Each is declared with `${VAR:?error}`, so Compose stops before creating any container when one of them is missing. `ControlR_AppOptions__PublicBaseUrl` must be the HTTPS URL users will use to reach ControlR. Do not use the local port, the container name, or the Aspire dashboard URL.
+The Compose file requires three values, each declared with `${VAR:?error}` so Compose stops before creating any container when one is missing: `ControlR_POSTGRES_USER`, `ControlR_POSTGRES_PASSWORD`, and `ControlR_ASPIRE_BROWSER_TOKEN`.
 
-Put the values in a file named `.env` in the same directory as the Compose file. Do not put them in front of `sudo`. The shipped sudoers policy rebuilds a minimal environment (`env_reset` is on by default), so a variable you set on the `sudo` command line never reaches Compose and the run dies with an interpolation error. Compose reads `.env` itself, which survives the change of user.
+The public base URL is not one of those three. It is a separate literal in the Compose file, the empty `x-public-base-url` anchor, and the `.env` file does not fill it. To set it, edit that anchor in the downloaded file. It must be the HTTPS URL users will use to reach ControlR, not the local port, the container name, or the Aspire dashboard URL. While it stays empty, the actions that need an outbound email link refuse.
+
+Put the three required values in a file named `.env` in the same directory as the Compose file. Do not put them in front of `sudo`. `sudo` rebuilds a minimal environment (`env_reset` is sudo's own default), so a variable you set on the `sudo` command line never reaches Compose and the run dies with an interpolation error. Compose reads `.env` itself, which survives the change of user.
 
 ```bash
 wget https://raw.githubusercontent.com/bitbound/ControlR/main/docker-compose/docker-compose.yml
@@ -23,14 +25,15 @@ ControlR_POSTGRES_USER=controlr_admin
 # Replace both values below with unique random strings.
 ControlR_POSTGRES_PASSWORD=replace-with-a-strong-random-password
 ControlR_ASPIRE_BROWSER_TOKEN=replace-with-a-strong-random-token
-ControlR_AppOptions__PublicBaseUrl=https://controlr.example.com
 EOF
 chmod 600 .env
 
 sudo docker compose up -d
 ```
 
-The two `replace-with-...` values are examples, not values you can use as written. Generate replacements with `openssl rand -hex 32`, then put one generated value on each line. Replace `https://controlr.example.com` with the HTTPS address where users will reach your server.
+The two `replace-with-...` values are examples, not values you can use as written. Generate replacements with `openssl rand -hex 32`, then put one generated value on each line.
+
+Before the first `up`, open the Compose file and set the public URL on the `x-public-base-url` anchor, replacing its empty string, for example `x-public-base-url: &publicBaseUrl "https://controlr.example.com"`.
 
 Drop `sudo` if your user is already in the `docker` group.
 
@@ -57,7 +60,7 @@ wget -O docker-compose-secrets.yml \
   https://raw.githubusercontent.com/bitbound/ControlR/main/docker-compose/docker-compose-secrets.yml
 ```
 
-That file sets `ControlR_AppOptions__EnableDockerSecrets` to `true`. The app then loads every file in `/run/secrets` as configuration, using the file name as the key. Keys are matched after the `ControlR_` prefix is stripped from environment variables, so the secret file `POSTGRES_USER` fills the same setting as `ControlR_POSTGRES_USER`, and `Bootstrap__AdminPassword` fills the same setting as `ControlR_Bootstrap__AdminPassword`. The directory is not optional. With the flag on and `/run/secrets` absent, the app throws during configuration and never starts. The public URL is not a secret, so set `ControlR_AppOptions__PublicBaseUrl` in `.env` alongside the Compose file.
+That file sets `ControlR_AppOptions__EnableDockerSecrets` to `true`. The app then loads every file in `/run/secrets` as configuration, using the file name as the key. Keys are matched after the `ControlR_` prefix is stripped from environment variables, so the secret file `POSTGRES_USER` fills the same setting as `ControlR_POSTGRES_USER`, and `Bootstrap__AdminPassword` fills the same setting as `ControlR_Bootstrap__AdminPassword`. The directory is not optional. With the flag on and `/run/secrets` absent, the app throws during configuration and never starts. The public URL is not a secret, and it is not a `${VAR:?error}` value either. Set it the same way as the variables file: edit the `x-public-base-url` anchor in the secrets Compose file.
 
 The shipped file has a startup bug you need to work around before the first run. It mounts `Bootstrap__AdminPassword`, `Bootstrap__ServerServiceAccountTokenId`, and `Bootstrap__ServerServiceAccountTokenSecret` into the container, while the Compose file leaves `ControlR_Bootstrap__AdminEmail` and `ControlR_Bootstrap__ServerServiceAccountName` commented out. Both bootstrap routines treat a half-configured pair as an error and throw, so the container crashes at startup and restarts in a loop. Remove these three names from the service's `secrets:` list and from the top-level `secrets:` map at the bottom of the file:
 
@@ -94,7 +97,7 @@ sudo docker compose -f docker-compose-secrets.yml up -d
 
 The Postgres names are read twice, once by the `postgres` service through `POSTGRES_USER_FILE` and once by the app through the mounted secret, so leaving the three of them at the same placeholder still lines up. The official Postgres image supports `_FILE` for `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, and `POSTGRES_INITDB_ARGS`, which is what that service relies on. Give those three real values before exposing the server. `data-protection-cert-base64` is only decoded when `ControlR_KeyProtectionOptions__EncryptKeys` is `true`, which the shipped file leaves `false`, so a placeholder there is inert.
 
-The Docker Secrets file still needs `ControlR_AppOptions__PublicBaseUrl` in `.env`. Its other values come from secret files, and none of those values use `${VAR:?error}`.
+The Docker Secrets file has no `${VAR:?error}` values, so nothing has to be in `.env`. Its secret values come from files, and you set the public URL on the `x-public-base-url` anchor in the file.
 
 ## First Sign-In
 

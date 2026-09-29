@@ -13,10 +13,10 @@ Opening the page needs `tenant.permissions.read`. Creating, editing, or deleting
 
 A permission assignment is a single row that records:
 
-- **Principal** -- who the grant applies to (a user, user group, service account, or personal access token). Logon tokens also carry grant rows, but those are created with the token rather than managed on this page.
-- **Permission** -- what capability is granted (e.g. `device.read`, `device.remote-control.connect`)
-- **Scope** -- where it applies (a device, device group, customer, user group, the whole tenant, or the whole server)
-- **Effect** -- `Allow` or `Deny` (an explicit deny always overrides allow)
+- **Principal**: who the grant applies to (a user, user group, service account, or personal access token). Logon tokens also carry grant rows, but those are created with the token rather than managed on this page.
+- **Permission**: what capability is granted (e.g. `device.read`, `device.remote-control.connect`)
+- **Scope**: where it applies (a device, device group, customer, user group, the whole tenant, or the whole server)
+- **Effect**: `Allow` or `Deny` (an explicit deny always overrides allow)
 
 A user's effective permissions are the union of their direct assignments plus those inherited through every user group they belong to.
 
@@ -34,19 +34,19 @@ The Permissions page is principal-centric. Select a principal, then view and man
 
 In the assignment dialog:
 
-- **Permission** -- pick from the permission catalog (shown as display name with the raw name, e.g. `device.read`). Entries that exist only at `Server` scope are hidden from callers who cannot manage server permissions.
-- **Effect** -- `Allow` or `Deny`.
-- **Scope Kind** -- the granularity of the grant, offered only at the scopes the selected permission allows: `Device`, `DeviceGroup`, `CustomerTenant` (shown as "Customer"), `UserGroup`, `Tenant`, or `Server`. The `Server` entry needs `server.permissions.write`. Even with it, `Server` is offered only for a `Deny` row, for a permission that has no `Tenant` scope, or when the principal is a server service account.
-- **Scope** -- the specific target. The field appears on the `Device`, `DeviceGroup`, `Customer`, and `UserGroup` scopes, and the dialog refuses to submit until one is chosen. A `Tenant` row is stored against the tenant you are working in. A `Server` row carries no target.
-- **Notes (optional)** -- free text for other administrators. The grid shows it behind an info icon.
-- **Enabled** -- turns the row off without deleting it. A disabled row grants nothing.
+- **Permission**: pick from the permission catalog (shown as display name with the raw name, e.g. `device.read`). Entries that exist only at `Server` scope are hidden from callers who cannot manage server permissions.
+- **Effect**: `Allow` or `Deny`.
+- **Scope Kind**: the granularity of the grant, offered only at the scopes the selected permission allows: `Device`, `DeviceGroup`, `CustomerTenant` (shown as "Customer"), `UserGroup`, `Tenant`, or `Server`. The `Server` entry needs `server.permissions.write`. Even with it, `Server` is offered only for a `Deny` row, for a permission that has no `Tenant` scope, or when the principal is a server service account.
+- **Scope**: the specific target. The field appears on the `Device`, `DeviceGroup`, `Customer`, and `UserGroup` scopes, and the dialog refuses to submit until one is chosen. A `Tenant` row is stored against the tenant you are working in. A `Server` row carries no target.
+- **Notes (optional)**: free text for other administrators. The grid shows it behind an info icon.
+- **Enabled**: turns the row off without deleting it. A disabled row grants nothing.
 
 ### Applying Presets
 
-Because raw permission names are hard to reason about, ControlR provides named **presets** -- curated bundles of related permissions. Select one or more presets, choose a mode, and apply them to the selected principal:
+Because raw permission names are hard to reason about, ControlR provides named **presets**: curated bundles of related permissions. Select one or more presets, choose a mode, and apply them to the selected principal:
 
-- **Merge** -- writes the preset's permissions as new rows and skips any the principal already holds at that scope.
-- **Replace** -- deletes the principal's existing rows for the scope kinds the preset touches, then writes the preset's rows. A confirmation dialog appears first.
+- **Merge**: writes the preset's permissions as new rows and skips any the principal already holds at that scope.
+- **Replace**: deletes the principal's existing rows for the scope kinds the preset touches, then writes the preset's rows. A confirmation dialog appears first.
 
 The current presets are:
 
@@ -70,11 +70,11 @@ Permission management is consistent across principal types. The **Users**, **Use
 
 ## Related Pages
 
-- **Effective Permissions** (`/effective-permissions`) -- an evaluation tool. Pick a principal (User, User Group, or Service Account), a permission, a scope kind (Server, Tenant, Device, or Device Group), and a scope, then evaluate whether access is allowed or denied. Denials include the reason.
-- **User Groups** (`/user-groups`) -- group users so a single assignment applies to all members.
-- **Device Groups** (`/device-groups`) -- group devices so a single assignment applies to all members.
-- **Customers** (`/customers`) -- organize devices by customer for customer-scoped grants. To create a customer or assign devices to one, see [Customers](/docs/user-guide/devices#customers).
-- **Tags** (`/tags`) -- device tagging for organization and filtering (no longer used for access control).
+- **Effective Permissions** (`/effective-permissions`): an evaluation tool. Pick a principal (User, User Group, or Service Account), a permission, a scope kind (Server, Tenant, Device, or Device Group), and a scope, then evaluate whether access is allowed or denied. Denials include the reason.
+- **User Groups** (`/user-groups`): group users so a single assignment applies to all members.
+- **Device Groups** (`/device-groups`): group devices so a single assignment applies to all members.
+- **Customers** (`/customers`): organize devices by customer for customer-scoped grants. To create a customer or assign devices to one, see [Customers](/docs/user-guide/devices#customers).
+- **Tags** (`/tags`): device tagging for organization and filtering (no longer used for access control).
 
 ## Next
 

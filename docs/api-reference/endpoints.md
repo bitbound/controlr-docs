@@ -69,7 +69,7 @@ Deprecated Internal routes have no such filter. They derive the tenant from the 
 
 All V1 routes live under the literal `/api/v1/...` path. The controllers are declared as API version `1.0`, the server assumes that version when a request does not state one, and the path segment is what selects the group. There is no separate version header to send.
 
-31 route groups, 130 routes.
+31 route groups, 131 routes.
 
 | Group | Routes | Group | Routes |
 |---|---|---|---|
@@ -87,7 +87,7 @@ All V1 routes live under the literal `/api/v1/...` path. The controllers are dec
 | [Invites](#invites) | 3 | [User server settings](#user-server-settings) | 2 |
 | [Logon tokens](#logon-tokens) | 2 | [User storage](#user-storage) | 3 |
 | [Permission assignments](#permission-assignments) | 10 | [Users](#users) | 8 |
-| [Personal access tokens](#personal-access-tokens) | 4 | [Version](#version) | 3 |
+| [Personal access tokens](#personal-access-tokens) | 5 | [Version](#version) | 3 |
 | [Public server settings](#public-server-settings) | 1 | | |
 
 ### Authorization change logs
@@ -290,8 +290,9 @@ The batch routes are `batch` and `batch-delete`. There is no `create-many` or `d
 | GET | `/api/v1/personal-access-tokens` | `tenantId` (query) | `personal-access-token.self.read` |
 | PUT | `/api/v1/personal-access-tokens/{id}` | `id` (route), `tenantId` (query), body | `personal-access-token.self.write` |
 | DELETE | `/api/v1/personal-access-tokens/{id}` | `id` (route), `tenantId` (query) | `personal-access-token.self.write` |
+| POST | `/api/v1/personal-access-tokens/{id}/revoke` | `id` (route), `tenantId` (query) | `personal-access-token.self.write` |
 
-These are self-service routes for the calling user's own tokens. Managing another user's tokens is under [Users](#users). `POST` answers `201` and `DELETE` answers `204`.
+These are self-service routes for the calling user's own tokens. Managing another user's tokens is under [Users](#users). `POST` answers `201` and `DELETE` answers `204`. `POST .../revoke` revokes a token while keeping its record for audit, and answers `200` with the updated token.
 
 ### Public server settings
 
@@ -737,13 +738,12 @@ Two hubs are mapped: `/hubs/agent` and `/hubs/viewer`.
 
 ### AgentHub (`/hubs/agent`)
 
-The hub class carries no `[Authorize]`, so the connection is anonymous. Device identity is carried by the update payload rather than by the connection. `UpdateDevice` is rejected once the device has a stored public key, which forces that device onto `UpdateDeviceSigned`. The signed route verifies the signature against the stored key, or against the key the payload presents when the device has none yet, and rejects a stale timestamp. A payload naming a device the server has never seen is rejected as an unknown device unless `AllowAgentsToSelfBootstrap` is enabled, and self-bootstrap only works on a single-tenant server.
+The hub class carries no `[Authorize]`, so the connection is anonymous. Device identity is carried by the update payload rather than by the connection. `UpdateDeviceSigned` is the only way a device reports state; the unsigned `UpdateDevice` method was removed from the hub contract. The signed route verifies the signature against the stored key, or against the key the payload presents when the device has none yet, and rejects a stale timestamp. A payload naming a device the server has never seen is rejected as an unknown device unless `AllowAgentsToSelfBootstrap` is enabled, and self-bootstrap only works on a single-tenant server.
 
 **Agent to server.** These are the methods the agent invokes. They are the `IAgentHub` surface, and it is the whole invokable surface of this hub.
 
 | Method | Parameters | Returns |
 |---|---|---|
-| `UpdateDevice` | `DeviceUpdateRequestDto` | `HubResult<DeviceResponseDto>` |
 | `UpdateDeviceSigned` | `SignedDto<DeviceUpdateRequestDto>` | `HubResult<DeviceResponseDto>` |
 | `SendChatResponse` | `ChatResponseHubDto` | `bool` |
 | `SendTerminalOutputToViewer` | `viewerConnectionId`, `TerminalOutputDto` | `void` |
@@ -753,7 +753,7 @@ The hub class carries no `[Authorize]`, so the connection is anonymous. Device i
 | `SendFileContentStream` | `streamId`, `ChannelReader<byte[]>` | `HubResult` |
 | `SendSubdirectoriesStream` | `streamId`, `ChannelReader<FileSystemEntryDto[]>` | `void` |
 
-`UpdateDevice` and `UpdateDeviceSigned` are how a device reports state. The stream methods push chunked file, directory, and preview data toward the viewer that asked for it, keyed by the `streamId` the server issued.
+`UpdateDeviceSigned` is how a device reports state. The stream methods push chunked file, directory, and preview data toward the viewer that asked for it, keyed by the `streamId` the server issued.
 
 **Server to agent.** These are `IAgentHubClient` methods. The server invokes them on the agent, so an agent implements them, and a viewer never calls them directly. A viewer's request reaches the agent through the `ViewerHub` method that relays it.
 
@@ -863,7 +863,7 @@ There is no `SendDtoToUserGroups` method on this hub, in either direction. Subsc
 
 | Surface | Routes | Notes |
 |---|---|---|
-| V1 (`/api/v1/*`) | 130 | 31 groups |
+| V1 (`/api/v1/*`) | 131 | 31 groups |
 | Internal (`/api/*`) | 79 | 22 controllers, 71 marked deprecated |
 | Agent (`/api/agent/*`, plus two legacy aliases) | 4 | 2 controllers, each mounted twice |
 | Identity API under `/api/auth` | 10 | Framework-provided, mapped only when `EnableInteractiveBearerLogin` is set |

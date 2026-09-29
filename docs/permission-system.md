@@ -57,8 +57,8 @@ Two different breadth orderings exist in the code and they are not identical.
 
 Each assignment has a `PermissionEffect` of `Allow` or `Deny`.
 
-- **Allow** -- The principal may perform the permission at the given scope.
-- **Deny** -- Blocks access even when a broader allow exists.
+- **Allow**: The principal may perform the permission at the given scope.
+- **Deny**: Blocks access even when a broader allow exists.
 
 Any matching deny defeats any matching allow, regardless of source or scope breadth. This enables exclusion patterns: grant tenant-wide access, then deny specific devices.
 
@@ -100,7 +100,7 @@ Presets are applied at three points, and each writes one `PermissionAssignment` 
 
 The API can additionally apply any preset combination to a new user (`UsersController.Create` accepts preset names) or to an existing principal (`IPermissionAssignmentManager.ApplyPresets`, with an optional replace mode). User creation gates preset use by authority: `Server Administrator` requires `server.permissions.write`, presets that seed tenant-scope grants require `server.permissions.write` or `tenant.permissions.write`, and `Tenant Administrator` additionally requires `tenant.permissions.deny` unless the caller holds server writes.
 
-`Self Service` is not part of the legacy role backfill. Users that existed before Phase 2 do not receive it from a migration. It is seeded only for users created after the upgrade.
+The Phase 2 migration also backfills the `Self Service` baseline. Its SQL grants `personal-access-token.self.read` and `personal-access-token.self.write` at Tenant scope to every non-external user, so users that existed before Phase 2 receive it too. User-creation seeding then covers users created after the upgrade.
 
 ### The PermissionAssignment Entity
 
@@ -241,8 +241,8 @@ Redeeming a token consumes it and signs the redeemer in as the token's creating 
 
 Policies come from two static registries, registered in `AuthorizationRegistrationExtensions`:
 
-- **`PermissionPolicies.Definitions`** -- maps each `PolicyNames` entry to a permission name plus the resource scope kind the policy's canonical resource lives at. Most entries are Tenant or Server. `RequireDeviceGroupAssignDevices` sits at DeviceGroup and `RequireUserGroupAssignUsers` at UserGroup. Registered with `.RequirePermission(permission, scopeKind)`.
-- **`DeviceResourcePolicies`** -- one named policy per device permission (`DeviceRead`, `DeviceRemoteControlConnect`, ...), each registered at Device scope for resource-based checks.
+- **`PermissionPolicies.Definitions`**: maps each `PolicyNames` entry to a permission name plus the resource scope kind the policy's canonical resource lives at. Most entries are Tenant or Server. `RequireDeviceGroupAssignDevices` sits at DeviceGroup and `RequireUserGroupAssignUsers` at UserGroup. Registered with `.RequirePermission(permission, scopeKind)`.
+- **`DeviceResourcePolicies`**: one named policy per device permission (`DeviceRead`, `DeviceRemoteControlConnect`, ...), each registered at Device scope for resource-based checks.
 
 Both attach a `PermissionRequirement` (permission name plus a bare `ResourceDescriptor`) handled by one handler, `PermissionRequirementHandler : AuthorizationHandler<PermissionRequirement, object>`.
 
@@ -347,7 +347,7 @@ A related service, `IDeviceAuthorizationService`, answers per-device questions f
 
 The migration `20260813192551_Permissions_Phase2` performs the transformation:
 
-1. **Backfill**: maps legacy `AspNetUserRoles` memberships to `PermissionAssignment` allow rows with a SQL role-to-permission table. Each row lands at the permission's broadest legal scope, so `server.*` permissions backfill to Server scope (null owning tenant) and everything else to Tenant scope (the user's tenant). The mapping mirrors the preset lists, at 13 rows for Server Administrator (11 Server-scope plus `tenant.permissions.read` and `tenant.authorization-logs.read` at Tenant scope), 30 for Tenant Administrator, 27 for Device Superuser, and 3 each for the two installer presets. The table is a superset of the presets so no upgraded user is under-privileged. It predates `Self Service`, so that baseline comes only from user-creation seeding.
+1. **Backfill**: maps legacy `AspNetUserRoles` memberships to `PermissionAssignment` allow rows with a SQL role-to-permission table. Each row lands at the permission's broadest legal scope, so `server.*` permissions backfill to Server scope (null owning tenant) and everything else to Tenant scope (the user's tenant). The mapping mirrors the preset lists, at 13 rows for Server Administrator (11 Server-scope plus `tenant.permissions.read` and `tenant.authorization-logs.read` at Tenant scope), 30 for Tenant Administrator, 27 for Device Superuser, and 3 each for the two installer presets. The table is a superset of the presets so no upgraded user is under-privileged. The same migration carries a separate `Self Service` backfill that grants the self-service PAT baseline to every non-external user, so that baseline is not limited to user-creation seeding.
 2. **Drop**: removes `AspNetRoleClaims`, `AspNetUserRoles`, and `AspNetRoles`, plus `AppUserTag` (superseded by customer and device scoping).
 3. **Schema additions**: `CustomerId` on `Devices`, plus `CreatedByUserId`, `ExpiresAt`, and `RevokedAt` on `PersonalAccessTokens`.
 4. **Create**: `PermissionAssignments`, `AuthorizationChangeLogs`, `Customers`, `DeviceGroups`, `DeviceGroupMembers`, `UserGroups`, `UserGroupMembers`, and `LogonTokens`, with indexes on the common lookup paths.

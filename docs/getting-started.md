@@ -62,7 +62,7 @@ flowchart LR
 
 Before installing:
 
-- For the Docker Compose deployment: **Docker** and **Docker Compose** on the host running the server. For the native deployment: Linux (AMD64 or ARM64) and PostgreSQL 18. See [Native Installation](/docs/admin/native-installation).
+- For the Docker Compose deployment: **Docker** and **Docker Compose** on the host running the server. For the native deployment: Linux (AMD64; ARM64 only if the specific release carries an ARM64 server archive) and PostgreSQL 18. See [Native Installation](/docs/admin/native-installation).
 - A reachable domain name if you plan to terminate TLS in front of the server (recommended).
 - At least 1 GB of RAM available for the server.
 - An installer key for each device you install, created from the Deploy page or the Installer Keys page after the server is running. The agent installer uses it to register the device.

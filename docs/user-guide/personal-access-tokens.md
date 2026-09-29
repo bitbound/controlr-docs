@@ -14,7 +14,7 @@ Each token is one of two permission modes.
 | **Restricted (scoped)** | `Restricted` | Only what its own permission grants allow, and never more than you can do. A token with no grants does nothing. |
 | **Inherit Owner (full access)** | `InheritOwner` | Everything your account can do, evaluated from your own effective permissions. It carries no grants of its own. |
 
-New tokens default to `Restricted`.
+New tokens default to `Restricted`. A token can carry an optional expiry. See [Expiry](#expiry).
 
 ## How Permissions Are Evaluated
 
@@ -60,6 +60,7 @@ The secret is stored as a hash, so a lost secret means creating a new token.
 | `name` | string | yes | none | 1 to 256 characters. Friendly label only. |
 | `permissionMode` | string enum | no | `Restricted` | `Restricted` or `InheritOwner`. |
 | `scopes` | array of scope objects | no | none | Grants to attach at creation. Not valid with `InheritOwner`, which rejects a non-empty array. |
+| `expiresAt` | date-time | no | none | Optional expiry as an ISO-8601 timestamp. Leave it out (or send null) for a token that never expires. A request that arrives after this time fails authentication. |
 
 Each entry in `scopes` is:
 
@@ -71,7 +72,7 @@ Each entry in `scopes` is:
 
 Creation validates each grant before anything is written. The target has to exist in your tenant, and you have to already hold that permission at that scope yourself. A grant of a tenant-level permission at Server scope is refused for any credential, since server-wide reach belongs to server service accounts. Each failed check answers 400 with the reason.
 
-The web page never sends `scopes`. It creates a token with a name and a mode only. Through the browser, grants are added afterwards in the assignment panel.
+The web page never sends `scopes`. It creates a token with a name, a mode, and an optional expiry only. Through the browser, grants are added afterwards in the assignment panel.
 
 ```bash
 curl -X POST "https://your-server.example.com/api/v1/personal-access-tokens?tenantId=3f2a1c94-7c45-4a1e-9d0b-6f1f2a3b4c5d" \
@@ -92,7 +93,9 @@ The response is 201 Created. Property names are camelCase. `permissionMode` is s
     "createdAt": "2026-09-21T14:05:12.348+00:00",
     "lastUsed": null,
     "permissionCount": 1,
-    "permissionMode": "Restricted"
+    "permissionMode": "Restricted",
+    "expiresAt": null,
+    "revokedAt": null
   },
   "plainTextToken": "1E4C0F6B3D2A5F4E8A1B2C3D4E5F6A7B:Kq7..."
 }
@@ -106,11 +109,15 @@ The response is 201 Created. Property names are camelCase. `permissionMode` is s
 | `personalAccessToken.lastUsed` | Timestamp of the last successful authentication, or `null`. The grid shows `Never` for `null`. |
 | `personalAccessToken.permissionCount` | How many distinct permission names are currently granted to the token. Zero for a token created with no grants, which includes every **Inherit Owner (full access)** token, since grants are not what that mode is checked against. |
 | `personalAccessToken.permissionMode` | `Restricted` or `InheritOwner`. |
+| `personalAccessToken.expiresAt` | The expiry timestamp, or `null` for a token that never expires. The grid's **Expires** column shows `Never` for `null`. |
+| `personalAccessToken.revokedAt` | The moment the token was revoked, or `null` while it is live. The **Status** column shows a **Revoked** chip when this is set. |
 | `plainTextToken` | The complete header value. Returned once, never stored in recoverable form. |
 
 ### Expiry
 
-Tokens do not expire. The create request has no expiry field and the server does not set one, so a token stays valid until you delete it. Only these stop a token: you delete it, its grants stop covering the call, your account is locked out, or too many failed attempts trip the rate limit for a few minutes.
+A token may carry an optional expiry. The create request accepts an `expiresAt` timestamp; leave it out and the token never expires. When an expiry is set, every request that arrives after it fails authentication, and the **Status** column flips to **Expired**. A token created with no expiry stays valid until you delete or revoke it.
+
+Only these stop a token: you delete or revoke it, its expiry passes, its grants stop covering the call, your account is locked out, or too many failed attempts trip the rate limit for a few minutes.
 
 ## Token Format
 
@@ -163,18 +170,19 @@ See the [NuGet Packages](/docs/api-reference/nuget-packages) page for a complete
 
 ## Managing Tokens
 
-The grid lists your tokens with the columns **Name**, **Mode**, **Created**, **Last Used**, **Permissions**, and **Actions**. A refresh button sits in the grid toolbar. Everything except creating a token happens in the **Actions** menu on each row.
+The grid lists your tokens with the columns **Name**, **Status**, **Mode**, **Created**, **Last Used**, **Permissions**, **Expires**, and **Actions**. **Status** shows **Active**, **Expired**, or **Revoked**. A refresh button sits in the grid toolbar. Everything except creating a token happens in the **Actions** menu on each row.
 
 | Action | Endpoint | What happens |
 |--------|----------|--------------|
 | List | Page load, then `GET /api/v1/personal-access-tokens?tenantId=<tenant-id>` | Newest first. |
 | Rename | **Rename** in the row menu | A dialog titled **Rename Personal Access Token** with a **New Name** field, sent as `PUT /api/v1/personal-access-tokens/{id}?tenantId=<tenant-id>`. The secret does not change, so nothing needs updating in your tooling. |
 | Edit Permissions | **Edit Permissions** in the row menu | Opens the assignment panel titled `Permissions: <name>`. See the note below. |
+| Revoke | **Revoke** in the row menu | `POST /api/v1/personal-access-tokens/{id}/revoke?tenantId=<tenant-id>`. Revokes the token immediately. The row stays, now showing a **Revoked** status, so it remains visible for audit. The menu item is hidden once a token is already revoked. |
 | Delete | **Delete** in the row menu | A **Confirm Delete** dialog asks first, then `DELETE /api/v1/personal-access-tokens/{id}?tenantId=<tenant-id>` answers 204. |
 
 The assignment panel is read-only for you unless you also hold `tenant.permissions.write` or `server.permissions.write`. Without one of those, the panel shows the token's grants but hides **New Assignment**, **Delete Selected**, and the presets block. A plain user who needs a scoped token has to ask an admin for the grants, then create the token themselves, since grant assignment and token creation are separate permissions.
 
-Deleting is the only way to revoke a token. It is permanent and immediate. The token row and its grant rows are removed in the same transaction, so the next request using that value fails authentication, and a token id that later reappears starts with no grants. There is no un-revoke.
+Revoke and Delete are different. **Revoke** marks the token revoked at once and keeps its row for audit; the next request using that value fails authentication. **Delete** removes the token row and its grant rows in the same transaction. Neither can be undone.
 
 There is no limit on how many tokens one user can create.
 
