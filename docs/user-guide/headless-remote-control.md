@@ -69,7 +69,7 @@ After installing a virtual display adapter:
 2. **Connect a remote control session:** Open the ControlR web UI, navigate to the device, and start a Remote Control session
 3. **Verify screen capture:** The remote stream should show the virtual desktop at the expected resolution
 
-If the screen still appears blank, try adjusting the resolution to a standard value (e.g., 1920×1080) and ensure the virtual monitor is set as an **extended** display (not duplicated).
+If the screen still appears blank, try adjusting the resolution to a standard value (e.g., 1920×1080) and make sure the virtual monitor is set as an **extended** display (not duplicated).
 
 ## Multiple Monitors
 

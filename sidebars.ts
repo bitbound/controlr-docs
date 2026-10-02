@@ -63,6 +63,7 @@ const sidebars: SidebarsConfig = {
         'subscriber-portal/connect-to-controlr',
         'subscriber-portal/organization-access',
         'subscriber-portal/notifications',
+        'subscriber-portal/settings',
       ],
     },
     {

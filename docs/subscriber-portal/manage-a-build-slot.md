@@ -17,7 +17,7 @@ Fill in the slot configuration form and select **Save configuration**. The form 
 |-------|--------------|
 | Brand name | The brand or company name shown in the built app. Required. |
 | Publisher | The publisher shown as the author of the built app. |
-| Source ref | The ControlR version the slot builds. Choose from the available releases. |
+| Source ref | The ControlR version the slot builds. Choose from the available releases. Preview `-dev` tags appear only when **Enable preview builds** is on in [Settings](/docs/subscriber-portal/settings). |
 | Delivery format | How the built server reaches you. Either Docker image (a container image in the private registry) or ZIP download (a self-contained server archive). See [Delivery format](/docs/subscriber-portal/slot-configuration#delivery-format). |
 | Server runtime | The platform the server is built for. Docker offers linux-x64 (AMD/Intel) or linux-arm64 (ARM). ZIP adds win-x64 (Windows). |
 | ControlR server URL | A required, full http/https URL stored on the slot. The reference page covers what this field does and does not do. |

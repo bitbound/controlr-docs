@@ -31,7 +31,7 @@ The table shows the count at common levels.
 
 ## Complimentary Slots
 
-A portal operator can grant you complimentary slots on top of what your sponsorship earns. Complimentary slots add to your sponsorship-earned slots and are not limited by the 10-slot sponsorship cap. The dashboard counts them in your total.
+Complimentary slots come from two sources: a portal operator can grant them to your account, and you can redeem a promo code yourself on the [Settings](/docs/subscriber-portal/settings) page. Complimentary slots add to your sponsorship-earned slots and are not limited by the 10-slot sponsorship cap. The dashboard counts them in your total.
 
 One limit sits behind that total. The portal only ever creates slots numbered 1 through 10. When your earned slots plus complimentary slots add up to more than 10, the dashboard total can read higher than the slots you can actually open, because there is no slot beyond slot 10.
 
@@ -59,6 +59,6 @@ The dashboard's slot metric card also carries a caption reading "X of N slots ar
 
 ## Syncing Sponsorship Data
 
-The portal reads your sponsorship from GitHub rather than charging you directly. The dashboard has a **Sponsor sync** card that shows when your data last synced. Select **Sync now** to refresh it. Manual syncs are limited to about one per minute, so the card shows a cooldown countdown until the next manual sync is allowed. Sponsorship data is also refreshed automatically when it is more than five minutes old.
+The portal reads your sponsorship from GitHub rather than charging you directly. The dashboard has a **Sponsor sync** card showing when your data last synced, and it shows the error when a sync fails. A background process refreshes every account's sponsorship data on a schedule, and GitHub notifies the portal directly when a sponsorship changes, so an update on GitHub usually shows up within minutes. There is no button to force a sync; after you change something on GitHub, wait for the next sync rather than refreshing repeatedly.
 
 When your sponsorship level changes or your sponsorship lapses, your slots change with it. Read [Sponsorship Changes And Lapse](/docs/subscriber-portal/sponsorship-changes-and-lapse) before you let a sponsorship go quiet. Registry deletion on lapse is permanent and unrecoverable without a rebuild.

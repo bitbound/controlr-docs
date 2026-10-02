@@ -9,7 +9,7 @@ Your build entitlement comes straight from your GitHub sponsorship. If the spons
 
 ## How The Slot Count Tracks Your Sponsorship
 
-Your entitlement is computed from your current monthly sponsorship amount: nothing below $100, 2 slots at $100, one more slot per additional $100, capped at 10. The portal reads the amount from GitHub rather than holding its own copy of your billing state. The new count becomes visible the next time your sponsorship data syncs. The portal refreshes data older than five minutes on its own, and you can force a sync from the dashboard's **Sponsor sync** card about once per minute. A complimentary slot grant from a portal operator adds to the count while the grant is unexpired.
+Your entitlement is computed from your current monthly sponsorship amount: nothing below $100, 2 slots at $100, one more slot per additional $100, capped at 10. The portal reads the amount from GitHub rather than holding its own billing relationship. The new count becomes visible the next time your sponsorship data syncs. The portal refreshes sponsorship data with a background sweep that runs on a schedule and whenever GitHub reports a change, and the dashboard's **Sponsor sync** card shows the last sync time. A complimentary slot grant, from a portal operator or from a redeemed promo code, adds to the count while the grant is unexpired.
 
 ## If Your Sponsorship Increases
 
@@ -42,4 +42,4 @@ Raising the sponsorship back to the required level, or getting a fresh complimen
 
 ## Watch The State, Not Your Memory Of It
 
-Sponsorship state, slot counts, and entitlement all update on sync, not on the moment GitHub charges change. If you changed your sponsorship on GitHub and the dashboard has not caught up, use **Sync now** and check the **Sponsor sync** card's last synced time. Build history rows survive a lapse and survive a downgrade. They keep naming images that may already be deleted, so a row with `succeeded` on a lapsed account does not mean the image is pullable.
+Sponsorship state, slot counts, and entitlement all update on sync, not on the moment GitHub charges change. If you changed your sponsorship on GitHub and the dashboard has not caught up, check the **Sponsor sync** card's last synced time and give the next sweep a chance to run. Build history rows survive a lapse and survive a downgrade. They keep naming images that may already be deleted, so a row with `succeeded` on a lapsed account does not mean the image is pullable.

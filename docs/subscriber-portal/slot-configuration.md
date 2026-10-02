@@ -5,7 +5,7 @@ title: Slot Configuration Reference
 
 ## Overview
 
-This page is the complete reference for a slot's configuration form, its private assets, and what those settings actually change in a built ControlR product. For the day-to-day walkthrough, see [Manage A Build Slot](/docs/subscriber-portal/manage-a-build-slot).
+This page is the complete reference for a slot's configuration form, its branding assets, and what those settings actually change in a built ControlR product. For the day-to-day walkthrough, see [Manage A Build Slot](/docs/subscriber-portal/manage-a-build-slot).
 
 ## The Configuration Form
 
@@ -73,7 +73,7 @@ Saving writes every field at once. Partial saves are not a thing. If any require
 
 ## Private Assets
 
-The **Private assets** panel stores the images your build replaces in the product. There are exactly three slots for images:
+The **Branding assets** panel stores the images your build replaces in the product. There are exactly three slots for images:
 
 | Panel label | Asset type | File picker accepts | Used in the product as |
 |-------------|-----------|---------------------|------------------------|

@@ -261,7 +261,7 @@ curl -X POST https://your-server/api/v1/logon-tokens/external \
   }'
 ```
 
-`tenantId` and `deviceId` must refer to a device that actually belongs to that tenant, otherwise the call answers `400`. Optional fields are `userDisplayName`, `sessionCorrelationId`, `expirationMinutes` (1 to 1440, default 15), `permissions`, and `allowedDesktopSessionIds`.
+`tenantId` and `deviceId` must refer to a device that actually belongs to that tenant, otherwise the call answers `400`. Optional fields are `userDisplayName`, `sessionCorrelationId`, `expirationMinutes` (1 to 1440, default 15), `sessionExpirationMinutes` (5 to 1440, default 480), `permissions`, and `allowedDesktopSessionIds`.
 
 The endpoint finds or creates a **transient user** in the target tenant:
 

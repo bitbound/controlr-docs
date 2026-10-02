@@ -105,7 +105,7 @@ There is no `controlr:tenant:id` claim, because server-scoped service accounts a
 
 ## 3. Logon Tokens
 
-Logon tokens grant browser access to a single device, scoped to either an existing user or a transient external user created on the fly. They are single-use, since validation consumes the token, and they expire. Both V1 routes default to 15 minutes and accept `expirationMinutes` from 1 to 1440.
+Logon tokens grant browser access to a single device, scoped to either an existing user or a transient external user created on the fly. They are single-use, since validation consumes the token, and they expire. Both V1 routes default to 15 minutes and accept `expirationMinutes` from 1 to 1440. A separate request field, `sessionExpirationMinutes` (5 to 1440, default 480), sets how long the browser session minted at redemption stays valid. That session is an absolute deadline counted from redemption, not refreshed by activity, so a long-lived technician session comes from raising `sessionExpirationMinutes`, not `expirationMinutes`.
 
 | Kind | Route | Creator | Use case |
 |---|---|---|---|

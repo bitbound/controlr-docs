@@ -15,7 +15,7 @@ The portal sends you back to the dashboard after GitHub approves the sign-in. If
 
 ## Who Is Allowed In
 
-Any GitHub account can sign in by default. An administrator can switch the portal to allowlist mode, and a login that is not on the allowlist is then refused at the callback. You land back on the home page with the message "The portal is currently invite-only. You must be invited by an administrator." Logins configured as portal administrators skip that check, and they also skip the maintenance-mode notice. If your login is taken off the allowlist while your session is open, the next request signs you out and returns you to the home page.
+The portal admits logins under one of two modes: open mode, where any GitHub account can sign in, and allowlist mode, where only logins on the portal's allowlist get in. A new portal starts in allowlist mode, so expect to be invited by a portal administrator unless you know the portal runs open. In allowlist mode a login that is not on the list is refused at the callback. You land back on the home page with the message "The portal is currently invite-only. You must be invited by an administrator." Logins configured as portal administrators skip that check, and they also skip the maintenance-mode notice. If your login is taken off the allowlist while your session is open, the next request signs you out and returns you to the home page.
 
 ## What The Portal Reads From GitHub
 
