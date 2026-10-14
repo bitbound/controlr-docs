@@ -9,7 +9,7 @@ ControlR can be deployed natively on Linux without Docker. Each release ships th
 
 ## Prerequisites
 
-- **Linux, AMD64**: the server archive is `server-linux-amd64.zip`. Ubuntu, Debian, or similar. ARM64 is not a published server target. The last six releases carry no `server-linux-arm64.zip`, and the published container image is `linux/amd64` only. On ARM hardware, build the server yourself. Check the release's asset list before scripting against a name.
+- **Linux**: the server archive is `server-linux-amd64.zip` on AMD64 and `server-linux-arm64.zip` on ARM64. Ubuntu, Debian, or similar. ARM64 archives and a multi-arch container image appeared with the v0.28.x releases, so older releases carry only the AMD64 archive. Check the release's asset list before scripting against a name.
 - **PostgreSQL 18**: The version ControlR's own Compose file ships. Install via Docker (recommended) or your package manager.
 - **Reverse proxy**: Nginx, Caddy, or Apache. Required for anything reachable beyond the machine itself. ControlR does not support exposing its own web server to the internet. The proxy provides HTTPS and passes real client addresses through to the server.
 

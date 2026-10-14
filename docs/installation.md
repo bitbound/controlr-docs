@@ -49,7 +49,7 @@ Three containers come up:
 
 The server applies database migrations at startup. There is nothing to run by hand. Compose does not wait for Postgres to report ready, so on a clean first start the `controlr` container can exit once with a database connection error. Its `restart: unless-stopped` policy starts it again and it comes up. Run `docker compose ps` until `controlr` stays running.
 
-Every published `bitbound/controlr` tag is `linux/amd64`. The release workflow can build the server for ARM, but that is a choice made when a release is run, and the default is `linux-x64`. On an ARM host, use the [native install](/docs/admin/native-installation) if the release you are installing carries an ARM64 server archive. Check the release assets before you commit to either route.
+Releases from v0.28.x onward publish `bitbound/controlr` as a multi-arch manifest for `linux/amd64` and `linux/arm64`, and carry a `server-linux-arm64.zip` archive alongside the AMD64 one. Older tags are `linux/amd64` only. On an ARM host, check the manifest for the tag you intend to run, or the assets of the release you are installing, before you commit to either route.
 
 ### Using Docker Secrets
 
@@ -227,7 +227,7 @@ sudo /tmp/ControlR.Agent.Installer repair-desktop
 
 ### What The Installer Does
 
-The installer is a bootstrap. It asks your server for the current bundle metadata, verifies the brand and publisher match its own, downloads the bundle, and checks its SHA-256 hash before it writes anything.
+The installer is a bootstrap. It asks your server for the current bundle metadata, checks that the bundle's brand key matches its own, downloads the bundle, and checks its SHA-256 hash before it writes anything.
 
 **Linux.** Extracts the bundle to `/usr/local/bin/ControlR/<instance-id>`. The instance ID defaults to `default`, so a plain install lands in `/usr/local/bin/ControlR/default`. Writes a system unit at `/etc/systemd/system/controlr.agent.service` and a user unit at `/etc/systemd/user/controlr.desktop.service`, then enables and starts the agent, enables the desktop unit globally, and starts the desktop client for users already logged in. The desktop client runs as the console user, not as root. Pass `-i` and both unit names gain the instance ID, for example `controlr.agent-myserver.service`.
 

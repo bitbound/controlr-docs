@@ -26,7 +26,7 @@ The agent checks for updates once when it starts, then every six hours. Set `Dis
 ### Update Process
 
 1. **Check**: The agent calls `GET /api/agent/updates/get-bundle-metadata/{runtime}`. The response carries the brand, the bundle SHA256, the bundle download URL, the installer SHA256, and the installer download URL.
-2. **Brand guard**: If the bundle's brand or publisher does not match the agent's, the check aborts. A mismatched server will not overwrite the install.
+2. **Brand and instance check**: If the bundle's brand key addresses a different install, or the instance id differs, the agent treats it as a migration and runs the installer, which moves the install onto the brand and instance id the server names. Publisher is carried in the metadata but is not compared.
 3. **Compare**: The agent reads the bundle hash recorded on disk and compares it to the bundle SHA256 from the server. A match means the agent is current and nothing happens. This is a hash comparison, not a version-number comparison.
 4. **Download the bootstrap installer**: On a mismatch, the agent downloads the platform installer to a temporary directory and verifies the downloaded file against the installer SHA256. A hash mismatch deletes the file and stops.
 5. **Run the installer**: The agent launches the installer with `install`, passing the server URI, tenant id, and instance id. The installer then downloads the full bundle, verifies its hash, stops the running services, replaces the binaries, and restarts them. On Linux the installer is started under a `systemd-run` scope so it keeps running after the agent service stops. On macOS it runs as a launchd job. The agent does not stop services or replace binaries itself.

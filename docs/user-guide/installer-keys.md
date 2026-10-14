@@ -13,7 +13,7 @@ Keys are created on the [Deploy](/docs/user-guide/deploy) page. The **Installer 
 
 ## Accessing Installer Keys
 
-The **Installer Keys** link in the sidebar appears when you hold the `installer-key.read` permission. The page itself is gated on the same permission. Creating, deleting, and renaming keys requires `installer-key.write`, and generating a key from the Deploy page requires that permission in addition to the `agent.install` permission the Deploy page itself needs.
+The **Installer Keys** link in the sidebar appears when you hold `installer-key.self.read` or `installer-key.others.read`. The page itself is gated on the same pair. Creating a key requires `installer-key.self.write`. Renaming and deleting require `installer-key.self.write` for your own keys, or `installer-key.others.write` for any key in the tenant. Generating a key from the Deploy page requires `installer-key.self.write` in addition to the `agent.install` permission the Deploy page itself needs.
 
 ## Creating a Key
 
@@ -58,7 +58,7 @@ There is no secret column. The secret exists only in the creation response and i
 
 Two filters narrow the list:
 
-- Without the `installer-key.manage-all` permission you see only the keys you created. Server service accounts see all keys.
+- Without `installer-key.others.read` you see only the keys you created. Server service accounts see all keys.
 - Expired non-persistent keys and exhausted usage-based keys are gone from the list, because the server deletes them.
 
 A search box filters the grid by any field, and a refresh button reloads it.
@@ -75,11 +75,11 @@ Open the row's Actions menu and choose **Show Usages**. Each installation that u
 - **Remote IP**
 - **Timestamp**
 
-Usage history is visible only to the user who created the key, or to holders of `installer-key.manage-all`.
+Usage history is visible only to the user who created the key, or to holders of `installer-key.others.read`.
 
 ## Deleting a Key
 
-Delete keys from the row's Actions menu (**Delete**, with a **Confirm Delete** prompt). Deletion requires `installer-key.write`. You can delete only your own keys unless you also hold `installer-key.manage-all`.
+Delete keys from the row's Actions menu (**Delete**, with a **Confirm Delete** prompt). Deletion requires `installer-key.self.write`, or `installer-key.others.write` to delete another user's key.
 
 Deleting a key removes it and its usage history. It does **not** affect already-installed agents. It only prevents new registrations with that key.
 

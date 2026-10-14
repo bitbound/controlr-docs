@@ -15,7 +15,7 @@ Phase 2 stores each authorization decision as a `PermissionAssignment` row that 
 
 ### Permission Names
 
-Every capability in ControlR has a unique, namespaced permission identifier following the pattern `<resource>.<action>`, such as `device.read`, `device.remote-control.connect`, or `tenant.permissions.write`. The names are constants on `PermissionNames` (in `ControlR.Libraries.Api.Contracts`) and each one is registered in the server's `PermissionCatalog` with metadata. There are 68 catalog entries.
+Every capability in ControlR has a unique, namespaced permission identifier following the pattern `<resource>.<action>`, such as `device.read`, `device.remote-control.connect`, or `tenant.permissions.write`. The names are constants on `PermissionNames` (in `ControlR.Libraries.Api.Contracts`) and each one is registered in the server's `PermissionCatalog` with metadata. There are 67 catalog entries.
 
 ```
 server.tenants.read                   -- List all tenants on the server
@@ -84,11 +84,11 @@ Because raw permission names are hard for users to reason about, ControlR provid
 
 | Preset | Count | Permissions |
 |--------|-------|-------------|
-| `Server Administrator` | 13 | `server.authorization-logs.read`, `server.permissions.read`, `server.permissions.write`, `server.settings.write`, `server.tenants.delete`, `server.tenants.read`, `server.tenants.write`, `server.telemetry.read`, `server.service-accounts.read`, `server.service-accounts.write`, `server.service-accounts.rotate-credentials`, `tenant.permissions.read`, `tenant.authorization-logs.read` |
-| `Tenant Administrator` | 30 | All 17 `tenant.*` permissions, `user-group.assign-users`, `device-group.assign-devices`, the four `personal-access-token.*` permissions, the three `service-account.*` permissions, `installer-key.read`, `installer-key.write`, `installer-key.manage-all`, `agent.install` |
-| `Device Superuser` | 27 | All 27 `device.*` permissions (read, delete, alias, tags, desktop preview, logs, overview, the four remote-control permissions, Ctrl-Alt-Del, clipboard read/write, chat, VNC relay, the five file-system permissions, terminal, logon-token create, wake, power, agent update) |
-| `Agent Installer` | 3 | `agent.install`, `installer-key.read`, `installer-key.write` |
-| `Installer Key Manager` | 3 | `installer-key.read`, `installer-key.write`, `agent.install` |
+| `Server Administrator` | 14 | `server.authorization-logs.read`, `server.permissions.read`, `server.permissions.write`, `server.settings.write`, `server.tenants.delete`, `server.tenants.read`, `server.tenants.write`, `server.telemetry.read`, `server.service-accounts.read`, `server.service-accounts.write`, `server.service-accounts.rotate-credentials`, `tenant.permissions.read`, `tenant.permissions.deny`, `tenant.authorization-logs.read` |
+| `Tenant Administrator` | 30 | All 16 `tenant.*` permissions, `user-group.assign-users`, `device-group.assign-devices`, the four `personal-access-token.*` permissions, the three `service-account.*` permissions, the four `installer-key.*` permissions (`installer-key.self.read`, `installer-key.self.write`, `installer-key.others.read`, `installer-key.others.write`), `agent.install` |
+| `Device Superuser` | 26 | All 26 `device.*` permissions (read, delete, alias, tags, desktop preview, logs, overview, the four remote-control permissions, Ctrl-Alt-Del, clipboard read/write, chat, VNC relay, the five file-system permissions, terminal, logon-token create, wake, power, agent update) |
+| `Agent Installer` | 3 | `agent.install`, `installer-key.self.read`, `installer-key.self.write` |
+| `Installer Key Manager` | 5 | `installer-key.self.read`, `installer-key.self.write`, `installer-key.others.read`, `installer-key.others.write`, `agent.install` |
 | `Service Account Manager` | 3 | `service-account.read`, `service-account.write`, `service-account.rotate-credentials` |
 | `Self Service` | 2 | `personal-access-token.self.read`, `personal-access-token.self.write` |
 
@@ -270,7 +270,7 @@ Note that the projection uses the *user's* identity, not the session's credentia
 
 Listing devices cannot afford a per-device evaluator call, so `IDeviceAccessScopeResolver` derives a `DeviceAccessScope` from the principal's `device.read` rules, and `ApplyAccessScope` compiles it into the device `IQueryable` at the database level.
 
-`DeviceAccessScope` is a record with a tenant boundary, a server-wide flag, included and excluded id sets for Tenant, DeviceGroup, Customer, and Device, and an optional `RequiredOwnerScope`. There is no scope-kind enum and no tag-based category. Tags are device metadata and carry no authorization role anywhere in the permission or device-scope layer. Tag *management* is gated by `device.tags.write` and `tenant.tags.write`. The catalog also ships `device.tags.read`, but no code evaluates it and tag ids ride along on the device record, so seeing a device's tags follows `device.read`.
+`DeviceAccessScope` is a record with a tenant boundary, a server-wide flag, included and excluded id sets for Tenant, DeviceGroup, Customer, and Device, and an optional `RequiredOwnerScope`. There is no scope-kind enum and no tag-based category. Tags are device metadata and carry no authorization role anywhere in the permission or device-scope layer. Tag *management* is gated by `device.tags.write` and `tenant.tags.write`. There is no `device.tags.read` permission, so reading a device's tags is not separately gated. Tag ids ride along on the device record, so seeing them follows `device.read`.
 
 Resolution order:
 
@@ -347,7 +347,7 @@ A related service, `IDeviceAuthorizationService`, answers per-device questions f
 
 The migration `20260813192551_Permissions_Phase2` performs the transformation:
 
-1. **Backfill**: maps legacy `AspNetUserRoles` memberships to `PermissionAssignment` allow rows with a SQL role-to-permission table. Each row lands at the permission's broadest legal scope, so `server.*` permissions backfill to Server scope (null owning tenant) and everything else to Tenant scope (the user's tenant). The mapping mirrors the preset lists, at 13 rows for Server Administrator (11 Server-scope plus `tenant.permissions.read` and `tenant.authorization-logs.read` at Tenant scope), 30 for Tenant Administrator, 27 for Device Superuser, and 3 each for the two installer presets. The table is a superset of the presets so no upgraded user is under-privileged. The same migration carries a separate `Self Service` backfill that grants the self-service PAT baseline to every non-external user, so that baseline is not limited to user-creation seeding.
+1. **Backfill**: maps legacy `AspNetUserRoles` memberships to `PermissionAssignment` allow rows with a SQL role-to-permission table. Each row lands at the permission's broadest legal scope, so `server.*` permissions backfill to Server scope (null owning tenant) and everything else to Tenant scope (the user's tenant). The mapping mirrors the preset lists, at 14 rows for Server Administrator (11 Server-scope plus `tenant.permissions.read`, `tenant.permissions.deny`, and `tenant.authorization-logs.read` at Tenant scope), 30 for Tenant Administrator, 26 for Device Superuser, 3 for Agent Installer, and 5 for Installer Key Manager. The table is a superset of the presets so no upgraded user is under-privileged. The same migration carries a separate `Self Service` backfill that grants the self-service PAT baseline to every non-external user, so that baseline is not limited to user-creation seeding.
 2. **Drop**: removes `AspNetRoleClaims`, `AspNetUserRoles`, and `AspNetRoles`, plus `AppUserTag` (superseded by customer and device scoping).
 3. **Schema additions**: `CustomerId` on `Devices`, plus `CreatedByUserId`, `ExpiresAt`, and `RevokedAt` on `PersonalAccessTokens`.
 4. **Create**: `PermissionAssignments`, `AuthorizationChangeLogs`, `Customers`, `DeviceGroups`, `DeviceGroupMembers`, `UserGroups`, `UserGroupMembers`, and `LogonTokens`, with indexes on the common lookup paths.

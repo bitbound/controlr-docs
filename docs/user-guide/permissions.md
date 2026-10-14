@@ -20,7 +20,7 @@ A permission assignment is a single row that records:
 
 A user's effective permissions are the union of their direct assignments plus those inherited through every user group they belong to.
 
-Not every entry in the catalog is consulted at runtime. Nothing in the server reads `tenant.read` or `device.remote-control.elevated-desktop`, so granting or denying either of them changes no behavior. Both still appear in the picker, and both arrive on seeded principals because they belong to a preset (`tenant.read` to **Tenant Administrator**, `device.remote-control.elevated-desktop` to **Device Superuser**).
+Not every entry in the catalog is consulted at runtime. Nothing in the server reads `device.remote-control.elevated-desktop`, so granting or denying it changes no behavior. It still appears in the picker, and it arrives on seeded principals because it belongs to the **Device Superuser** preset.
 
 ## Managing Assignments
 

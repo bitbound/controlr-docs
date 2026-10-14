@@ -20,7 +20,7 @@ New slot cards appear on the dashboard as soon as the synced count rises. A newl
 Slots numbered beyond your new entitlement lock. In order of what you see:
 
 - The slot cards disappear from the dashboard. Only slots within the entitlement are listed.
-- Opening a locked slot directly shows the warning "Slot N is locked for the current sponsorship entitlement." You can still view its configuration and history if you had read access. The form becomes read-only.
+- Opening a locked slot directly shows the warning "Slot N is locked for the current sponsorship entitlement." You can still view its configuration if you had read access, and the form becomes read-only. Its build history and pull commands are not served while it is locked, so the history panel shows empty even though the rows are still stored.
 - Saving that slot's configuration and triggering builds for it fail with the same locked-slot error.
 - Your saved configuration and uploaded assets on the locked slot are not deleted. Raise the sponsorship again and the slot returns with its contents intact.
 - Images already built from those slots are not deleted by a downgrade alone. While your account still qualifies for registry access, which it does at $100 per month or more, or with an unexpired complimentary grant, your pull credential keeps working for every slot's image, including images built from slots that are now locked.

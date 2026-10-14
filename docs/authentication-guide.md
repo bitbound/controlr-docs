@@ -108,7 +108,7 @@ curl https://your-server/api/v1/devices \
 
 Bearer tokens are read only from the `Authorization` header. No handler reads a bearer token from a query string, so a SignalR connection still needs a cookie or a logon token.
 
-`ControlR.ApiClient` does not perform interactive bearer sign-in. Its options carry `PersonalAccessToken` and `ServiceAccountApiKey`, and a bearer-token client must obtain and attach tokens itself.
+`ControlR.ApiClient` can perform interactive bearer sign-in. `ControlrApiClientBuilder.GetAuthSession()` returns an `IControlrAuthSession` whose `SignIn` posts to the interactive-login endpoint and refreshes the access token for you, so a bearer-token client does not hand-roll the flow. Its options also carry `PersonalAccessToken` and `ServiceAccountApiKey` for callers that already hold a credential. See [NuGet Packages](/docs/api-reference/nuget-packages#authentication-modes).
 
 ## 3. Logon Token Authentication
 
@@ -118,7 +118,7 @@ A logon token grants a browser a session for one device. The request must carry 
 https://your-server/device-access?logonToken=<token>&deviceId=<device-guid>
 ```
 
-The handler validates and consumes the token in the same call, so a logon token is single-use. It also requires the device ID to match the token's grant, and a token may be restricted to specific desktop sessions. On success the handler signs in the application cookie scheme with the token's remaining lifetime, so the follow-up requests that a page makes are covered by the cookie rather than by replaying the token.
+The handler validates and consumes the token in the same call, so a logon token is single-use. It also requires the device ID to match the token's grant, and a token may be restricted to specific desktop sessions. On success the handler signs in the application cookie scheme for a fresh session window, measured from redemption and defaulting to 480 minutes, so the follow-up requests that a page makes are covered by the cookie rather than by replaying the token. That window is independent of the token's own expiry.
 
 ## External Authentication Providers
 

@@ -230,11 +230,11 @@ Returns the effective value of each preference the calling user can hold, togeth
 
 | Method | Path | Required parameters | Permission |
 |---|---|---|---|
-| POST | `/api/v1/installer-keys` | body, `TenantId` required | `installer-key.write` |
-| GET | `/api/v1/installer-keys` | `tenantId` (query) | `installer-key.read` |
-| GET | `/api/v1/installer-keys/{keyId}/usages` | `keyId` (route), `tenantId` (query) | `installer-key.read` |
-| PUT | `/api/v1/installer-keys/{keyId}` | `keyId` (route), `tenantId` (query), body | `installer-key.write` |
-| DELETE | `/api/v1/installer-keys/{keyId}` | `keyId` (route), `tenantId` (query) | `installer-key.write` |
+| POST | `/api/v1/installer-keys` | body, `TenantId` required | `installer-key.self.write` |
+| GET | `/api/v1/installer-keys` | `tenantId` (query) | `installer-key.self.read` or `installer-key.others.read` |
+| GET | `/api/v1/installer-keys/{keyId}/usages` | `keyId` (route), `tenantId` (query) | `installer-key.self.read` or `installer-key.others.read` |
+| PUT | `/api/v1/installer-keys/{keyId}` | `keyId` (route), `tenantId` (query), body | `installer-key.self.write` or `installer-key.others.write` |
+| DELETE | `/api/v1/installer-keys/{keyId}` | `keyId` (route), `tenantId` (query) | `installer-key.self.write` or `installer-key.others.write` |
 
 `POST` is the only route that returns the key secret, and it returns it once. `PUT` renames a key and answers `204`. Usage rows are recorded by the server when an agent installs with a key, and there is no endpoint that increments them.
 
@@ -688,7 +688,7 @@ The V1 rename takes the tag id in the route instead of in the body.
 | POST | `/api/server-alert` | `/api/v1/server-alert` |
 | GET | `/api/public-server-settings` | `/api/v1/public-server-settings` |
 
-`/api/public-server-settings` is anonymous on both surfaces. Its V1 replacement adds `IsPublicRegistrationEnabled` and `DisableDesktopPreview` fields under V1 type names.
+`/api/public-server-settings` is anonymous on both surfaces. Both the internal and V1 routes return `IsPublicRegistrationEnabled` and `DisableDesktopPreview`; only the response type name differs.
 
 ### Version (`/api/version`)
 
@@ -717,7 +717,7 @@ These groups exist only under `/api/v1/`. There is no `/api/...` controller for 
 
 ## Agent endpoints (`/api/agent/*`)
 
-These are the HTTP calls a device agent makes. They are anonymous, and the agent authenticates with installer-key credentials. Both controllers are also mounted under a legacy root for agents that predate the `/api/agent` prefix.
+These are the HTTP calls a device agent makes. The device and bundle-metadata routes are anonymous and authenticate the agent with installer-key credentials. `/api/agent/deployment-options` instead requires an agent-signature request. Three controllers serve this surface, and the device and update controllers are each mounted under a legacy root for agents that predate the `/api/agent` prefix.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
@@ -725,8 +725,9 @@ These are the HTTP calls a device agent makes. They are anonymous, and the agent
 | POST | `/api/devices` | Installer key in body | Legacy alias of the route above |
 | GET | `/api/agent/updates/get-bundle-metadata/{runtime}` | Anonymous | Download metadata for the agent bundle. `runtime` is a runtime identifier such as `win-x64` |
 | GET | `/api/agent-update/get-bundle-metadata/{runtime}` | Anonymous | Legacy alias of the route above |
+| GET | `/api/agent/deployment-options` | Agent signature | Return the deployment values the server wants this device's install to use, currently the tenant's instance id. The device is resolved from the signature, so the answer is scoped to its own tenant |
 
-Responses from the bundle-metadata route are cached for 600 seconds. Everything else an agent does travels over the `AgentHub`.
+Responses from the bundle-metadata route are cached for 600 seconds. Apart from these routes, an agent's traffic travels over the `AgentHub`.
 
 ---
 
@@ -865,7 +866,7 @@ There is no `SendDtoToUserGroups` method on this hub, in either direction. Subsc
 |---|---|---|
 | V1 (`/api/v1/*`) | 131 | 31 groups |
 | Internal (`/api/*`) | 79 | 22 controllers, 71 marked deprecated |
-| Agent (`/api/agent/*`, plus two legacy aliases) | 4 | 2 controllers, each mounted twice |
+| Agent (`/api/agent/*`, plus two legacy aliases) | 5 | 3 controllers; the device and update controllers are each mounted twice |
 | Identity API under `/api/auth` | 10 | Framework-provided, mapped only when `EnableInteractiveBearerLogin` is set |
 
 Every HTTP route above traces to a route attribute on a controller or to a `HttpConstants` entry. Every hub method traces to `IAgentHub`, `IAgentHubClient`, `IViewerHub`, `IViewerHubClient`, or the hub implementation. The hub method lists are complete, and a method not named there is not invokable.

@@ -11,7 +11,7 @@ The Deploy page (`/deploy`) generates a ready-to-run install script for each tar
 
 1. Navigate to the Deploy page (`/deploy`)
 2. You need the `agent.install` permission to open the page
-3. Generating a key from the page needs `installer-key.write` as well. The **Use Existing Key** tab lists keys, which needs `installer-key.read`. The **Customer** selector only appears with `tenant.customers.read`.
+3. Generating a key from the page needs `installer-key.self.write` as well. The **Use Existing Key** tab lists keys, which needs `installer-key.self.read`, or `installer-key.others.read` to list every key in the tenant. The **Customer** selector only appears with `tenant.customers.read`.
 
 ## Installer key first
 
@@ -36,7 +36,7 @@ Click **Generate Key**. For time-based and usage-based keys, the page later repe
 
 ### Use Existing Key
 
-The key secret is stored as a hash, so the page cannot read a previous secret back for you. You have to supply it. Pick the key in **Select Key** and type the secret into **Key Secret**, then click **Use Key**. The dropdown shows each entry as `Friendly Name (KeyType) - Id`, or `Unnamed Key (KeyType) - Id` when no friendly name was set. The list contains the keys you created. With `installer-key.manage-all`, or when authenticated as a server principal, it contains every non-expired key in the tenant.
+The key secret is stored as a hash, so the page cannot read a previous secret back for you. You have to supply it. Pick the key in **Select Key** and type the secret into **Key Secret**, then click **Use Key**. The dropdown shows each entry as `Friendly Name (KeyType) - Id`, or `Unnamed Key (KeyType) - Id` when no friendly name was set. The list contains the keys you created. With `installer-key.others.read`, or when authenticated as a server principal, it contains every non-expired key in the tenant.
 
 ### Save the secret
 

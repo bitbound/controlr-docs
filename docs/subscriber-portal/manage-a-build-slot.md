@@ -59,7 +59,7 @@ The values are shown exactly as listed, and the last three are final. A build ca
 
 ## Read The Build History
 
-Below the current build, the **Recent build history** list shows past builds newest first. Each row carries a build timestamp, a status chip, the source ref, the duration, and the requested and completed times, plus a failure summary when one exists. The rows are read-only. They are not clickable and they open nothing. A history row never shows an image reference or a pull command. The **Image delivery** block belongs to the latest build only. See [Build Lifecycle](/docs/subscriber-portal/build-lifecycle#build-history-and-retention) for how long history is kept.
+Below the current build, the **Recent build history** list shows past builds newest first. Each row carries a build timestamp, a status chip, the source ref, the duration, and the requested and completed times, plus a failure summary when one exists. A history row never shows an image reference or a pull command, so the **Image delivery** block belongs to the latest build only. The one interactive control is a **Download server** button on a row for a ZIP build that reached `succeeded`, which needs the slot's **Credentials** permission. See [Build Lifecycle](/docs/subscriber-portal/build-lifecycle#build-history-and-retention) for how long history is kept.
 
 ## Get The Image
 

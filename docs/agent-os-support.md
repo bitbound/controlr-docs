@@ -25,14 +25,14 @@ The binaries are self-contained and published as a single file. A device does no
 
 **There is no `linux-arm64` agent.** The runtime list in the code has no ARM Linux entry, and an agent that resolves its own runtime to anything outside those five throws `PlatformNotSupportedException`. Installing an agent on an ARM Linux device is not supported.
 
-The server is a separate question, and it is also AMD64 today. Every `bitbound/controlr` tag on Docker Hub is `linux/amd64`. The release workflow can build the server for `linux-arm64`, but that is a choice made when a release is run, and the default is `linux-x64`. Check which archives a given release actually carries before planning an ARM host around one.
+The server is a separate question, and it is published for both. Releases from v0.28.x onward carry a `server-linux-arm64.zip` archive alongside the AMD64 one, and publish `bitbound/controlr` as a multi-arch image for `linux/amd64` and `linux/arm64`. Older tags are `linux/amd64` only. Check the manifest for the tag, and the archives for the release, before planning an ARM host around them.
 
 There is no musl or Alpine build. The Linux binaries are for glibc AMD64.
 
 Declared version floors, from the build settings:
 
 - **Windows.** The Windows target framework is `net10.0-windows8.0`, so the compiled floor is Windows 8.0. Nothing in the code checks for a newer version. The project documents and tests Windows 11.
-- **macOS.** `SupportedOSPlatformVersion` and the app bundle's `LSMinimumSystemVersion` are both `12.0`. The build targets the macOS 26.5 SDK.
+- **macOS.** `SupportedOSPlatformVersion` and the app bundle's `LSMinimumSystemVersion` are both `12.0`. The build sets `MacTargetPlatformVersion` to `26.0`.
 - **Linux.** "Latest LTS" is the tested range. No version is pinned in code.
 
 ## Windows 11 (x64, x86)
