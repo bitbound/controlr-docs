@@ -63,6 +63,8 @@ After that check, the server resolves the tenant against the caller:
 - A server-scoped principal may name any tenant. That means a server service account. A signed-in user is not one of these for this check, even a user holding server-scope permissions.
 - Any other principal must name the tenant in its own claim. A mismatch is answered `403`, not `404`.
 
+Some endpoints replace that comparison with a permission check of their own and follow their own rule instead. The tenant-addressed authorization change log list is one; its row below states it.
+
 Deprecated Internal routes have no such filter. They derive the tenant from the caller's claim and answer `403` for an unusable one, which is one reason a migrated caller should send the parameter explicitly.
 
 ## V1 endpoints (supported)
@@ -869,4 +871,4 @@ There is no `SendDtoToUserGroups` method on this hub, in either direction. Subsc
 | Agent (`/api/agent/*`, plus two legacy aliases) | 5 | 3 controllers; the device and update controllers are each mounted twice |
 | Identity API under `/api/auth` | 10 | Framework-provided, mapped only when `EnableInteractiveBearerLogin` is set |
 
-Every HTTP route above traces to a route attribute on a controller or to a `HttpConstants` entry. Every hub method traces to `IAgentHub`, `IAgentHubClient`, `IViewerHub`, `IViewerHubClient`, or the hub implementation. The hub method lists are complete, and a method not named there is not invokable.
+Every HTTP route the server exposes is listed above, and the hub method lists are complete. A hub method not named on this page is not invokable.

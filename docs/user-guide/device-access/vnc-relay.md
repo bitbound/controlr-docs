@@ -5,7 +5,7 @@ title: VNC Relay
 
 ## Overview
 
-VNC Relay provides remote access to a device that runs a VNC server. It streams a noVNC session through the ControlR server to the agent, which proxies the traffic to the VNC server on the target device. The feature is experimental, and it is not restricted by operating system. Nothing in the client, hub, or agent limits it to macOS and Linux. Any platform the agent runs on works as long as something is listening for VNC on the device's loopback interface.
+VNC Relay provides remote access to a device that runs a VNC server. It streams a noVNC session through the ControlR server to the agent, which proxies the traffic to the VNC server on the target device. The feature is experimental, and it is not restricted by operating system. Any platform the agent runs on works as long as something is listening for VNC on the device's loopback interface.
 
 Access requires the `device.vnc-relay.connect` permission. It gates the menu entry, the connection test, and the Connect action.
 

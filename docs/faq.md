@@ -15,7 +15,7 @@ Docker is the recommended deployment. Native Linux installation is also supporte
 
 ### What platforms are supported for clients?
 
-ControlR agents run on Windows 11, macOS (Apple Silicon, plus Intel builds that release CI does not exercise), and Linux on AMD64 with either X11 or Wayland. There is no ARM Linux agent. The web interface runs in any modern browser, and a responsive mobile layout covers phones and tablets. See [Agent OS Support](/docs/agent-os-support).
+ControlR agents run on Windows 11, macOS (Apple Silicon, plus Intel builds that are not part of the pre-release test pass), and Linux on AMD64 with either X11 or Wayland. There is no ARM Linux agent. The web interface runs in any modern browser, and a responsive mobile layout covers phones and tablets. See [Agent OS Support](/docs/agent-os-support).
 
 ### How many devices can one ControlR server handle?
 
@@ -25,8 +25,6 @@ There is no fixed maximum, but the practical limit depends on your environment:
 - **Ephemeral port exhaustion through a reverse proxy**: each agent and each active web viewer holds one long-lived connection through the proxy, and each one consumes a source port on the proxy side. A same-host proxy dialing a single destination draws from one range, and the Linux default `net.ipv4.ip_local_port_range` of 32768 to 60999 is about 28,000 ports. nginx reports the failure as `connect() failed (99: Cannot assign requested address)`. Widen the range, raise the proxy's file-descriptor and connection limits, and add source addresses with something like nginx `proxy_bind` before concluding the ControlR server is the limit. `SO_REUSEPORT` is not a fix. It spreads incoming connections across listening sockets and has nothing to do with outbound ports.
 - **Hosting platform caps**: Azure App Service, AWS ECS, and similar managed platforms impose per-instance connection limits that vary by SKU/tier. Compare their max-connection documentation against (agents + concurrent viewers).
 - **Server-side database connection pool**: EF Core opens Postgres connections from a single Npgsql pool. The server assembles the connection from its database settings and does not expose the pool size, so Npgsql's default maximum of 100 connections applies. Concurrent HTTP requests on the server share this pool. Under sustained high request concurrency, scale the server horizontally behind a load balancer or put PgBouncer in front.
-
-The `Tools/ControlR.Agent.LoadTester` project in the repository is a harness for stress-testing your specific deployment.
 
 ### Is data encrypted in transit?
 

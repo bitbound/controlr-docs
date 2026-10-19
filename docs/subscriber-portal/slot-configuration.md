@@ -15,7 +15,7 @@ The whole form is stored on the slot and reused by every build. A build reads th
 
 ### Brand Name
 
-Required. At most 120 characters. It must start with a letter and may contain letters, digits, spaces, underscores, hyphens, and periods. The form and the server both check the character rule. The 120-character limit is not one of the checks either of them runs.
+Required. At most 120 characters. It must start with a letter and may contain letters, digits, spaces, underscores, hyphens, and periods. The form and the server both check the character rule. Neither one enforces the 120-character limit, and stored brand names are capped at 120 characters.
 
 The brand name is the heart of the customization. The build pipeline also derives a machine identifier from it by replacing every non-alphanumeric character with an underscore. That derived key ends up in assembly prefixes, installer file names, and package names, so two brand names that differ only in punctuation collide.
 
@@ -47,9 +47,15 @@ Required, with `linux-x64` preselected. The available choices depend on the [Del
 
 ### ControlR Server URL
 
-Required. A full absolute URL using http or https, at most 2048 characters. It is validated and stored on the slot and shown back to you in the form, on the dashboard slot card, and in exported configuration JSON.
+Required. A full absolute URL using http or https, at most 2048 characters.
 
-Be aware of what this field does and does not do. The value is validated and stored on the slot, and unlike brand, colors, and CSS it also rides in the one-time customization payload the builder downloads. It is not, however, one of the workflow inputs the portal sends when it triggers a build, and no portal code path applies it to the built image. Whether a build actually uses it is up to the build pipeline. Your server's real public address is runtime configuration you set when you deploy the image, as covered in [Connect To ControlR](/docs/subscriber-portal/connect-to-controlr) and the server [Configuration](/docs/configuration) docs.
+The value is validated and stored on the slot, and it is shown back to you in the form, on the dashboard slot card, and in exported configuration JSON. It also rides to the builder in the same one-time customization payload that carries the brand, the colors, the icons, the CSS, and the sponsorship switch.
+
+Its effect inside the product is specific to the agent. An agent built by a pipeline that received the address dials that address, and it does so in preference to the `-s` value passed to the installer and in preference to an address the agent already saved. So an agent from your build cannot be pointed at a different server with an installer argument, and moving those devices to another server means changing this field and rebuilding. Rebuild after changing it, since a build keeps whatever value was saved when you triggered it. The address your server itself serves is still runtime configuration you set when you run it, as covered in [Connect To ControlR](/docs/subscriber-portal/connect-to-controlr) and the server [Configuration](/docs/configuration) docs.
+
+### Hide Sponsorship Info
+
+Optional, and off by default. A single checkbox labeled **Hide sponsorship info**, carrying the form's own note that it "Hides the Project, Website, and Sponsor links in the built app's About page." Turning it on changes three places you can see. The About page drops its Project, Website, and Sponsor entries. The welcome screen drops its **View on GitHub** and **Sponsor Project** buttons, and the GitHub button in the top bar disappears. The third-party licenses list gains a ControlR entry with source and license links. The **MIT License** link on the About page stays whichever way you leave the switch, and the desktop client's About screen follows the same setting.
 
 ### Theme Colors
 
@@ -59,7 +65,7 @@ Fourteen color fields, seven under **Dark theme colors** and seven under **Light
 
 Optional. A free-text stylesheet stored on the slot. Two inputs feed the same saved value. **Edit CSS** opens an editor where you paste CSS or select **Load .css file**. The **Upload .css** button beside the section loads a `.css` file straight into the form. A chip shows whether CSS is saved and how large it is. The limit is 64 KB. An oversized value is rejected with "Custom CSS must be at most 64 KB." Control characters are rejected with "Custom CSS must not contain control characters."
 
-The portal stores the CSS on the slot, carries it in configuration JSON export, and sends it to the builder inside the one-time customization payload the build downloads. Whether that CSS reaches the built server depends on the build applying it. The build support that reads the value and writes it into the server is not in current ControlR releases, so on a current release saving CSS does not change the built product. The form's own on-screen text describes the CSS as applied to every page, which describes the intended behavior rather than what a current build does with the stored value.
+A build that receives a non-empty value replaces the built server's own stylesheet file with it, and the server's pages load that file. Leaving it empty keeps the stock stylesheet. The value also rides in configuration JSON export, so an export carries your CSS with it. The form's own on-screen text describes the CSS as applied to every page, and that is what a current build does. Rebuild after changing it, since a build keeps whatever CSS was saved when you triggered it.
 
 ## Save Behavior
 
@@ -67,7 +73,7 @@ Saving writes every field at once. Partial saves are not a thing. If any require
 
 ## Export And Import Configuration JSON
 
-**Export JSON** downloads a file named `slot-{N}-configuration.json` holding the form values: brand name, publisher, ControlR server URL, source ref, server runtime, delivery format, saved custom CSS, and the full fourteen-color scheme, wrapped in a `controlr.slot-configuration` envelope with a version marker. Assets are not in the export. Build history is not in the export. Nothing about the slot's identity, like its number, is encoded, so an export from slot 1 imports cleanly into slot 2.
+**Export JSON** downloads a file named `slot-{N}-configuration.json` holding the form values: brand name, publisher, ControlR server URL, source ref, server runtime, delivery format, saved custom CSS, the hide-sponsorship switch, and the full fourteen-color scheme, wrapped in a `controlr.slot-configuration` envelope with a version marker. Assets are not in the export. Build history is not in the export. Nothing about the slot's identity, like its number, is encoded, so an export from slot 1 imports cleanly into slot 2.
 
 **Import JSON** loads such a file into the form. Import does not save. The portal tells you it imported and reminds you to review and save. On import the file must be valid JSON with the expected envelope kind and version, and the color entries must be valid hex or blank, or the import is rejected with a message naming the problem. A file that passes import still goes through the normal validation on save.
 
@@ -107,6 +113,8 @@ The builder customizes the standard ControlR source at build time by rewriting b
 - **Publisher.** Rewritten into the publisher branding constant and the copyright-style text in application metadata.
 - **Colors.** Your fourteen values replace the theme color constants, the theme brushes in the desktop client markup, and the web theme's CSS color values.
 - **Images.** The three stored assets replace the shipped icon, favicon, and company logo files described above.
+- **Custom CSS.** A non-empty value replaces the built server's stylesheet file.
+- **Hide sponsorship info.** The switch is baked in, and the built app reads it at runtime as described in [Hide Sponsorship Info](#hide-sponsorship-info).
 - **Source ref.** The image is built from exactly that release tag of the ControlR repository.
 - **Server runtime.** The image targets that platform.
 
@@ -115,11 +123,11 @@ The builder customizes the standard ControlR source at build time by rewriting b
 None of the following are configurable through the portal, and each stays at the open-source ControlR default in your build:
 
 - Product features and feature flags. You get the same feature set as the public build.
-- Licensing, activation, or anything that removes ControlR's open-source license notices.
-- Support, help, and documentation links.
+- Licensing, activation, or ControlR's open-source license notices. The [Hide sponsorship info](#hide-sponsorship-info) switch adds a ControlR entry to the third-party licenses list and removes no license notice.
+- Support and documentation links, other than the entries the [Hide sponsorship info](#hide-sponsorship-info) switch removes.
 - Login-page artwork, banners, or marketing content beyond the colors and the logo described above.
-- Any behavioral change to ControlR. The build does not patch how ControlR works, it replaces strings and image files.
-- Theme structure. You supply 14 colors into the existing dark and light themes. You cannot add themes or remove UI elements. Styling beyond what those 14 colors reach, if you need it, goes through [Custom CSS](#custom-css).
-- The server's public URL, deployment topology, or database choice. Those are deployment-time server configuration, not build inputs. See the note on [ControlR Server URL](#controlr-server-url) above.
+- Any behavioral change to ControlR. The build does not patch how ControlR works, it replaces strings, a stylesheet, and image files.
+- Theme structure. You supply 14 colors into the existing dark and light themes. You cannot add themes or remove UI elements. [Custom CSS](#custom-css) is where styling beyond those 14 colors goes.
+- Deployment topology or database choice. Those are deployment-time server configuration, not build inputs. The agent's server address, by contrast, is a build input, as [ControlR Server URL](#controlr-server-url) describes.
 
 If a requirement on that list is a hard blocker for you, the portal will not solve it. Evaluate running the open-source ControlR server directly before committing sponsorship money to a customization that cannot happen.

@@ -87,7 +87,7 @@ actual hex id     8C47242A3AA43B4DA95A350F496CE268   (what the server expects)
 
 Only the first three groups are rearranged. The last two-byte group and the final eight bytes keep their textual order.
 
-Two consequences worth knowing:
+Three things worth knowing:
 
 - A credential you create through the API or the web UI comes back with the hex form already built. Take it from that response and do not reassemble it.
 - The bootstrap path is the one case where you have to produce the hex yourself. You pick `ServerServiceAccountTokenId` as a GUID, nothing afterwards shows you the encoded form, and the header has to carry it. Build it the way the server does, with `Convert.ToHexString(Guid.Parse(id).ToByteArray())`, instead of deleting hyphens by hand.
@@ -120,7 +120,7 @@ On successful authentication, the following claims are emitted:
 
 A server-scoped account emits no `controlr:tenant:id` claim. The handler does emit that claim for a **tenant-scoped** account, whose `controlr:principal:type` is then `tenant-service-account`. If the account has a description, it is also emitted as the standard `ClaimTypes.Name`.
 
-The service account **is not** scoped to any tenant. All tenant, user, and device identifiers must be provided explicitly in each request.
+Because a server-scoped account has no tenant context to infer from, every tenant, user, and device identifier has to be provided explicitly in each request.
 
 ### Rate Limiting
 
@@ -272,6 +272,8 @@ The endpoint finds or creates a **transient user** in the target tenant:
 - Scoped to the requested device
 
 ControlR issues a single-use logon token that, when opened in a browser, signs the transient user in and lands directly on the device's access page. The response is `200 OK` with `deviceAccessUrl`, `expiresAt`, and `token`. The `deviceAccessUrl` is `/device-access?deviceId={deviceId}&logonToken={token}`.
+
+That link is a viewing link unless the request also names permissions. Without a `permissions` list the token carries only `device.read` and `device.overview.read` on the device, so the recipient sees the device and cannot start a remote-control session. A dispatch integration that wants control has to name the permissions in the request. See [API authentication](/docs/api/authentication).
 
 A call for a `userCorrelationId` that collides with a non-external account in that tenant is rejected with `400`.
 

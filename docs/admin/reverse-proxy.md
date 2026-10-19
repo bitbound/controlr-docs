@@ -26,7 +26,7 @@ You can usually tell from the address bar. A ControlR URL that carries `http://`
 
 The server consumes two forwarded headers: `X-Forwarded-For` and `X-Forwarded-Proto`. It applies them only when the immediate connection comes from a trusted address. Chain depth is unlimited, so every proxy between the client and the server needs to be in that trust list before the client address in `X-Forwarded-For` is read.
 
-`X-Forwarded-Host` and `X-Forwarded-Prefix` are deliberately not read. A caller can supply `X-Forwarded-Host` itself, and Cloudflare passes it through to the origin rather than overwriting it, so trusting it would let a caller point the links inside genuine account emails at a host they own. A proxy that rewrites `Host` to the public hostname, as the nginx example below does, works as expected because the server reads `Host`. A load balancer that only sets `X-Forwarded-Host` and leaves `Host` at the upstream address is no longer believed. Set `AppOptions:PublicBaseUrl` so the server knows its public origin for account-email links, and pin `AllowedHosts` if you want a forged `Host` rejected. See [Configuration](/docs/configuration).
+`X-Forwarded-Host` and `X-Forwarded-Prefix` are deliberately not read. A caller can supply `X-Forwarded-Host` itself, and Cloudflare passes it through to the origin rather than overwriting it, so trusting it would let a caller point the links inside genuine account emails at a host they own. A proxy that rewrites `Host` to the public hostname, as the nginx example below does, works as expected because the server reads `Host`. A load balancer that only sets `X-Forwarded-Host` and leaves `Host` at the upstream address gets nothing, because the server reads `Host`. Set `AppOptions:PublicBaseUrl` so the server knows its public origin for account-email links, and pin `AllowedHosts` if you want a forged `Host` rejected. See [Configuration](/docs/configuration).
 
 `X-Real-IP` is not one of the headers the server reads. The nginx example below sends it because that is the common convention, and ControlR ignores it.
 
@@ -104,7 +104,7 @@ If your service is guaranteed to only receive traffic from a trusted reverse pro
 ControlR_AppOptions__EnableNetworkTrust: true
 ```
 
-This clears the trust list entirely and removes the chain-depth limit. The server still reads only `X-Forwarded-For` and `X-Forwarded-Proto`, but it now believes them from whichever address it can actually be reached on, and `KnownProxies`, `KnownNetworks`, and `DockerGatewayIp` are ignored. `X-Forwarded-Host` and `X-Forwarded-Prefix` are never read, in this mode or any other.
+This clears the trust list entirely. The server still reads only `X-Forwarded-For` and `X-Forwarded-Proto`, but it now believes them from whichever address it can actually be reached on, and `KnownProxies`, `KnownNetworks`, and `DockerGatewayIp` are ignored. `X-Forwarded-Host` and `X-Forwarded-Prefix` are never read, in this mode or any other.
 
 **Warning:** Only enable this if untrusted clients cannot connect directly to your service.
 
@@ -139,7 +139,7 @@ Nothing rejects the connection. Agents and viewers authenticate with tokens, not
 
 The shipped `docker-compose.yml` publishes no HTTPS port and sets only `ASPNETCORE_HTTP_PORTS=8080`. Inside that container the redirect middleware has no HTTPS port to aim at, so it logs `Failed to determine the https port for redirect` and passes requests through. The proxy owns the HTTP-to-HTTPS redirect.
 
-Stripping the upgrade headers is a different failure, and it is not silent. The agent's SignalR client sets `SkipNegotiation = true` and `Transports = HttpTransportType.WebSockets`, so there is no long-polling fallback. A proxy that does not pass `Upgrade` and `Connection: upgrade` leaves agents unable to connect at all. The viewer hubs and the `/relay` WebSocket need the same handling, so remote control breaks the same way.
+Stripping the upgrade headers is a different failure, and it is not silent. Agents connect over WebSockets only, with no long-polling fallback, so a proxy that does not pass `Upgrade` and `Connection: upgrade` leaves agents unable to connect at all. The viewer hubs and the `/relay` WebSocket need the same handling, so remote control breaks the same way.
 
 To see whether forwarded headers are being applied, set Debug logging for the `Microsoft.AspNetCore.HttpOverrides` category and read the startup and per-request output. Both the shipped `appsettings.json` and `docker-compose.yml` already run that category at Debug, so the addresses the middleware refused show up on a default deployment.
 

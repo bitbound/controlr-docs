@@ -11,10 +11,10 @@ Remote control is not one of them. The agent contains no capture or input code. 
 
 ## What Is Built
 
-Release CI publishes the agent, the desktop client, and the installer for exactly five runtimes.
+Each release ships the agent, the desktop client, and the installer for exactly five runtimes.
 
-| Runtime | Platform | Built | Exercised by CI |
-|---------|----------|-------|-----------------|
+| Runtime | Platform | Built | Tested before release |
+|---------|----------|-------|-----------------------|
 | `win-x64` | Windows 11 | Yes | Yes |
 | `win-x86` | Windows 11 | Yes | No |
 | `linux-x64` | Linux, glibc | Yes | Yes |
@@ -23,17 +23,17 @@ Release CI publishes the agent, the desktop client, and the installer for exactl
 
 The binaries are self-contained and published as a single file. A device does not need the .NET runtime installed.
 
-**There is no `linux-arm64` agent.** The runtime list in the code has no ARM Linux entry, and an agent that resolves its own runtime to anything outside those five throws `PlatformNotSupportedException`. Installing an agent on an ARM Linux device is not supported.
+**There is no `linux-arm64` agent.** An agent that resolves its own runtime to anything outside those five throws `PlatformNotSupportedException`. Installing an agent on an ARM Linux device is not supported.
 
 The server is a separate question, and it is published for both. Releases from v0.28.x onward carry a `server-linux-arm64.zip` archive alongside the AMD64 one, and publish `bitbound/controlr` as a multi-arch image for `linux/amd64` and `linux/arm64`. Older tags are `linux/amd64` only. Check the manifest for the tag, and the archives for the release, before planning an ARM host around them.
 
 There is no musl or Alpine build. The Linux binaries are for glibc AMD64.
 
-Declared version floors, from the build settings:
+Declared version floors:
 
-- **Windows.** The Windows target framework is `net10.0-windows8.0`, so the compiled floor is Windows 8.0. Nothing in the code checks for a newer version. The project documents and tests Windows 11.
-- **macOS.** `SupportedOSPlatformVersion` and the app bundle's `LSMinimumSystemVersion` are both `12.0`. The build sets `MacTargetPlatformVersion` to `26.0`.
-- **Linux.** "Latest LTS" is the tested range. No version is pinned in code.
+- **Windows.** The compiled floor is Windows 8.0, and nothing checks the operating system version at runtime. What is documented and tested is Windows 11.
+- **macOS.** The floor is 12.0.
+- **Linux.** "Latest LTS" is the tested range. No version is pinned.
 
 ## Windows 11 (x64, x86)
 
@@ -67,15 +67,13 @@ The login-window limitation is not a permissions prompt. The agent runs as a Lau
 
 ### Intel (untested)
 
-The agent should run on Intel macOS, but no CI job runs it. Test jobs build and run on Apple Silicon only. Treat Intel macOS as "should work, not validated."
+The agent should run on Intel macOS, but it is not validated there. Treat Intel macOS as "should work, not validated."
 
 | Feature | Support |
 |---|---|
 | Remote Control | Untested |
 | VNC (Apple Screen Sharing) | Experimental |
 | Code Signing | Developer ID, hardened runtime, notarized |
-
-Intel builds are not second-class at the signing step. The Apple build job runs one matrix entry per architecture, and both entries sign the app bundle, the embedded agent, its bundled native libraries, and the installer binary with a Developer ID identity under a hardened runtime with a secure timestamp. Notarization and stapling then run for both, gated by a release input that is on by default. The target runtime is the only per-architecture difference in that job.
 
 ## Linux AMD64 (latest LTS)
 
@@ -130,4 +128,4 @@ The relay proxies a TCP connection on the device's own loopback address into a W
 
 The terminal is PowerShell 7 hosted inside the agent process through the PowerShell SDK. It is not `bash`, `zsh`, or `sh`, and it is not launched as an external `pwsh`. Nothing needs to be installed on the device for it to work. On Windows each session also runs `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process` before it starts.
 
-Auto-update checks every six hours. There is no retry or backoff after a failed check, so a failed check waits for the next tick. Applying an update is not an in-place binary swap. The agent downloads the bootstrap installer and launches it, via `systemd-run --scope` on Linux and a one-shot LaunchDaemon on macOS. A `DisableAutoUpdate` flag in the agent's developer settings section turns the check off. It is set to `true` only in the agent's `appsettings.Development.json`, and an update check forced from the server bypasses it.
+Auto-update checks every six hours. There is no retry or backoff after a failed check, so a failed check waits for the next tick. Applying an update is not an in-place binary swap. The agent downloads the bootstrap installer and launches it, via `systemd-run --scope` on Linux and a one-shot LaunchDaemon on macOS. A `DisableAutoUpdate` flag in the agent's developer settings section turns the check off. It ships off, and an update check forced from the server bypasses it.

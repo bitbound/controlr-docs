@@ -134,9 +134,9 @@ The installer also provides `uninstall` and `repair-desktop`. Both accept only `
 
 ## Self-registration
 
-`AllowAgentsToSelfBootstrap` does not change this page. The page never shows scripts without a key secret, and an install run without `-ks` and `-ki` cannot register a new device, because the device-creation endpoint validates the key ID and secret before it creates anything.
+An agent that was never registered cannot install without a key. The page never shows scripts without a key secret, and an install run without `-ks` and `-ki` cannot register a new device, because the device-creation endpoint validates the key ID and secret before it creates anything.
 
-The setting affects the agent connection path instead. When it is enabled (`ControlR_DeveloperOptions__AllowAgentsToSelfBootstrap=true`), the server accepts an agent that has no stored public key and lets it create its own device record rather than only updating an existing one. The agent is then placed in the only tenant on the server, and that placement is refused on a server with more than one tenant. This is a development and load-testing setting. Never enable it on a server that users can reach, and note that the server prints a warning at startup while it is on. Leave it off, which is the default, for any deployment people use.
+A development-only server option changes the agent connection path rather than this page. With it turned on, the server accepts an agent that has no stored public key and lets it create its own device record instead of only updating an existing one. The agent then lands in the only tenant on the server, and that placement is refused on a server with more than one tenant. The option is meant for development and load testing, the server prints a warning at startup while it is on, and it is off by default. Never turn it on for a server that users can reach. It is listed in the [Configuration reference](/docs/configuration).
 
 ## Next
 

@@ -54,7 +54,7 @@ Grants come in two groups.
 - **Read**, to view that slot's configuration and history.
 - **Write**, to change the slot's configuration and assets. Write includes Read.
 - **Execute**, to trigger builds for that slot.
-- **Logs**, to view build logs.
+- **Logs**, to see build details behind a build. The current portal shows this as a **Can view build logs** chip on the slot card. It does not put a log viewer on the slot page, so this permission changes what the card says rather than opening logs.
 - **Credentials**, to view the registry credentials and pull command.
 
 When you assign Write you get Read automatically. The same rule applies for user-management Write over Read.

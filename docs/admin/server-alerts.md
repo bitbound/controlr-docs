@@ -83,7 +83,7 @@ curl https://your-server/api/v1/server-alert \
   -H "x-personal-token: <tokenId>:<secret>"
 ```
 
-**Response** (`ServerAlertResponseDto`):
+**Response**:
 
 ```json
 {

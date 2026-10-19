@@ -5,7 +5,7 @@ title: Manage A Build Slot
 
 ## Open A Slot
 
-From the dashboard, each slot your entitlement grants appears as a card. Select **Configure slot** to open a slot you can edit. If you have read-only access to a slot, the button reads **View slot** and saving is disabled. The button label follows your access on that slot. It does not change based on whether the slot has already been set up.
+From the dashboard, each slot your entitlement grants appears as a card. Select **Configure slot** to open a slot you can edit. If you have read-only access to a slot, the button reads **View slot** and saving is disabled. The button label follows your access on that slot.
 
 The slot page has three areas: a configuration form, a private-assets panel, and a builds panel.
 
@@ -20,7 +20,8 @@ Fill in the slot configuration form and select **Save configuration**. The form 
 | Source ref | The ControlR version the slot builds. Choose from the available releases. Preview `-dev` tags appear only when **Enable preview builds** is on in [Settings](/docs/subscriber-portal/settings). |
 | Delivery format | How the built server reaches you. Either Docker image (a container image in the private registry) or ZIP download (a self-contained server archive). See [Delivery format](/docs/subscriber-portal/slot-configuration#delivery-format). |
 | Server runtime | The platform the server is built for. Docker offers linux-x64 (AMD/Intel) or linux-arm64 (ARM). ZIP adds win-x64 (Windows). |
-| ControlR server URL | A required, full http/https URL stored on the slot. The reference page covers what this field does and does not do. |
+| ControlR server URL | A required, full http/https URL stored on the slot. Agents built with it dial that address. See [ControlR Server URL](/docs/subscriber-portal/slot-configuration#controlr-server-url). |
+| Hide sponsorship info | Off by default. On, the built app hides its ControlR project, website, and sponsor links. See [Hide Sponsorship Info](/docs/subscriber-portal/slot-configuration#hide-sponsorship-info). |
 
 Under **Dark theme colors** and **Light theme colors** you set seven colors for each theme: Primary, Secondary, Tertiary, Info, Success, Warning, and Error. All fourteen are required. Each color is a hex value such as `#RRGGBB` or `#RRGGBBAA`. The fields start with the standard ControlR colors. Select the swatch next to a field to pick a color, or type the value.
 
@@ -59,11 +60,17 @@ The values are shown exactly as listed, and the last three are final. A build ca
 
 ## Read The Build History
 
-Below the current build, the **Recent build history** list shows past builds newest first. Each row carries a build timestamp, a status chip, the source ref, the duration, and the requested and completed times, plus a failure summary when one exists. A history row never shows an image reference or a pull command, so the **Image delivery** block belongs to the latest build only. The one interactive control is a **Download server** button on a row for a ZIP build that reached `succeeded`, which needs the slot's **Credentials** permission. See [Build Lifecycle](/docs/subscriber-portal/build-lifecycle#build-history-and-retention) for how long history is kept.
+Below the current build, the **Recent build history** list shows past builds newest first. Each row carries a build timestamp, a status chip, the source ref, the duration, and the requested and completed times, plus a failure summary when one exists. A history row never shows an image reference or a pull command, so the delivery card belongs to the latest build only. The one interactive control is a **Download server** button on a row for a ZIP build that reached `succeeded`, which needs the slot's **Credentials** permission. See [Build Lifecycle](/docs/subscriber-portal/build-lifecycle#build-history-and-retention) for how long history is kept.
 
-## Get The Image
+## Get The Built Server
 
-When a build succeeds, the builds panel shows an **Image delivery** block with the produced image and a pull command. Select **Copy pull command** to copy the command you use to pull the image from the private registry. The command is masked until you reveal it. Viewing and copying it requires access to registry credentials for that slot. See [Getting Your Image](/docs/subscriber-portal/getting-your-image) for the full command, where the credential comes from, and how long a copied command keeps working. See [Organization Access](/docs/subscriber-portal/organization-access) for how that access is granted in an organization.
+A successful build adds a delivery card to the builds panel, beside the build status. The card's heading follows the slot's [Delivery format](/docs/subscriber-portal/slot-configuration#delivery-format).
+
+A **Docker image** slot shows an **Image delivery** card with the produced image reference and a pull command. Select **Copy pull command** to copy the command you use to pull the image from the private registry. The command is masked until you reveal it.
+
+A **ZIP download** slot shows a **ZIP delivery** card naming the built server version and its runtime, with a **Download server** button. The button reads **Preparing...** while the link is created, and the card notes that each download link is valid for a few minutes. Before a build succeeds, the card says an archive becomes available once it does.
+
+Both cards depend on the slot's **Credentials** permission. Without it, the ZIP card says the built server is available to accounts that can view the slot's credentials, and there is no pull command to copy. See [Getting Your Image](/docs/subscriber-portal/getting-your-image) for the full pull command, where the credential comes from, and how long a copied command keeps working. See [Organization Access](/docs/subscriber-portal/organization-access) for how that access is granted in an organization.
 
 ## What You Can Do On A Slot
 

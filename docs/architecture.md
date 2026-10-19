@@ -82,11 +82,9 @@ Device registration is the one place where the two agent-side transports meet. T
 
 ## Server Component
 
-**Projects:** `ControlR.Web.Server`, `ControlR.Web.Client`, `ControlR.ApiClient`, `ControlR.Web.ServiceDefaults`
-
 The server is an ASP.NET Core application that orchestrates all ControlR communication. It hosts the web UI, both SignalR hubs, the REST API, and the built-in WebSocket relay.
 
-The UI is a Blazor Web App. Interactive components run in WebAssembly render mode from `ControlR.Web.Client`, and the identity pages (login, passkey sign-in, external-login callbacks, account management) are server-side Razor components in `ControlR.Web.Server`.
+The UI is a Blazor Web App. Interactive components run in WebAssembly render mode, and the identity pages (login, passkey sign-in, external-login callbacks, account management) are server-side Razor components.
 
 | Responsibility | Technology |
 |---------------|------------|
@@ -100,13 +98,13 @@ The UI is a Blazor Web App. Interactive components run in WebAssembly render mod
 | **API documentation** | Scalar / OpenAPI |
 | **Telemetry** | OpenTelemetry (OTLP export) |
 
-`ControlR.ApiClient` is the typed REST SDK. The agent, the installer, and the browser client all reach the server through it. `ControlR.Web.ServiceDefaults` holds the shared health-check and OpenTelemetry wiring used by both the server and the agent.
+`ControlR.ApiClient` is the typed REST SDK. The agent, the installer, and the browser client all reach the server through it.
 
-The container listens on port 8080 through `ASPNETCORE_HTTP_PORTS`, and the image also exposes 8081. The shipped compose file maps host port 5120 to container port 8080, and `launchSettings.json` binds `http://localhost:5120` for local runs, so 5120 is the usual browser-facing port.
+The container listens on port 8080 through `ASPNETCORE_HTTP_PORTS`, and the image also exposes 8081. The shipped compose file maps host port 5120 to container port 8080, so 5120 is the usual browser-facing port.
 
 ### Authentication Pipeline
 
-The server routes every request through one policy scheme, `CustomSchemes.Dynamic`, which forwards to a handler. Evaluation is ordered, and the first match wins:
+The server routes every request through one dynamic authentication policy scheme, which picks a handler per request. Evaluation is ordered, and the first match wins:
 
 | Order | Detected signal | Handler | Condition |
 |-------|-----------------|---------|-----------|
@@ -139,20 +137,18 @@ The two sides prove their identity differently. ViewerHub connections carry an o
 
 ### WebSocket Relay
 
-The WebSocket relay is hosted in the main server at `/relay`. A standalone host project, `ControlR.Web.WebSocketRelay`, still exists in the repository and builds on its own, but it is not part of the shipped compose stack.
+The WebSocket relay is hosted in the main server at `/relay`.
 
 The relay pairs exactly two sockets per session and forwards bytes between them. When one side closes, the relay closes its partner. Sessions are matched by a session ID in the query string, and the connection carries a `role` parameter:
 
 - **Responder** role: the side that supplies the screen. During remote control this is the Desktop Client on the target device. For the VNC relay it is the agent, which pipes the socket to a loopback VNC server.
 - **Requester** role: the side that views and sends input. This is the browser, or the standalone `ControlR.Viewer.Avalonia` app.
 
-The main server requires the requester to be an authenticated principal. The standalone host maps the same middleware with default options, which do not require that. Screen frames travel as MessagePack-serialized payloads over the relay socket, which is separate from the JSON used on the hubs.
+The main server requires the requester to be an authenticated principal. Screen frames travel as MessagePack-serialized payloads over the relay socket, which is separate from the JSON used on the hubs.
 
 ---
 
 ## Agent Component
-
-**Projects:** `ControlR.Agent`, `ControlR.Agent.Common`, `ControlR.Agent.Shared`, `ControlR.Agent.Installer`
 
 The agent runs as one background service per machine (per instance ID). It is the bridge between the server and the local device, and it supervises the Desktop Client.
 
@@ -176,12 +172,12 @@ The agent runs as one background service per machine (per instance ID). It is th
 
 ### Relationship with Desktop Client
 
-The agent does **not** render the screen or capture input directly. It delegates these OS-level GUI operations to the Desktop Client through **IPC (named pipes)** using the [StreamJsonRpc](https://github.com/microsoft/vs-streamjsonrpc) protocol with a MessagePack formatter:
+The agent does **not** render the screen or capture input directly. It delegates these OS-level GUI operations to the Desktop Client over **IPC (named pipes)**:
 
 - The agent hosts the **IPC server**. The pipe name is `controlr-ipc-server`, with the instance ID appended when one is set. Named pipes are used on every platform. On Linux and macOS the pipe name is a `/tmp` path.
-- The Desktop Client connects as the **IPC client** and exposes `IDesktopClientRpcService`.
-- The agent calls methods such as `ReceiveRemoteControlRequest`, `GetDesktopPreview`, and `InvokeCtrlAltDel` on that interface.
-- The connection is duplex. The Desktop Client calls back on `IAgentRpcService`, which exposes `SendChatResponse` for the device user's reply. Chat messages sent *to* the device arrive on `IDesktopClientRpcService.ReceiveChatMessage`.
+- The Desktop Client connects as the **IPC client**.
+- The agent asks the Desktop Client to perform GUI work such as starting a remote control session, capturing a desktop preview, and sending Ctrl+Alt+Del.
+- The connection is duplex, so the Desktop Client also calls the agent on the same channel. That is how the device user's chat reply travels back to the viewer that sent the message.
 
 This separation keeps the agent lightweight and allows it to run headlessly, while the Desktop Client handles GUI-specific work.
 
@@ -202,8 +198,6 @@ This separation keeps the agent lightweight and allows it to run headlessly, whi
 ---
 
 ## Desktop Client
-
-**Projects:** `ControlR.DesktopClient`, `ControlR.DesktopClient.Common`, `ControlR.DesktopClient.Windows`, `ControlR.DesktopClient.Linux`, `ControlR.DesktopClient.Mac`
 
 The Desktop Client is an [Avalonia UI](https://avaloniaui.net/) cross-platform desktop application that runs per interactive session on managed devices. It provides:
 

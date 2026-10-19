@@ -31,7 +31,7 @@ An account is eligible for registry access while it has an active sponsorship at
 
 1. The entitlement drops to zero slots as soon as the new sponsorship data syncs. Every slot locks. No new builds are possible.
 2. The portal stops handing out pull credentials for the account. Where a pull command used to appear, you get an error saying registry pull credentials are no longer available for the account.
-3. A background sweep that runs about every 30 minutes finds the ineligible account, disables its registry login token, deletes the account's entire image repository, and deletes the stored credential. This is a real deletion of your published images, not just an access cutoff. There is no archive.
+3. A background sweep that runs about every 30 minutes finds the ineligible account, disables its registry login token, deletes the account's entire image repository, deletes the downloadable ZIP server archives held for its builds, and deletes the stored credential. This is a real deletion of everything the portal holds for you, not just an access cutoff. Nothing is kept.
 4. A portal operator revoking a complimentary grant that pushed an account out of eligibility triggers the same teardown immediately rather than waiting for the sweep.
 
 A downgrade from one qualifying level to another does not delete anything. Full lapse does. If images from your slots matter to you, pull them and mirror them to a registry you control before the sponsorship drops below the threshold.

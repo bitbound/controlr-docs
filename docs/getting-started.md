@@ -65,8 +65,9 @@ Before installing:
 - For the Docker Compose deployment: **Docker** and **Docker Compose** on the host running the server. For the native deployment: Linux (AMD64; ARM64 only if the specific release carries an ARM64 server archive) and PostgreSQL 18. See [Native Installation](/docs/admin/native-installation).
 - A reachable domain name if you plan to terminate TLS in front of the server (recommended).
 - At least 1 GB of RAM available for the server.
-- An installer key for each device you install, created from the Deploy page or the Installer Keys page after the server is running. The agent installer uses it to register the device.
 - The bundled Compose stack maps host port `5120` to container port `8080`. Change the host port in the Compose file's port mapping. Leave `ASPNETCORE_HTTP_PORTS` set to `8080` inside the container. That variable changes the port the app listens on inside the container, not the host port.
+
+An installer key is not on that list because it cannot exist yet. The agent installer uses a key to authorize device registration, and keys only appear once the server is running. Create one during installation, from the Deploy page or the Installer Keys page.
 
 ## Next Steps
 

@@ -40,7 +40,7 @@ services:
 
 You do not need one. The image already ships a `HEALTHCHECK` that runs `curl -f http://localhost:8080/health`, and `8080` is the port the app listens on inside the container. Adding a `healthcheck` block to the service replaces the image's version.
 
-Before you write one, note what the image actually contains. The published image is built `FROM mcr.microsoft.com/dotnet/aspnet:10.0`, and the only package the build installs is `curl`. There is no `wget`. A `wget` test fails every probe, and the container reports `unhealthy` while the application is serving traffic normally.
+Before you write one, note what the image actually contains. It ships `curl` and no `wget`. A `wget` test fails every probe, and the container reports `unhealthy` while the application is serving traffic normally.
 
 The health endpoint is anonymous and is mapped before the authentication middleware, which is why a plain probe works without a credential.
 

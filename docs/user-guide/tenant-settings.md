@@ -17,7 +17,7 @@ The page exposes three settings. Changes are saved as soon as you make them. Eac
 
 ## Default Notification Policy
 
-Section heading: **Show Notification to User**. This controls whether the remote user is notified when a remote control session starts on their machine. It has no effect on VNC relay connections. The server does resolve this setting for a VNC request and puts the result on the message it sends the agent. The agent's VNC handler reads only the session id, the port, and the relay address, so nothing notifies the local user. A VNC session produces no notification under any setting here.
+Section heading: **Show Notification to User**. This controls whether the remote user is notified when a remote control session starts on their machine. It has no effect on VNC relay connections. A VNC session produces no notification under any setting here.
 
 | Option | Behavior |
 |--------|----------|

@@ -54,6 +54,8 @@ The active-session toolbar has four popovers, **View**, **Input**, **Quality**, 
 
 The **Input** popover holds **View Only**, **Block User Input** (Windows devices, requires `device.remote-control.block-input`), the clipboard buttons **Send Clipboard**, **Receive Clipboard**, and **Type Clipboard** (gated by `device.clipboard.write` and `device.clipboard.read`), **Ctrl+Alt+Del**, and a per-session **Keyboard Input Mode** picker. The **View** popover holds the view mode, scale, an **Auto Pan** option that follows the remote cursor, a display picker, and a **Privacy Screen** toggle that blacks out the physical display while the stream stays visible (Windows only).
 
+The **Extras** popover holds a **Metrics** switch, plus a per-session **DirectX** switch that appears only for Windows devices. The metrics overlay draws measured numbers over the picture: **Mbps In**, **Mbps Out**, **FPS**, the capture **Mode**, **Current Quality**, and **Latency** in milliseconds. This is where you look to see what a bandwidth cap or an auto-quality threshold actually did to a live session.
+
 ### Mobile / Touch Devices
 
 | Gesture | Action |
@@ -69,7 +71,7 @@ Touch mode also adds two toolbar toggles: **Scroll Mode**, which turns one-finge
 
 ## Settings
 
-Defaults are configured in **Settings** (`/settings`). Most can also be changed for the current session from the **View**, **Input**, and **Quality** popovers.
+Defaults are configured in **Settings** (`/settings`). Most can also be changed for the current session from the **View**, **Input**, **Quality**, and **Extras** popovers.
 
 ### Default View Mode
 

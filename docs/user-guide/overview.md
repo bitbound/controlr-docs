@@ -87,7 +87,7 @@ Desktop Preview captures a single-frame JPEG snapshot of a device's desktop sess
 
 ### Accessing Desktop Preview
 
-In the app, open the **Remote Control** page for the device and select **Preview** on a session card. The buttons are hidden when the server disables previews with the `DisableDesktopPreview` setting.
+In the app, open the **Remote Control** page for the device and select **Preview** on a session card. The buttons are hidden whenever the server has desktop previews turned off.
 
 The versioned REST API also serves previews:
 
@@ -107,7 +107,7 @@ The `targetProcessId` is the process ID of the desktop client that runs the sess
 | **Desktop session** | An active session with its desktop client running |
 | **Capture permission** | The desktop client must hold the operating system's screen-capture permission. The agent checks it before capturing and the preview fails with the reason when it is missing |
 | **User permission** | `device.desktop-preview.read` on the target device |
-| **Server config** | `DisableDesktopPreview` must not be enabled |
+| **Server config** | Desktop previews must not be turned off on the server |
 
 ## Wake-on-LAN
 

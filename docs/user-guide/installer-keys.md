@@ -56,7 +56,7 @@ The grid shows these columns:
 
 There is no secret column. The secret exists only in the creation response and in whatever copy you saved.
 
-Two filters narrow the list:
+Two rules decide which keys reach the list:
 
 - Without `installer-key.others.read` you see only the keys you created. Server service accounts see all keys.
 - Expired non-persistent keys and exhausted usage-based keys are gone from the list, because the server deletes them.
@@ -99,13 +99,13 @@ Both flags are optional to the installer itself, but passing `--installer-key-se
 
 ## Self-Registration Without a Key
 
-`ControlR_DeveloperOptions__AllowAgentsToSelfBootstrap` (default `false`, development and load testing only) does not make keys optional at install time. The device registration endpoint the installer calls always requires a valid key, and that option is not consulted there.
+A development-only server option does not make keys optional at install time. The device registration endpoint the installer calls always requires a valid key, whatever that option is set to.
 
-The option affects only the agent connection path. When enabled, an agent the server does not know can create its own device record when it connects, without presenting any key. When the agent supplies no tenant, this fallback works only on servers with exactly one tenant, and the device lands in that tenant. On multi-tenant servers the agent's configured tenant id must name an existing tenant. With the option disabled, connections from unknown devices are rejected.
+The option affects only the agent connection path. When enabled, an agent the server does not know can create its own device record when it connects, without presenting any key. When the agent supplies no tenant, this fallback works only on servers with exactly one tenant, and the device lands in that tenant. On multi-tenant servers the agent's configured tenant id must name an existing tenant. With the option disabled, connections from unknown devices are rejected. The option is listed in the [Configuration reference](/docs/configuration).
 
 ## Key History Retention
 
-Installer key usage history is retained for `ControlR_AppOptions__AgentInstallerKeyHistoryDays` days (default: 90). Set to `0` or below to retain history indefinitely. A background job prunes older usage records every 8 hours. Deleting a key, or the server's automatic removal of an expired or exhausted key, removes its usage records regardless of this setting.
+Installer key usage history is kept for 90 days by default. An operator can change the period, or keep history indefinitely, in the server's configuration. A background job prunes older usage records every 8 hours. Deleting a key, or the server's automatic removal of an expired or exhausted key, removes its usage records regardless of the retention period.
 
 ## Next
 

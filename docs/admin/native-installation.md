@@ -11,7 +11,7 @@ ControlR can be deployed natively on Linux without Docker. Each release ships th
 
 - **Linux**: the server archive is `server-linux-amd64.zip` on AMD64 and `server-linux-arm64.zip` on ARM64. Ubuntu, Debian, or similar. ARM64 archives and a multi-arch container image appeared with the v0.28.x releases, so older releases carry only the AMD64 archive. Check the release's asset list before scripting against a name.
 - **PostgreSQL 18**: The version ControlR's own Compose file ships. Install via Docker (recommended) or your package manager.
-- **Reverse proxy**: Nginx, Caddy, or Apache. Required for anything reachable beyond the machine itself. ControlR does not support exposing its own web server to the internet. The proxy provides HTTPS and passes real client addresses through to the server.
+- **Reverse proxy**: Nginx, Caddy, or Apache. Needed whenever the server is reachable over the internet, because ControlR does not support exposing its own web server to the internet. The proxy provides HTTPS and passes real client addresses through to the server. A deployment confined to the machine itself, or to a private network you fully control, can skip it, and the proxy step below covers that case.
 
 The release ZIP is a self-contained publish. It bundles the .NET runtime, so you do **not** need to install .NET on the host. It does not bundle the operating-system libraries .NET links against. ControlR does not enable globalization-invariant mode, so the host needs the ICU libraries that provide culture data.
 
@@ -233,12 +233,12 @@ controlr.example.com {
 
 ### Tell the server to trust the proxy
 
-The server runs in the `Production` environment, which turns on HTTPS redirection and HSTS. It only accepts forwarded headers from addresses in its trust list. A native install has no container gateway address to fall back on, so you must add the proxy yourself. Set one of these in `appsettings.Production.json`:
+The server runs in the `Production` environment, which turns on HTTPS redirection and HSTS. It only accepts forwarded headers from addresses in its trust list. A proxy running on this same host is already trusted through loopback and needs nothing here. A proxy on another host or network has to be named, so set one of these in `appsettings.Production.json`:
 
 ```json
 {
   "AppOptions": {
-    "KnownProxies": ["127.0.0.1"]
+    "KnownProxies": ["203.0.113.1"]
   }
 }
 ```
@@ -257,7 +257,7 @@ Or trust a range:
 
 ## Step 8: Database Migrations
 
-ControlR applies EF Core migrations automatically at startup. There is no migration command in the published server. `Program.cs` calls the `ApplyMigrations()` extension method in `Startup/IHostExtensions.cs`, and that method calls `Database.MigrateAsync()`. It runs before the server starts listening, so the first request cannot be served until migrations finish.
+ControlR applies EF Core migrations automatically at startup. There is no migration command in the published server. Migrations run before the server starts listening, so the first request cannot be served until they finish.
 
 ### Verify a migration run
 
@@ -279,11 +279,11 @@ sudo docker exec controlr-postgres psql -U controlr_admin -d controlr -c \
 
 Keep the double quotes around `"__EFMigrationsHistory"` and the column names. PostgreSQL lowercases unquoted identifiers and the real names are mixed case.
 
-The newest `MigrationId` should match the last migration in the release you installed. Migration source files are listed in `ControlR.Web.Server/Data/Migrations` in the repository, and the file names start with the same timestamp prefix as `MigrationId`.
+Record the newest `MigrationId` before a change so you can confirm it moved forward afterward. The value carries a timestamp prefix, so a larger value is a later migration.
 
 ### Why the journal does not confirm this
 
-The shipped log configuration sets `"Microsoft": "Warning"`. EF Core logs each applied migration at `Information` under the `Microsoft.EntityFrameworkCore.Migrations` category, which inherits that `Warning` floor. `ApplyMigrations()` adds no logging of its own. The result is a clean journal on a run that applied dozens of migrations, and a clean journal on a run that applied none.
+The shipped log configuration sets `"Microsoft": "Warning"`. EF Core logs each applied migration at `Information` under the `Microsoft.EntityFrameworkCore.Migrations` category, which inherits that `Warning` floor. The migration step adds no logging of its own. The result is a clean journal on a run that applied dozens of migrations, and a clean journal on a run that applied none.
 
 To see the per-migration lines, add a more specific override to `appsettings.Production.json`:
 
@@ -309,7 +309,7 @@ Expect no output on a server that is already current. That is the correct result
 
 ### When migrations fail
 
-`MigrateAsync` throws, the host fails to start, and systemd restarts it every 10 seconds per `RestartSec`. So a server that cannot reach the database during the upgrade window sits in a restart loop and recovers on its own once the database answers. Watch `journalctl -u controlr -n 50 --no-pager` for the underlying exception.
+If a migration fails, the server exits instead of starting in a degraded state, and systemd restarts it every 10 seconds per `RestartSec`. So a server that cannot reach the database during the upgrade window sits in a restart loop and recovers on its own once the database answers. Watch `journalctl -u controlr -n 50 --no-pager` for the underlying exception.
 
 EF Core takes a database-wide lock before applying migrations and holds it for the duration. A second instance starting at the same time waits on that lock instead of racing. Keep the deployment to one instance.
 
@@ -345,6 +345,9 @@ sudo crontab -e
 
 ```bash
 sudo mkdir -p /var/backups/controlr
+
+# The backup runs as the postgres user, which needs to write here.
+sudo chown postgres:postgres /var/backups/controlr
 
 # Create backup script
 sudo tee /usr/local/bin/controlr-backup > /dev/null <<'EOF'

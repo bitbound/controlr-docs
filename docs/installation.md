@@ -62,13 +62,20 @@ wget -O docker-compose-secrets.yml \
 
 That file sets `ControlR_AppOptions__EnableDockerSecrets` to `true`. The app then loads every file in `/run/secrets` as configuration, using the file name as the key. Keys are matched after the `ControlR_` prefix is stripped from environment variables, so the secret file `POSTGRES_USER` fills the same setting as `ControlR_POSTGRES_USER`, and `Bootstrap__AdminPassword` fills the same setting as `ControlR_Bootstrap__AdminPassword`. The directory is not optional. With the flag on and `/run/secrets` absent, the app throws during configuration and never starts. The public URL is not a secret, and it is not a `${VAR:?error}` value either. Set it the same way as the variables file: edit the `x-public-base-url` anchor in the secrets Compose file.
 
-The shipped file has a startup bug you need to work around before the first run. It mounts `Bootstrap__AdminPassword`, `Bootstrap__ServerServiceAccountTokenId`, and `Bootstrap__ServerServiceAccountTokenSecret` into the container, while the Compose file leaves `ControlR_Bootstrap__AdminEmail` and `ControlR_Bootstrap__ServerServiceAccountName` commented out. Both bootstrap routines treat a half-configured pair as an error and throw, so the container crashes at startup and restarts in a loop. Remove these three names from the service's `secrets:` list and from the top-level `secrets:` map at the bottom of the file:
+The shipped file has a startup bug you need to work around before the first run. It mounts six `Bootstrap__*` secrets into the container while every matching entry in the service's `environment:` block stays commented out. Two separate faults follow. Each bootstrap routine rejects a half-configured set, so an admin password with no admin email, or a service-account token with no account name, is an error rather than a skip. And three of the mounted names hold identifiers that have to parse as GUIDs, so placeholder content in those files is refused while configuration loads. Either fault stops the container at startup, and the restart policy brings it back again and again.
+
+Remove all six names from the service's `secrets:` list and from the top-level `secrets:` map at the bottom of the file:
 
 - `Bootstrap__AdminPassword`
+- `Bootstrap__AdminPatSecret`
+- `Bootstrap__AdminPatTokenId`
+- `Bootstrap__ServerServiceAccountId`
 - `Bootstrap__ServerServiceAccountTokenId`
 - `Bootstrap__ServerServiceAccountTokenSecret`
 
-If you do want those accounts created on first startup, keep the mounts and also set `ControlR_Bootstrap__AdminEmail`, plus `ControlR_Bootstrap__ServerServiceAccountName` for the service account. A password without an email, or a token without a name, is a rejected configuration rather than a skipped one.
+With none of them mounted, both bootstrap routines log a skip during startup and the server comes up.
+
+If you do want those accounts created on first startup, keep the mounts and set `ControlR_Bootstrap__AdminEmail`, plus `ControlR_Bootstrap__ServerServiceAccountName` for the service account. The identifier files then need real GUIDs. `bootstrap-admin-pat-token-id`, `bootstrap-server-service-account-id`, and `bootstrap-server-service-account-token-id` each hold one, and a placeholder in any of them stops the server at startup with a message naming the key it could not convert.
 
 `AppOptions__SmtpPassword`, `AppOptions__GitHubClientSecret`, and `AppOptions__MicrosoftClientSecret` are declared in the top-level map but not mounted into any service, so they change nothing until you add them to the `controlr` service's `secrets:` list. Their files still have to exist.
 
@@ -77,7 +84,8 @@ The Compose file declares its secret files under `./example-secrets/`, so create
 ```bash
 mkdir -p example-secrets
 
-# One raw value per file. The names you are not using can hold a placeholder.
+# One raw value per file. A name you leave unmounted can hold a placeholder.
+# A name you keep mounted needs a real value, including a GUID for the three identifier files.
 for name in \
   postgres_user postgres_password postgres_db \
   aspire-dashboard-browser-token \

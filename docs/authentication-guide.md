@@ -5,7 +5,7 @@ title: Authentication Guide
 
 ## Overview
 
-ControlR authenticates every request through one policy scheme, `CustomSchemes.Dynamic`, which inspects the request and forwards it to a handler. Five authentication schemes are supported:
+ControlR authenticates every request through one dynamic authentication policy scheme, which inspects the request and picks a handler per request. Five authentication schemes are supported:
 
 1. **Cookie**: the default for the web UI (Blazor Web App).
 2. **Logon Token**: single-use, single-device URLs for granting ad-hoc browser sessions.
@@ -155,13 +155,13 @@ Two different bootstraps exist, and they use different credentials.
 
 ControlR uses a fine-grained, scope-based permission system instead of fixed roles. Each capability is a namespaced permission (e.g. `device.read`, `tenant.users.write`) granted to a principal (user, user group, service account, personal access token, or logon token) at a specific scope (server, tenant, customer, device group, device, or user group). Most policies are tenant-scoped and resolve against the caller's own tenant claim. An explicit deny always overrides allow.
 
-To make broad grants easy, ControlR provides named **presets**, which are curated bundles of related permissions. The seven presets are Server Administrator, Tenant Administrator, Device Superuser, Agent Installer, Installer Key Manager, Service Account Manager, and Self Service. Every interactive user is seeded with Self Service, which covers that user's own tokens and preferences. Applying a preset grants all of its permissions at the appropriate scope.
+To make broad grants easy, ControlR provides named **presets**, which are curated bundles of related permissions. The seven presets are Server Administrator, Tenant Administrator, Device Superuser, Agent Installer, Installer Key Manager, Service Account Manager, and Self Service. Self Service is seeded automatically for every user who signs in with a ControlR account rather than an external login, and it covers that user's own personal access tokens. Applying a preset grants all of its permissions at the appropriate scope.
 
 Permissions are managed through the **Permissions** page (`/permissions`). See [Permissions](/docs/user-guide/permissions) and the [Permission System](/docs/permission-system) for the full model.
 
 ## Tags
 
-Tags are string labels used to organize and filter devices. They are no longer used for access control. Device access is governed entirely by permission assignments. Tags are managed on the **Tags** page (`/tags`). Tag names must match `[a-z0-9-]` and be at most 50 characters.
+Tags are string labels used to organize and filter devices. Device access is governed entirely by permission assignments. Tags are managed on the **Tags** page (`/tags`). Tag names must match `[a-z0-9-]` and be at most 50 characters.
 
 ## Next
 

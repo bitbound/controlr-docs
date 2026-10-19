@@ -49,7 +49,7 @@ You set these on the slot page. See [Manage A Build Slot](/docs/subscriber-porta
 
 ## What A Slot Produces
 
-When you trigger a build for a slot, the portal produces a ControlR server image that carries that slot's branding and settings. The image is published to a private container registry. The slot page shows the image and a command to pull it. See [Connect To ControlR](/docs/subscriber-portal/connect-to-controlr) for how the image fits into running ControlR.
+When you trigger a build for a slot, the portal produces a ControlR server carrying that slot's branding and settings. What you receive depends on the slot's delivery format. A **Docker image** slot publishes a container image to a private registry that only you can pull, and the slot page shows the image with a command to pull it. A **ZIP download** slot instead stores a self-contained server archive that you download from the slot page. See [Delivery Format](/docs/subscriber-portal/slot-configuration#delivery-format) and [Connect To ControlR](/docs/subscriber-portal/connect-to-controlr) for how either shape fits into running ControlR.
 
 ## Slots On The Dashboard
 

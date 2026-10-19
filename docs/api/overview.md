@@ -78,7 +78,7 @@ See [NuGet Packages](/docs/api-reference/nuget-packages) for setup.
 
 ## Authentication
 
-All API requests require authentication. The server forwards every request to one handler, based on what the request carries. It tests in this order, and the first match wins:
+Requests that reach a protected endpoint are authenticated. The server forwards every request to one handler, based on what the request carries. It tests in this order, and the first match wins:
 
 1. A logon token, when the path starts with `/device-access` and the query contains `logonToken`.
 2. A bearer token, and only when `ControlR_AppOptions__EnableInteractiveBearerLogin` is on.
@@ -95,6 +95,8 @@ All API requests require authentication. The server forwards every request to on
 | Logon Token | `?logonToken=<token>&deviceId=<id>` | Single-use device access links. |
 
 Two consequences of that order are worth remembering. A request that sends both `x-personal-token` and `x-api-key` authenticates as the personal access token, because the personal-token header is tested first. A `Bearer` value in the `Authorization` header is ignored unless `EnableInteractiveBearerLogin` is on, and the request then falls through to cookie authentication.
+
+A few routes answer without any credential. They are the reads that have to happen before an identity exists, such as the settings the sign-in page needs and the version and release-note lookups, plus agent registration, which proves itself with installer-key credentials inside the request body. [API Endpoints](/docs/api-reference/endpoints) carries an `Anonymous` marker on each one.
 
 Logon tokens are not an API credential. The dynamic selector routes to the logon-token handler only for paths beginning with `/device-access`, and that handler requires a `deviceId` alongside the token. The same is true of a `?logonToken=` on an `/api/...` URL, which is never routed to that handler.
 

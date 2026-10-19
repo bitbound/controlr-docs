@@ -63,10 +63,10 @@ ControlR uses EF Core [Global Query Filters](https://learn.microsoft.com/en-us/e
 
 This is not a blanket guarantee at the database layer, and two cases matter:
 
-- Filters are applied only when the request's principal is authenticated **and** carries both a tenant and a user claim. A server-scoped service account has no tenant claim, so its database context has no tenant filters at all. Those paths are protected by explicit tenant predicates and permission checks in controllers and services.
-- Some entities deliberately carry no filter. `PermissionAssignments` is one, because server-scoped grant rows belong to no tenant and the rule resolver must read rows without a tenant context. `ServiceAccounts`, `AuthorizationChangeLogs`, `ServerAlert`, `Tenant`, and the framework's data-protection keys are also unfiltered. Each is guarded in code rather than by a filter.
+- Filters are applied only when the request's principal is authenticated **and** carries both a tenant and a user claim. A server-scoped service account has no tenant claim, so nothing filters its queries by tenant. Those paths are guarded by explicit tenant checks plus permission checks in each request path instead.
+- Some data deliberately carries no filter. Permission grants are one, because a server-scoped grant belongs to no tenant and the server has to read grants while evaluating a request that has no tenant context. Service accounts, authorization change log entries, the server alert, the tenant records themselves, and the framework's data-protection keys are also unfiltered. Each is guarded by explicit checks instead of by a filter.
 
-Filtered entities include devices, users, tags, customers, device groups, user groups, installer keys, logon tokens, tenant invites, and tenant settings. Personal access tokens, user preferences, and user storage items filter by the owning user first and fall back to tenant.
+Data covered by the filters includes devices, users, tags, customers, device groups, user groups, installer keys, logon tokens, tenant invites, and tenant settings. Personal access tokens, user preferences, and user storage items filter by the owning user first and fall back to tenant.
 
 ### How A Request Resolves Its Tenant
 
@@ -86,7 +86,7 @@ The alert banner is visible to every authenticated user, including tenant-only a
 
 ## Tenant-Scoped Settings
 
-Each tenant can configure its own settings, stored in the `TenantSettings` database table:
+Each tenant can configure its own settings:
 
 | Setting | Type | Description |
 |---------|------|-------------|

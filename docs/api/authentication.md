@@ -5,7 +5,7 @@ title: Authentication
 
 ## Authentication Overview
 
-Every ControlR API request must be authenticated. The server routes each request through a [dynamic policy scheme](/docs/authentication-guide) that picks one of five handlers based on the request's headers and URL. This page documents the three machine-to-machine schemes used by API clients and automations: Personal Access Tokens, Service Account credentials, and Logon Tokens. For the cookie, bearer-token, and external-login flows, see the [Authentication Guide](/docs/authentication-guide).
+Every endpoint that is not explicitly marked anonymous requires a credential. The server routes each request through a [dynamic policy scheme](/docs/authentication-guide) that picks one of five handlers based on the request's headers and URL. This page documents the three machine-to-machine schemes used by API clients and automations: Personal Access Tokens, Service Account credentials, and Logon Tokens. For the cookie, bearer-token, and external-login flows, see the [Authentication Guide](/docs/authentication-guide).
 
 ## How a scheme is chosen
 
@@ -140,9 +140,22 @@ curl -X POST https://your-server/api/v1/logon-tokens/external \
 
 Both answer `200 OK` with `deviceAccessUrl`, `expiresAt`, and `token`. The `deviceAccessUrl` points at `/device-access?deviceId={deviceId}&logonToken={token}`, which is the URL to hand to a browser.
 
+Both examples above omit `permissions`, and that field decides what the link can do. A token created without a permission list carries two baseline grants, `device.read` and `device.overview.read` on the device. That is a viewing link. It cannot start a remote-control session. Name the permissions to widen it, and the token carries that list instead of the baseline pair:
+
+```json
+{
+  "deviceId": "<device-guid>",
+  "tenantId": "<tenant-guid>",
+  "userId": "<user-guid>",
+  "permissions": ["device.read", "device.remote-control.connect", "device.remote-control.interact"]
+}
+```
+
+Every entry has to be a real permission name, and each one applies to the token's own device. A name the catalog does not have is answered with `400`. `device.read` is added to an explicit list automatically, so it does not have to be repeated.
+
 The `deviceId` and `tenantId` pair must describe a device that really belongs to that tenant. A mismatch is answered with `400`. A caller that is not a server principal is additionally checked against its own tenant claim.
 
-The external route's call creates or finds a transient user in the target tenant (`ext-{userCorrelationId}`, email `ext-{userCorrelationId}@controlr.local`) with no password, no permission assignments of its own, and access scoped to the specified device. Cleanup is automatic after `ControlR_AppOptions__ExternalUserCleanupAfterDays` days of inactivity (default 30). Setting that option below 1 disables cleanup.
+The external route's call creates or finds a transient user in the target tenant (`ext-{userCorrelationId}`, email `ext-{userCorrelationId}@controlr.local`) with no password and no permission assignments of its own. What the opened page can do comes from the token's own grants, described above. Cleanup is automatic after `ControlR_AppOptions__ExternalUserCleanupAfterDays` days of inactivity (default 30). Setting that option below 1 disables cleanup.
 
 The unversioned `POST /api/logon-tokens` route still exists but is deprecated in favor of `/api/v1/logon-tokens/user`. It takes only `deviceId` and derives tenant and user from the caller's claims, which means it needs a session carrying a tenant claim. A bearer token works only when `EnableInteractiveBearerLogin` is on.
 

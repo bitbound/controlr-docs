@@ -24,7 +24,7 @@ On a successful build the delivery card reads **ZIP delivery**. It names the ver
 
 The **Download server** button needs the slot's **Credentials** permission, titled "View registry credentials" in the portal's own warning text. A member who holds Read, Write, or Execute but not **Credentials** does not see the button on the card or in the history, and must ask an account owner for the download or for that permission.
 
-Every successful ZIP build in **Recent build history** carries its own **Download server** button, so you can retrieve an earlier build, not just the latest. Each one is gated on the same **Credentials** permission. Failed and cancelled rows carry no button.
+Every successful ZIP build in **Recent build history** carries its own **Download server** button, so you can retrieve an earlier build, not just the latest. Each one is gated on the same **Credentials** permission. Failed and cancelled rows carry no button. The stored archive is deleted when its row is pruned, about 30 days after the build finished, so download anything you want to keep. See [Build Lifecycle](/docs/subscriber-portal/build-lifecycle#build-history-and-retention).
 
 While a ZIP build is still running, the card says a downloadable server archive becomes available once the build succeeds. There is nothing to download until it does.
 

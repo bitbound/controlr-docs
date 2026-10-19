@@ -5,7 +5,7 @@ title: Permissions
 
 ## Overview
 
-The Permissions page (`/permissions`) manages fine-grained, scope-based permission assignments. It replaces the legacy role-based model. Instead of assigning fixed roles (Server Administrator, Tenant Administrator, Device Superuser, Installer Key Manager, Agent Installer), you grant individual permissions to a principal at a specific scope. See the [Permission System](/docs/permission-system) for the full model.
+The Permissions page (`/permissions`) manages fine-grained, scope-based permission assignments. Each assignment grants or denies one permission to one principal at one scope. See the [Permission System](/docs/permission-system) for the full model.
 
 Opening the page needs `tenant.permissions.read`. Creating, editing, or deleting assignments needs `tenant.permissions.write`. A row with the `Deny` effect additionally needs `tenant.permissions.deny`. For a row at `Server` scope, the write check is `server.permissions.write` instead of the tenant one. Assigning permissions to a server service account also needs `server.permissions.write`, whatever scope the row itself uses.
 
@@ -74,7 +74,7 @@ Permission management is consistent across principal types. The **Users**, **Use
 - **User Groups** (`/user-groups`): group users so a single assignment applies to all members.
 - **Device Groups** (`/device-groups`): group devices so a single assignment applies to all members.
 - **Customers** (`/customers`): organize devices by customer for customer-scoped grants. To create a customer or assign devices to one, see [Customers](/docs/user-guide/devices#customers).
-- **Tags** (`/tags`): device tagging for organization and filtering (no longer used for access control).
+- **Tags** (`/tags`): device tagging for organization and filtering. Tags grant no access.
 
 ## Next
 

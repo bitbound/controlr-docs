@@ -88,7 +88,7 @@ A user with only the read code can open the page and browse. The page does not h
 
 ## File Transfer Limits
 
-`ControlR_AppOptions__MaxFileTransferSize` sets the cap in bytes. The default is `104857600`, which is 100 MiB. See the [configuration reference](/docs/configuration) for how to set it.
+The transfer cap is a server setting measured in bytes, and it defaults to 100 MiB. The [configuration reference](/docs/configuration) names it.
 
 Use a negative value for unlimited transfers, for example `-1`. Do not use `0`. The server treats any value at or below `0` as unlimited. The web client treats only negative values as unlimited, so at exactly `0` it compares every file against a zero-byte limit. Every non-empty upload is then refused with a message such as `exceeds the maximum upload size of 0.00 MB`, and every non-empty file in a download selection is refused with `exceed the maximum download size of 0.00 MB`.
 

@@ -31,7 +31,7 @@ The agent checks for updates once when it starts, then every six hours. Set `Dis
 4. **Download the bootstrap installer**: On a mismatch, the agent downloads the platform installer to a temporary directory and verifies the downloaded file against the installer SHA256. A hash mismatch deletes the file and stops.
 5. **Run the installer**: The agent launches the installer with `install`, passing the server URI, tenant id, and instance id. The installer then downloads the full bundle, verifies its hash, stops the running services, replaces the binaries, and restarts them. On Linux the installer is started under a `systemd-run` scope so it keeps running after the agent service stops. On macOS it runs as a launchd job. The agent does not stop services or replace binaries itself.
 
-`DotnetExtractDirectoryCleanupHostedService` is not part of this step. It is an agent-hosted service that runs at agent startup and deletes stale .NET single-file extraction directories left behind by earlier runs.
+Separately, at agent startup the agent deletes stale .NET single-file extraction directories left behind by earlier runs.
 
 ### Update Failure Handling
 

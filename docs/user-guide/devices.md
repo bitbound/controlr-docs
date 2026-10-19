@@ -24,7 +24,7 @@ Device management lives on the Dashboard. Each device row has an Actions menu. T
 
 Both actions require the `device.delete` permission, evaluated against the target device.
 
-Server decommissioning is a separate, configuration-only switch (`ServerLifecycle:DecommissionServer`, default off). When it is on, every agent that connects is told to uninstall itself and its device record is deleted. The web interface shows a banner to all signed-in users while it is active. There is no in-product toggle for it.
+Server decommissioning is a separate server setting that is off by default and has no in-product toggle. When an operator turns it on, every agent that connects is told to uninstall itself and its device record is deleted. The web interface shows a banner to all signed-in users while it is active. The setting is listed in the [Configuration reference](/docs/configuration).
 
 ## Customers
 
@@ -70,6 +70,6 @@ Assigning or removing a tag on a device requires the `device.tags.write` permiss
 ### Tag Validation
 
 - Tag names may contain lowercase letters, digits, and hyphens only (`[a-z0-9-]`). The validation message in the app also mentions underscores, which is wrong. Underscores are rejected.
-- Max length: 50 characters, enforced by the client and the database column.
-- Names are unique per tenant. A unique index on name plus tenant is enforced in the database, and the UI rejects a duplicate name as you type.
+- Max length: 50 characters.
+- Names are unique per tenant.
 - Deleting a tag removes it from every device that carried it.

@@ -18,17 +18,17 @@ The image tag and the GitHub release tag are different strings.
 | Docker image | `bitbound/controlr:0.27.6.0` | Version, no `v` |
 | GitHub release | `v0.27.6.0` | Version with a leading `v` |
 
-The image version comes from `wwwroot/downloads/Version.txt` inside the build, which holds a plain numeric version. `.github/workflows/publish-docker.yml` pushes that value as the image tag, while the release workflow prefixes it with `v`. Copying a release tag straight into the `image:` key produces `manifest unknown`.
+The image tag is a plain numeric version, while a GitHub release tag carries a leading `v`. Copying a release tag straight into the `image:` key produces `manifest unknown`.
 
-Docker Hub also carries the channel tags `latest`, `preview`, and `dev`. Pin a version anyway. The release workflow does not pass `docker_tag`; `publish-docker.yml` derives the tag from the build's metadata. A pre-release build publishes only to `dev`, so `latest` cannot move onto a build whose GitHub release is marked pre-release.
+Docker Hub also carries the channel tags `latest`, `preview`, and `dev`. Pin a version anyway. A pre-release build publishes only to `dev`, so `latest` never moves onto a build whose GitHub release is marked pre-release.
 
 ### The database
 
-`Program.cs` calls `ApplyMigrations()` before `app.RunAsync()`, and that method calls `Database.MigrateAsync()` (`Startup/IHostExtensions.cs`). Every migration the database has not yet applied runs before the server accepts a single request. There is no migration command in the published image or in the release ZIP.
+The server applies every pending database migration at startup, before it accepts a single request. There is no migration command in the published image or in the release ZIP.
 
 Two consequences follow from that ordering. The `/health` endpoint stays unreachable while migrations run, so a long first request is normal. A server that cannot reach PostgreSQL during the upgrade window never gets past migrations, and the `restart: unless-stopped` policy keeps retrying it until the database answers.
 
-Migrations in this project add columns and backfill them, so existing records survive. What they do not preserve is the old shape. The 0.28 permission restructure, `20260813192551_Permissions_Phase2`, copies each user's legacy role memberships into permission assignments and only then drops `AspNetRoles`, `AspNetUserRoles`, and `AspNetRoleClaims`. Access is carried forward. Those three tables are gone, which is what makes [Rollback](#rollback) a database restore rather than an image swap.
+Migrations add columns and backfill them, so existing records survive. What they do not preserve is the old shape. The 0.28 permission restructure copies each user's legacy role memberships into permission assignments and only then removes the Identity role tables. Access is carried forward. Those tables are gone, which is what makes [Rollback](#rollback) a database restore rather than an image swap.
 
 ### The agents
 
@@ -56,7 +56,7 @@ Run these from the directory that holds your Compose file and your `.env`. The b
        image: bitbound/controlr:0.27.6.0
    ```
 
-2. **Confirm which image Compose will actually use.** A `docker-compose.override.yml` sitting next to the file replaces the image, and the one checked into the repository points at a locally built `controlrwebserver`.
+2. **Confirm which image Compose will actually use.** A `docker-compose.override.yml` sitting next to the file replaces the image.
 
    ```bash
    sudo docker compose config | grep image
@@ -124,7 +124,7 @@ curl -s http://127.0.0.1:5120/downloads/Version.txt
 
 That file ships inside the image, so the value is the version the server hands to agents as the update target.
 
-To confirm the schema reached the migration set that ships with the release, read the EF Core history table. [Native Installation](/docs/admin/native-installation#step-8-database-migrations) gives the query for both the Docker and the native database. The newest `MigrationId` should match the last file in `ControlR.Web.Server/Data/Migrations` for that release.
+To confirm the migrations ran, read the EF Core history table. [Native Installation](/docs/admin/native-installation#step-8-database-migrations) gives the query for both the Docker and the native database. Record the newest `MigrationId` before the upgrade, then read it again after. A value that moved forward means the schema caught up with the release.
 
 Then sign in to the web UI and check that the login page loads and that an account with server administrator permissions can sign in.
 
@@ -134,9 +134,9 @@ If the Aspire dashboard is enabled, watch it across the migration window. See [T
 
 ## Rollback
 
-There is no supported downgrade path. `Database.MigrateAsync()` only moves a database forward, and neither the image nor the release ZIP ships a tool that moves it back. The newest cleanup migration, `20260912020000_RemoveOrphanedServerAlertsReadGrants`, documents its own down step as a deliberate no-op because it cannot know which rows it deleted.
+There is no supported downgrade path. Migrations only move a database forward, and neither the image nor the release ZIP ships a tool that moves it back. Some migrations delete rows on the way up and cannot put them back.
 
-Swapping only the image tag is not a rollback. The database schema stays ahead of the code, and a pre-0.28 server expects the Identity role tables that `Permissions_Phase2` dropped. That fails at startup or on the first authorization query rather than degrading quietly.
+Swapping only the image tag is not a rollback. The database schema stays ahead of the code, and a pre-0.28 server expects the Identity role tables that the permission restructure removed. That fails at startup or on the first authorization query rather than degrading quietly.
 
 The rollback sequence is a restore:
 
