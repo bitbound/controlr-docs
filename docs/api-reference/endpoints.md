@@ -214,8 +214,6 @@ No route in this group takes `tenantId`. These routes resolve the caller's devic
 
 `principalKind` must be one of `User`, `UserGroup`, or `ServiceAccount`. Anything else is answered `400`. `permissionName` is required and capped at 150 characters. `ServiceAccount` covers tenant service accounts only, and a principal in another tenant is answered `404`, the same answer as a principal that does not exist.
 
-There is no `POST /api/v1/effective-permissions/query`.
-
 ### Effective user preferences
 
 `/api/v1/effective-user-preferences`
@@ -279,8 +277,6 @@ Both routes carry the tenant in the request body rather than the query string. T
 | POST | `/api/v1/permission-assignments/replace` | `tenantId` (query), body | `tenant.permissions.write` |
 | PUT | `/api/v1/permission-assignments/{assignmentId}` | `assignmentId` (route), `tenantId` (query), body | `tenant.permissions.write` |
 | DELETE | `/api/v1/permission-assignments/{assignmentId}` | `assignmentId` (route), `tenantId` (query) | `tenant.permissions.write` |
-
-The batch routes are `batch` and `batch-delete`. There is no `create-many` or `delete-many` route on this group.
 
 ### Personal access tokens
 
@@ -848,7 +844,7 @@ The hub carries `[Authorize]`, so a viewer needs an authenticated session. Beyon
 | `UnsubscribeFromDeviceHeartbeats2` | current | `UnsubscribeFromDeviceHeartbeatsRequestDto` |
 | `UploadFile` | current | `FileUploadMetadata`, `ChannelReader<byte[]>` |
 
-There is no `SendDtoToUserGroups` method on this hub, in either direction. Subscribing to heartbeats is capped at 100 device ids per call.
+Subscribing to heartbeats is capped at 100 device ids per call.
 
 **Server to viewer.** These are `IViewerHubClient` methods. The server pushes them to connected viewers.
 

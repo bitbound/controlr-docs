@@ -23,9 +23,9 @@ Each release ships the agent, the desktop client, and the installer for exactly 
 
 The binaries are self-contained and published as a single file. A device does not need the .NET runtime installed.
 
-**There is no `linux-arm64` agent.** An agent that resolves its own runtime to anything outside those five throws `PlatformNotSupportedException`. Installing an agent on an ARM Linux device is not supported.
+The agent binaries cover exactly those five runtimes. An agent that resolves its own runtime to anything else throws `PlatformNotSupportedException` and does not start. This includes ARM Linux devices.
 
-The server is a separate question, and it is published for both. Releases from v0.28.x onward carry a `server-linux-arm64.zip` archive alongside the AMD64 one, and publish `bitbound/controlr` as a multi-arch image for `linux/amd64` and `linux/arm64`. Older tags are `linux/amd64` only. Check the manifest for the tag, and the archives for the release, before planning an ARM host around them.
+The server is published for both Linux architectures. Releases from v0.28.x onward carry a `server-linux-arm64.zip` archive alongside the AMD64 one, and publish `bitbound/controlr` as a multi-arch image for `linux/amd64` and `linux/arm64`. Older tags are `linux/amd64` only. Check the manifest for the tag, and the archives for the release, before planning an ARM host around them.
 
 There is no musl or Alpine build. The Linux binaries are for glibc AMD64.
 

@@ -125,7 +125,7 @@ curl -X POST https://your-server/api/v1/server-alert \
 
 ## Configuration
 
-Server alerts need no configuration. There are no related environment variables or options keys. The alert lives in the single-row `ServerAlerts` table, so it is covered by a normal database backup.
+Server alerts need no configuration. The alert is stored in the server database, so it is covered by a normal database backup.
 
 ## Next
 

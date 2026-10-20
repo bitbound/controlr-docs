@@ -46,7 +46,7 @@ Validation rules:
 - `.` and `..` are rejected.
 - Path separators are rejected.
 - Allowed characters are letters, digits, period, underscore, and hyphen. Spaces and other symbols are rejected.
-- There is no length limit.
+- Values are capped at 100 characters.
 
 ## API Shape
 

@@ -86,7 +86,7 @@ services:
 
 The bundled Compose file mounts the named volume at `/var/lib/postgresql`, and that is the correct path for the `postgres:18` image it pins. In the Postgres 18 image, `PGDATA` moved to `/var/lib/postgresql/18/docker`, a child of that mount.
 
-Do not "fix" the mount to the older `/var/lib/postgresql/data`. Under Postgres 18 that directory is no longer the data directory, so the volume holds nothing, the database lands in the container layer, and a `docker compose down` followed by `up` destroys it.
+Do not "fix" the mount to the older `/var/lib/postgresql/data`. That path is not the data directory on Postgres 18, so the volume holds nothing, the database lands in the container layer, and a `docker compose down` followed by `up` destroys it.
 
 Confirm where the data actually lives. Expand the variable inside the container, where Compose sets it, rather than on your own command line.
 

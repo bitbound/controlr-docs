@@ -15,8 +15,8 @@ The image tag and the GitHub release tag are different strings.
 
 | Artifact | Example | Rule |
 | --- | --- | --- |
-| Docker image | `bitbound/controlr:0.27.6.0` | Version, no `v` |
-| GitHub release | `v0.27.6.0` | Version with a leading `v` |
+| Docker image | `bitbound/controlr:0.28.15.0` | Version, no `v` |
+| GitHub release | `v0.28.15.0` | Version with a leading `v` |
 
 The image tag is a plain numeric version, while a GitHub release tag carries a leading `v`. Copying a release tag straight into the `image:` key produces `manifest unknown`.
 
@@ -53,7 +53,7 @@ Run these from the directory that holds your Compose file and your `.env`. The b
    ```yaml
    services:
      controlr:
-       image: bitbound/controlr:0.27.6.0
+       image: bitbound/controlr:0.28.15.0
    ```
 
 2. **Confirm which image Compose will actually use.** A `docker-compose.override.yml` sitting next to the file replaces the image.
@@ -62,7 +62,7 @@ Run these from the directory that holds your Compose file and your `.env`. The b
    sudo docker compose config | grep image
    ```
 
-   Expect `bitbound/controlr:0.27.6.0` for the `controlr` service.
+   Expect `bitbound/controlr:0.28.15.0` for the `controlr` service.
 
 3. **Merge any new configuration keys** from the release's Compose file into the `controlr` service. Keep your own database credentials and any values you deliberately changed.
 

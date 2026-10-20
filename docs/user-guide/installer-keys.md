@@ -54,7 +54,7 @@ The grid shows these columns:
 | **Expiration** | Expiration timestamp, where the key has one |
 | **Created** | When the key was created |
 
-There is no secret column. The secret exists only in the creation response and in whatever copy you saved.
+The secret exists only in the creation response and in whatever copy you saved.
 
 Two rules decide which keys reach the list:
 

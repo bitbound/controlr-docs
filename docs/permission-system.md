@@ -11,12 +11,12 @@ ControlR's authorization layer is a fine-grained, scope-based permission system.
 
 Every capability in ControlR has a unique, namespaced permission identifier following the pattern `<resource>.<action>`, such as `device.read`, `device.remote-control.connect`, or `tenant.permissions.write`. The server's permission catalog lists each name with a display name, category, description, and the scope kinds at which it may be granted. There are 67 catalog entries.
 
-```
-server.tenants.read                   -- List all tenants on the server
-device.read                           -- View device details
-device.remote-control.connect         -- Connect via remote control
-tenant.permissions.write              -- Manage permission assignments in a tenant
-```
+| Permission name | Capability |
+|---|---|
+| `server.tenants.read` | List all tenants on the server |
+| `device.read` | View device details |
+| `device.remote-control.connect` | Connect via remote control |
+| `tenant.permissions.write` | Manage permission assignments in a tenant |
 
 There is no `server.alerts.read` permission. The server alert banner is visible to every signed-in user. Managing the server-wide alert itself falls under `server.settings.write`.
 

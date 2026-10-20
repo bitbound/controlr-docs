@@ -66,7 +66,7 @@ The three-dot button in the **Actions** column opens a menu. Its contents depend
 
 The button beside the menu has the tooltip **Remote Control**. It is disabled while the device is offline. When **Open in new tab** is checked, both this button and **Device Access** open in a new browser tab instead of replacing the Dashboard.
 
-Nothing happens when you click a row. There is no row click handler. The ways into a device are the action menu, the remote-control button, and the row expander.
+Nothing happens when you click a row. The ways into a device are the action menu, the remote-control button, and the row expander.
 
 The grid has no selection column and no bulk action. Every command on this page is sent for one device at a time.
 
