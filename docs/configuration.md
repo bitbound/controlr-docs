@@ -226,7 +226,7 @@ Root section `DeveloperOptions`. These settings are for development and load tes
 
 ### AllowAgentsToSelfBootstrap and tenants
 
-The setting only matters when the connecting agent presents no tenant. In that case the server requires exactly one tenant to exist and places the device in it. With two or more tenants the connection is refused with `Self-bootstrap is only allowed on single-tenant servers. Use an installer key instead.` An agent that presents a valid tenant ID is not affected by this setting.
+An agent whose device is already enrolled keeps the tenant recorded on its device row, whatever tenant the agent sends. The setting applies when the server has no such device row. With the setting on, the server requires exactly one tenant to exist and places the new device in it. With two or more tenants the connection is refused with `Self-bootstrap is only allowed on single-tenant servers. Use an installer key instead.` With the setting off, an unenrolled device is refused as `Unknown device.`
 
 So this is a development and load-testing tool, not a way to skip installer keys in production. Never enable it on a server that users can reach. Multi-tenant deployments must use installer keys, which carry an explicit tenant.
 

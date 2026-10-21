@@ -11,7 +11,7 @@ It is a server-paged data grid, not a set of cards. The rows are only the device
 
 While the page is open, the browser subscribes to heartbeat updates for the devices on the current page. Status, CPU, memory, and storage for those rows change in place. A reconnect to the server hub reloads the grid.
 
-If your account cannot see a single device, an info bar appears with a link to the **Deploy Page** in place of the grid.
+If your account cannot see a single device, an info bar appears with a link to the **Deploy Page**. It sits above the grid, which stays on the page with its search box, filters, and column headers.
 
 ## Columns
 

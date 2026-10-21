@@ -1,6 +1,6 @@
 ---
 sidebar_position: 11
-title: Settings
+title: Portal Settings
 ---
 
 **Settings** in the sidebar holds the options that apply to your account rather than to one slot. The page has two cards: **Preview builds** and **Redeem a promo code**.

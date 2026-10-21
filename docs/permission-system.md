@@ -41,11 +41,9 @@ Scope kinds carry a sentinel for an unspecified value (0, which no permission al
 | **Device** | A single device (by id). |
 | **UserGroup** | One user group. This is the resource the `user-group.assign-users` permission is granted against, meaning "you may add or remove members of this specific group". It is not how group membership grants flow. That flow is handled by the principal side (see [Principal Kinds](#principal-kinds)). |
 
-Two different breadth orderings exist and they are not identical.
+One breadth ranking orders the scope kinds, and the server uses it in both directions. Device 0, DeviceGroup 1, UserGroup 1, CustomerTenant 2, Tenant 3, Server 4. Lower is narrower.
 
-When the system picks the broadest legal scope for a grant, Device and UserGroup rank at the same level: Device 0, DeviceGroup 1, UserGroup 1, CustomerTenant 2, Tenant 3, Server 4.
-
-When the server orders matching grants by specificity, the ranking is Device 0, DeviceGroup 1, CustomerTenant 2, UserGroup 3, Tenant 4, Server 5. Narrower is more specific.
+Picking the broadest legal scope for a grant takes the highest rank. Breaking a tie among matching allows takes the lowest, so a narrower scope wins.
 
 ### Effects
 

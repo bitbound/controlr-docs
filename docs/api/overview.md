@@ -110,7 +110,7 @@ With that key in hand, create further accounts over `POST /api/v1/server-service
 
 ## Response Format
 
-Successful responses return typed DTOs specific to each endpoint. Refer to the [OpenAPI specification](https://your-server/openapi/v1.json) or [Scalar API Browser](/docs/scalar-api-browser) for the full schema of each endpoint. The path is relative to your server origin. Substitute `your-server` with your real host.
+Successful responses return typed DTOs specific to each endpoint. Refer to the [OpenAPI specification](https://your-server/openapi/v1.json) or [Scalar API Browser](/docs/api/scalar-api-browser) for the full schema of each endpoint. The path is relative to your server origin. Substitute `your-server` with your real host.
 
 ## Error Handling
 
@@ -167,6 +167,6 @@ Registration, the Identity API `login`, `forgotPassword`, and `refresh` endpoint
 ## Next
 
 - **[Authentication](/docs/api/authentication)**: Detailed authentication guide
-- **[Scalar API Browser](/docs/scalar-api-browser)**: Interactive API exploration
+- **[Scalar API Browser](/docs/api/scalar-api-browser)**: Interactive API exploration
 - **[NuGet Packages](/docs/api-reference/nuget-packages)**: Typed client and viewer packages
 - **[API Endpoints](/docs/api-reference/endpoints)**: Complete endpoint reference

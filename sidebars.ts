@@ -95,7 +95,7 @@ const sidebars: SidebarsConfig = {
         'api/overview',
         'api/authentication',
         'api/service-accounts',
-        'scalar-api-browser',
+        'api/scalar-api-browser',
         'api-reference/endpoints',
         'api-reference/nuget-packages',
       ],
