@@ -273,6 +273,8 @@ The endpoint finds or creates a **transient user** in the target tenant:
 
 ControlR issues a single-use logon token that, when opened in a browser, signs the transient user in and lands directly on the device's access page. The response is `200 OK` with `deviceAccessUrl`, `expiresAt`, and `token`. The `deviceAccessUrl` is `/device-access?deviceId={deviceId}&logonToken={token}`.
 
+Building that URL needs `PublicBaseUrl`. Without it the call returns `503` and mints no token, so a server with no public URL configured cannot hand out device access links at all. See [Outbound links and the public origin](/docs/configuration#outbound-links-and-the-public-origin).
+
 That link is a viewing link unless the request also names permissions. Without a `permissions` list the token carries only `device.read` and `device.overview.read` on the device, so the recipient sees the device and cannot start a remote-control session. A dispatch integration that wants control has to name the permissions in the request. See [API authentication](/docs/api/authentication).
 
 A call for a `userCorrelationId` that collides with a non-external account in that tenant is rejected with `400`.
@@ -288,6 +290,7 @@ Transient users are cleaned up by the external user cleanup background service a
 | `403` | Authenticated but not authorized. The caller lacks the required permission, or the target account is disabled. |
 | `404` | Service account or credential not found |
 | `409` | A server service account with that name already exists |
+| `503` | Logon-token route only. The server has no `PublicBaseUrl`, so it cannot build the device access URL and creates no token. |
 
 `403` is not limited to non-service-account callers. A user principal holding `server.service-accounts.write` can call these routes, and a `Restricted` service account with no assignment rows is denied everything.
 

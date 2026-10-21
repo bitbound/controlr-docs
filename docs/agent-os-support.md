@@ -107,7 +107,9 @@ These are the Debian and Ubuntu package names, and they are the ones the agent p
 
 X11 is required for the login/greeter screen.
 
-The desktop client picks its backend from the environment, in this order. `WAYLAND_DISPLAY` being set selects Wayland. Otherwise `DISPLAY` being set selects X11, unless `XDG_SESSION_TYPE` is `wayland`, which means XWayland and selects Wayland instead. Otherwise `XDG_SESSION_TYPE` on its own selects the matching backend. If nothing matches, the environment type is unknown and the client fails to start with an unsupported desktop environment error.
+The desktop client starts when either `DISPLAY` or `WAYLAND_DISPLAY` is set, and it exits without opening a window when neither is. With `DISPLAY` set it renders through X11. With `WAYLAND_DISPLAY` set and `DISPLAY` unset it uses the Wayland backend, which falls back to X11 when no usable compositor is found.
+
+Session type is read on its own and decides the capture path. A set `WAYLAND_DISPLAY` is Wayland. A set `DISPLAY` is X11, unless `XDG_SESSION_TYPE` is `wayland`, which is XWayland and counts as Wayland. Otherwise `XDG_SESSION_TYPE` on its own decides. So a device attached to an XWayland session draws its window with X11 while remote control still goes through the portal.
 
 ### VNC
 

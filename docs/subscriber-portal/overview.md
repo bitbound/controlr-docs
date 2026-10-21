@@ -5,7 +5,7 @@ title: Overview
 
 ## What It Is
 
-The Subscriber Portal is the ControlR sponsor portal. It is a web app where GitHub sponsors manage the custom-build benefits that come with their sponsorship. You sign in with the same GitHub account you sponsor with, review your current sponsorship, and create branded, customized ControlR builds.
+The ControlR Portal is the sponsor portal for ControlR. It is a web app where GitHub sponsors manage the custom-build benefits that come with their sponsorship. You sign in with the same GitHub account you sponsor with, review your current sponsorship, and create branded, customized ControlR builds. The browser tab and the header both read **ControlR Portal**, and that is the name the portal uses in the email it sends you.
 
 The portal is separate from the ControlR server you run. ControlR is the remote access product. The portal produces a ControlR server build that carries your branding, as a container image or a downloadable archive depending on the slot. You run that build as your ControlR server.
 

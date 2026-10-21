@@ -300,7 +300,7 @@ These are self-service routes for the calling user's own tokens. Managing anothe
 |---|---|---|---|
 | GET | `/api/v1/public-server-settings` | none | Anonymous |
 
-Returns `IsPublicRegistrationEnabled` and `DisableDesktopPreview`. The response is cached for 60 seconds.
+Returns `IsPublicRegistrationEnabled`, `DisableDesktopPreview`, and `PublicBaseUrl`. The last one is what the server has for `AppOptions:PublicBaseUrl`, and it is `null` when that setting is unset. `IsPublicRegistrationEnabled` is computed, so it is `true` when public registration is on or when no user exists yet and first-user self-registration has not been disabled. The response is cached for 60 seconds.
 
 ### Server alert
 

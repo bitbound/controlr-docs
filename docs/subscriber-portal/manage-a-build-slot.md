@@ -43,7 +43,7 @@ The builds panel drives the build process.
 
 1. On the slot page, go to the **Builds** panel.
 2. Select **Trigger build**. The portal starts a build for the slot using the configuration saved on the slot and the assets stored on it. A slot with zero uploaded assets still builds.
-3. Watch the latest status. The panel does not poll on its own while a build runs, so select **Refresh status** to pull the newest state from GitHub.
+3. Watch the latest status. While a build is in flight the panel pulls its state from GitHub about every 10 seconds on its own, and stops once the build reaches a final state. Select **Refresh status** to pull again after that.
 
 While a build is running, the trigger button becomes **Cancel build**. The portal asks you to confirm, since cancelling asks GitHub to stop the underlying run. Confirm with **Cancel build** or leave it running with **Keep building**. See [Build Lifecycle](/docs/subscriber-portal/build-lifecycle) for what cancelling does and does not guarantee.
 

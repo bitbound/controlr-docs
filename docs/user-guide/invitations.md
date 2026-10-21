@@ -16,13 +16,14 @@ ControlR does not send invitation emails. Creating an invite immediately creates
 3. In the new row, click the copy icon in the **Invite URL** column. The link is copied to your clipboard and a snackbar reports "Copied to clipboard".
 4. Send the link to the invitee yourself. ControlR sends no email.
 
-The invite link has the shape `https://your-server/invite-confirmation/{activation-code}`. The activation code is 86 characters. It is 64 random bytes rendered as URL-safe base64 with the padding removed, the same construction used for a personal access token secret. Anyone who has the link and knows the invited email address can set the account password, so share the link only with the intended person.
+The invite link has the shape `https://your-server/invite-confirmation/{activation-code}`. The origin comes from the server's `PublicBaseUrl`, never from whoever called the endpoint. The activation code is 86 characters. It is 64 random bytes rendered as URL-safe base64 with the padding removed, the same construction used for a personal access token secret. Anyone who has the link and knows the invited email address can set the account password, so share the link only with the intended person.
 
 Creation is rejected in these cases:
 
 - The email already has a pending invite.
 - A user with that email already exists in the database.
 - The instance requires confirmed email addresses while email sending is disabled.
+- The server has no `PublicBaseUrl`, so it cannot build the link. Nothing is created, so no account exists without a way in. See [Outbound links and the public origin](/docs/configuration#outbound-links-and-the-public-origin).
 
 ## The Invitation Grid
 

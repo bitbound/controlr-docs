@@ -91,7 +91,7 @@ The Default column shows what an operator actually gets. Most keys are set expli
 | `ControlR_AppOptions__MicrosoftClientId` | string? | None | Microsoft OAuth client ID |
 | `ControlR_AppOptions__MicrosoftClientSecret` | string? | None | Microsoft OAuth client secret |
 | `ControlR_AppOptions__PersistPasskeyLogin` | bool | `false` | Makes passkey login equivalent to "remember me" |
-| `ControlR_AppOptions__PublicBaseUrl` | string? | None | The absolute URL this server is reachable at by its users, e.g. `https://controlr.example.com`. Every link in an outbound account email is built from it. See Email links in account emails below |
+| `ControlR_AppOptions__PublicBaseUrl` | string? | None | The absolute URL this server is reachable at by its users, e.g. `https://controlr.example.com`. Every link the server hands to someone else to open is built from it. See Outbound links and the public origin below |
 | `ControlR_AppOptions__RequireUserEmailConfirmation` | bool | `false` | Users must confirm email before logging in. Requires SMTP |
 | `ControlR_AppOptions__RequireUserUniqueEmail` | bool | `true` | Whether each user must have a unique email address across all tenants |
 | `ControlR_AppOptions__ServiceAccountAuthFailureLimit` | int | `5` | Maximum failed `x-api-key` authentication attempts allowed per rate-limit window. Tracked separately per source IP and per credential. `0` or less does not turn the limiter off. It lets one failure through, then rejects that IP or credential for the rest of the window |
@@ -108,16 +108,18 @@ The Default column shows what an operator actually gets. Most keys are set expli
 | `ControlR_AppOptions__UseHttpLogging` | bool | `false` | Enables HTTP request/response logging |
 | `ControlR_AppOptions__UseInMemoryDatabase` | bool | `false` | Uses EF Core in-memory DB instead of PostgreSQL (dev/test only) |
 
-### Email links in account emails
+### Outbound links and the public origin
 
-Every link the server puts into an email (password reset, email confirmation, email change) is built from `PublicBaseUrl`, never from the arriving request. A request can carry a forged `Host` or `X-Forwarded-Host`, and a link built from that would deliver a genuine email carrying a valid token to a host the caller picked.
+Three families of links are built from `PublicBaseUrl`, never from the arriving request: the links in account emails (password reset, email confirmation, email change), the device access URL returned by the logon-token endpoint, and tenant invitation links. A request can carry a forged `Host` or `X-Forwarded-Host`, and a link built from that would deliver a genuine credential to a host the caller picked.
 
-There is no request-origin fallback. When `PublicBaseUrl` is unset or unusable, no account-email link is built, and the actions that depend on such a link do not half-succeed:
+There is no request-origin fallback. When `PublicBaseUrl` is unset or unusable, nothing is sent or created halfway:
 
 - A password-reset request fails instead of sending an email, because the server has no trustworthy origin to put in front of the reset token.
 - Confirmation emails are not sent, and the server logs an error where it declined one.
+- A logon-token request returns `503` and reads `This server has no public URL configured, so it cannot build the device access URL. Set AppOptions:PublicBaseUrl to this server's public URL.` The token is not minted, so no session exists that nobody can open.
+- A tenant invite is refused the same way, and it is refused before the account behind the invitation is created.
 
-The server prints a warning at startup when `PublicBaseUrl` is unset or unusable. Set `PublicBaseUrl` to get clickable links and working password resets. A configured value that is not an absolute `http` or `https` URL is rejected, logged, and treated as unset. Pinning `AllowedHosts` does not enable these links; only `PublicBaseUrl` does.
+The server prints a warning at startup naming all three. Set `PublicBaseUrl` to get clickable links, working password resets, device access links, and invitations. A configured value that is not an absolute `http` or `https` URL is rejected, logged, and treated as unset. Pinning `AllowedHosts` does not enable these links; only `PublicBaseUrl` does.
 
 ### File transfer size
 
@@ -136,9 +138,9 @@ A limit of exactly `0` therefore lets the server accept a transfer while the bro
 |----------|------|---------|-------------|
 | `AllowedHosts` | string[] | `*` | Semicolon-separated hostnames the server answers to, without port numbers. A request whose `Host` is not in the list is rejected with `400 Bad Request` before it reaches the app. `*` accepts any host. Prefix form: `ControlR_AllowedHosts` |
 
-Pinning the list rejects a request carrying a forged `Host` with `400 Bad Request` instead of serving it. It does not affect account-email links, which are built only from `PublicBaseUrl` (see Email links in account emails above).
+Pinning the list rejects a request carrying a forged `Host` with `400 Bad Request` instead of serving it. It does not affect outbound links, which are built only from `PublicBaseUrl` (see Outbound links and the public origin above).
 
-The shipped `appsettings.json` sets `AllowedHosts` to `*`, so a default deployment accepts any host, and until `PublicBaseUrl` is set a password-reset request fails and the link-bearing account emails are refused rather than sent without a link.
+The shipped `appsettings.json` sets `AllowedHosts` to `*`, so a default deployment accepts any host, and until `PublicBaseUrl` is set a password-reset request fails, account emails carrying links are refused, and both device access links and tenant invites return `503`.
 
 ## Bootstrap Options
 
@@ -342,14 +344,14 @@ services:
       ControlR_AppOptions__EnablePublicRegistration: false
 
       # The absolute URL this server is reachable at by its users. Every link
-      # in an account email (password reset, email confirmation, email change)
-      # is built from it, and only from it. Unset, no account-email link is
-      # produced and a password-reset request fails outright.
+      # the server hands to someone else to open is built from it, and only
+      # from it: account emails, device access links, and tenant invites.
+      # Unset, a password reset fails outright and the other two return 503.
       ControlR_AppOptions__PublicBaseUrl: https://your-server.example.com
 
       # The hostnames this server answers to. A request carrying any other
-      # Host gets a 400. Pinning it does not affect account-email links, which
-      # are built only from PublicBaseUrl above. "*" accepts any host.
+      # Host gets a 400. Pinning it does not affect outbound links, which are
+      # built only from PublicBaseUrl above. "*" accepts any host.
       ControlR_AllowedHosts: your-server.example.com
 
       # DEVELOPMENT AND LOAD TESTING ONLY. Never enable on a server that users

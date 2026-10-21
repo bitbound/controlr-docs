@@ -35,7 +35,7 @@ Two irregular paths exist. A `pending_validation` build that never gets a workfl
 ### What Each Status Looks Like In The Panel
 
 - While the build is in `pending_validation`, `queued`, or `running`, the trigger button is replaced by **Cancel build**.
-- The **Duration** line under **Latest build details** is a value the portal computes on the server and shows as-is. There is no on-page timer, so it does not tick up while you watch. It refreshes when you open the slot page, when you select **Refresh status**, and during the cancellation poll described under [Cancelling A Build](#cancelling-a-build). While a build runs, each refresh recomputes it from the recorded start time, so it climbs in steps rather than smoothly.
+- The **Duration** line under **Latest build details** is a value the portal computes on the server and shows as-is. It is not a stopwatch. Each refresh recomputes it from the recorded start time, so during a build it climbs in steps of about 10 seconds rather than smoothly. See [Keeping The Panel Current](#keeping-the-panel-current).
 - On a **Docker image** slot, `succeeded` fills the **Image delivery** block with the produced image reference and the pull command. On a **ZIP download** slot it fills the **ZIP delivery** card with a **Download server** button. See [Getting Your Image](/docs/subscriber-portal/getting-your-image).
 - `failed` shows a failure summary when the pipeline produced one. It typically names the job and the step that failed.
 - `canceled` shows a summary saying GitHub Actions reported the build as canceled.
@@ -56,13 +56,15 @@ What actually happens when you confirm:
 - If the run completes successfully a moment later, the build is `succeeded`, not `canceled`. The first final result to land wins.
 - A real cancellation stops the CI job, which means a half-finished build publishes nothing. An image is only in your registry after a `succeeded`.
 - A build that has not received a workflow run id yet cannot be cancelled. The portal tells you the build has not reached GitHub Actions yet and to refresh its status and try again.
-- After you confirm, the panel quietly refreshes the build about every 10 seconds until it reaches a final state, so you do not need to poll manually.
+- After you confirm, the panel keeps pulling the build status about every 10 seconds until it reaches a final state, so you do not need to poll manually.
 
-## Refresh Status, And Why It Is Needed
+## Keeping The Panel Current
 
 **Refresh status** is a read-only pull. It fetches the current state of the slot's latest build from GitHub and updates what you see. It never starts, restarts, or cancels anything, and it needs only **Read** access on the slot.
 
-The builds panel loads once when you open the slot page and then sits still, except while a cancellation is pending. GitHub's status changes reach the portal through webhooks and a background sweep that runs about every minute, so the page you left open can lag reality. If a dashboard says `running` and you suspect the build already finished, select **Refresh status**.
+The panel also keeps itself current while a build is in flight. It loads when you open the slot page, and while the latest build has not reached `succeeded`, `failed`, or `canceled`, it pulls that build again about every 10 seconds. Those pulls only happen while the tab is in the foreground, and they stop if the status has not changed for 30 minutes. When a build settles, the build history list reloads once.
+
+GitHub's status also reaches the portal through webhooks and a background sweep that runs about every minute. Two cases still call for **Refresh status**: a build that has already finished, since the automatic poll stops at a final state, and a build whose poll stopped after 30 minutes without changing. If a page says `running` and you suspect it ended, select **Refresh status**.
 
 ## What A Build Reads From Your Slot
 

@@ -46,10 +46,10 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Subscriber Portal',
+      label: 'ControlR Portal',
       link: {
         type: 'generated-index',
-        description: 'Guides for sponsors using the ControlR Subscriber Portal.',
+        description: 'Guides for sponsors using the ControlR Portal.',
       },
       items: [
         'subscriber-portal/overview',

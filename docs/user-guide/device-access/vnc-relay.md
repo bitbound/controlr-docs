@@ -30,7 +30,7 @@ Access requires the `device.vnc-relay.connect` permission. It gates the menu ent
 
 ## How the Relay Works
 
-Each session gets a random session ID and a shared access token. The page opens the viewer leg as an authenticated user, and the agent opens the responder leg. The server pairs the two WebSocket connections and pumps bytes both ways, so no inbound port is needed on the device. Each leg has 30 seconds to arrive before the relay gives up on the pairing.
+Each session gets a random session ID and a shared access token. The page opens the viewer leg as an authenticated user, and the agent opens the responder leg. The server pairs the two WebSocket connections and pumps bytes both ways, so no inbound port is needed on the device. Each leg has 20 seconds to arrive before the relay gives up on the pairing. A connection can ask to wait longer, up to a ceiling of 120 seconds.
 
 ## Security
 

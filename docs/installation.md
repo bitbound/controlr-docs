@@ -43,7 +43,7 @@ Three containers come up:
 |-----------|-------|-------|
 | `controlr` | `bitbound/controlr:latest` | host `5120` mapped to container `8080` |
 | `postgres` | `postgres:18` | `5432`, internal network only |
-| `aspire` | `mcr.microsoft.com/dotnet/aspire-dashboard:latest` | host `18888` |
+| `aspire` | `mcr.microsoft.com/aspire/dashboard:latest` | host `18888` |
 
 `ASPNETCORE_HTTP_PORTS` is `8080` inside the container. To serve a different host port, change the left side of the port mapping in the Compose file. Changing that variable moves the port inside the container and breaks the mapping.
 
