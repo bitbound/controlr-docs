@@ -44,13 +44,13 @@ Example shape: `registry.example.com/acme-corp/controlr:acme-corp-slot1`.
 
 ## The Pull Command
 
-When the latest build for a slot has produced an image, the builds panel's **Image delivery** block shows the image reference and the pull command. The command is masked. Select the eye icon to reveal it, then select **Copy pull command**. One command logs you in and pulls:
+Once any build on the slot has produced an image, the builds panel's **Image delivery** block shows the image reference and the pull command. The slot pushes every image to one fixed tag, so the block keeps showing the newest image that succeeded, including while a rebuild is in flight and after one fails or is cancelled. The pull command therefore retrieves the newest good image. The command is masked. Select the eye icon to reveal it, then select **Copy pull command**. One command logs you in and pulls:
 
 ```console
 docker login {registry host} -u {username} -p {password} && docker pull {image reference}
 ```
 
-Two permissions and one state gate this block. You need the slot's **Credentials** permission, titled "View registry credentials" in the portal's own warning text. Without it the block explains that you lack permission and to ask an account owner for it. And the slot must have a latest build that produced an image. Otherwise the block says the pull command appears once a build has produced an image.
+Two permissions and one state gate this block. You need the slot's **Credentials** permission, titled "View registry credentials" in the portal's own warning text. Without it the block explains that you lack permission and to ask an account owner for it. And the slot needs at least one build that reached `succeeded` with an image. Otherwise the block says the pull command appears once a build has produced an image.
 
 The success email you get after a build carries the image reference and a `docker pull` line, but no login credentials. The combined command above only exists in the portal, because only the portal can hand out the password.
 

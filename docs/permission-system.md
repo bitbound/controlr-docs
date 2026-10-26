@@ -9,7 +9,7 @@ ControlR's authorization layer is a fine-grained, scope-based permission system.
 
 ### Permission Names
 
-Every capability in ControlR has a unique, namespaced permission identifier following the pattern `<resource>.<action>`, such as `device.read`, `device.remote-control.connect`, or `tenant.permissions.write`. The server's permission catalog lists each name with a display name, category, description, and the scope kinds at which it may be granted. There are 67 catalog entries.
+Every capability in ControlR has a unique, namespaced permission identifier following the pattern `<resource>.<action>`, such as `device.read`, `device.remote-control.connect`, or `tenant.permissions.write`. The server's permission catalog lists each name with a display name, category, description, and the scope kinds at which it may be granted. There are 68 catalog entries.
 
 | Permission name | Capability |
 |---|---|
@@ -78,7 +78,7 @@ Because raw permission names are hard to reason about, ControlR ships named pres
 |--------|-------|-------------|
 | `Server Administrator` | 14 | `server.authorization-logs.read`, `server.permissions.read`, `server.permissions.write`, `server.settings.write`, `server.tenants.delete`, `server.tenants.read`, `server.tenants.write`, `server.telemetry.read`, `server.service-accounts.read`, `server.service-accounts.write`, `server.service-accounts.rotate-credentials`, `tenant.permissions.read`, `tenant.permissions.deny`, `tenant.authorization-logs.read` |
 | `Tenant Administrator` | 30 | All 16 `tenant.*` permissions, `user-group.assign-users`, `device-group.assign-devices`, the four `personal-access-token.*` permissions, the three `service-account.*` permissions, the four `installer-key.*` permissions (`installer-key.self.read`, `installer-key.self.write`, `installer-key.others.read`, `installer-key.others.write`), `agent.install` |
-| `Device Superuser` | 26 | All 26 `device.*` permissions (read, delete, alias, tags, desktop preview, logs, overview, the four remote-control permissions, Ctrl-Alt-Del, clipboard read/write, chat, VNC relay, the five file-system permissions, terminal, logon-token create, wake, power, agent update) |
+| `Device Superuser` | 27 | All 27 `device.*` permissions (read, delete, alias, tags, desktop preview, logs, overview, the five remote-control permissions, Ctrl-Alt-Del, clipboard read/write, chat, VNC relay, the five file-system permissions, terminal, logon-token create, wake, power, agent update) |
 | `Agent Installer` | 3 | `agent.install`, `installer-key.self.read`, `installer-key.self.write` |
 | `Installer Key Manager` | 5 | `installer-key.self.read`, `installer-key.self.write`, `installer-key.others.read`, `installer-key.others.write`, `agent.install` |
 | `Service Account Manager` | 3 | `service-account.read`, `service-account.write`, `service-account.rotate-credentials` |

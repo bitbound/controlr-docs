@@ -20,7 +20,7 @@ Fill in the slot configuration form and select **Save configuration**. The form 
 | Source ref | The ControlR version the slot builds. Choose from the available releases. Preview `-dev` tags appear only when **Enable preview builds** is on in [Settings](/docs/subscriber-portal/settings). |
 | Delivery format | How the built server reaches you. Either Docker image (a container image in the private registry) or ZIP download (a self-contained server archive). See [Delivery format](/docs/subscriber-portal/slot-configuration#delivery-format). |
 | Server runtime | The platform the server is built for. Docker offers linux-x64 (AMD/Intel) or linux-arm64 (ARM). ZIP adds win-x64 (Windows). |
-| ControlR server URL | A required, full http/https URL stored on the slot. Agents built with it dial that address. See [ControlR Server URL](/docs/subscriber-portal/slot-configuration#controlr-server-url). |
+| ControlR server URL | An optional full http/https URL stored on the slot. Agents built with it dial that address. See [ControlR Server URL](/docs/subscriber-portal/slot-configuration#controlr-server-url). |
 | Hide sponsorship info | Off by default. On, the built app hides its ControlR project, website, and sponsor links. See [Hide Sponsorship Info](/docs/subscriber-portal/slot-configuration#hide-sponsorship-info). |
 
 Under **Dark theme colors** and **Light theme colors** you set seven colors for each theme: Primary, Secondary, Tertiary, Info, Success, Warning, and Error. All fourteen are required. Each color is a hex value such as `#RRGGBB` or `#RRGGBBAA`. The fields start with the standard ControlR colors. Select the swatch next to a field to pick a color, or type the value.
@@ -29,11 +29,13 @@ You can also select **Export JSON** to download the current configuration and **
 
 ## Upload Branded Assets
 
-The private-assets panel holds the image files that appear in your build. There are three asset types.
+The private-assets panel holds the image files that appear in your build. Three fields appear in each of three sections, **Default**, **Dark**, and **Light**:
 
 - **App icon (.png/.svg)**, used as the application icon.
-- **Favicon (.ico)**, used as the browser icon.
-- **Logo (.png/.svg)**, used as the company logo.
+- **Shell icon (.ico)**, used for the executable and browser tab icon.
+- **Company logo (.png/.svg)**, used as the company logo.
+
+A current build applies only the **Default** section. The theme variants are stored but nothing in the product applies them yet.
 
 For each one, select **Upload asset**. After an upload, the button becomes **Replace asset**. The panel shows a preview plus the file name, content type, and size of what is stored. If a stored asset ever goes missing from storage, the panel warns you so you can re-upload it. Accepted file types, the size limit, and what a replacement does to the next build are covered in [Slot Configuration Reference](/docs/subscriber-portal/slot-configuration#private-assets).
 
@@ -60,7 +62,7 @@ The values are shown exactly as listed, and the last three are final. A build ca
 
 ## Read The Build History
 
-Below the current build, the **Recent build history** list shows past builds newest first. Each row carries a build timestamp, a status chip, the source ref, the duration, and the requested and completed times, plus a failure summary when one exists. A history row never shows an image reference or a pull command, so the delivery card belongs to the latest build only. The one interactive control is a **Download server** button on a row for a ZIP build that reached `succeeded`, which needs the slot's **Credentials** permission. See [Build Lifecycle](/docs/subscriber-portal/build-lifecycle#build-history-and-retention) for how long history is kept.
+Below the current build, the **Recent build history** list shows past builds newest first. Each row carries a build timestamp, a status chip, the source ref, the duration, and the requested and completed times, plus a failure summary when one exists. A history row never shows an image reference or a pull command. Those appear on the delivery card above the list, which carries the newest build that produced an image. The one interactive control is a **Download server** button on a row for a ZIP build that reached `succeeded`, which needs the slot's **Credentials** permission. See [Build Lifecycle](/docs/subscriber-portal/build-lifecycle#build-history-and-retention) for how long history is kept.
 
 ## Get The Built Server
 

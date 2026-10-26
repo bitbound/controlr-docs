@@ -43,7 +43,7 @@ A slot holds the configuration that turns into your branded ControlR image. That
 - The ControlR version to build and the server runtime to target.
 - A ControlR server URL stored on the slot. See [Slot Configuration Reference](/docs/subscriber-portal/slot-configuration#controlr-server-url) for what this field does.
 - Theme colors for the dark and light themes.
-- Branded image assets such as an app icon, favicon, and logo.
+- Branded image assets: an app icon, a shell icon, and a company logo.
 
 You set these on the slot page. See [Manage A Build Slot](/docs/subscriber-portal/manage-a-build-slot).
 

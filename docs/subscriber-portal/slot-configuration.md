@@ -47,7 +47,7 @@ Required, with `linux-x64` preselected. The available choices depend on the [Del
 
 ### ControlR Server URL
 
-Required. A full absolute URL using http or https, at most 2048 characters.
+Optional. When set, a full absolute URL using http or https, at most 2048 characters. A blank value stores nothing on the slot.
 
 The value is validated and stored on the slot, and it is shown back to you in the form, on the dashboard slot card, and in exported configuration JSON. It also rides to the builder in the same one-time customization payload that carries the brand, the colors, the icons, the CSS, and the sponsorship switch.
 
@@ -79,15 +79,17 @@ Saving writes every field at once. Partial saves are not a thing. If any require
 
 ## Private Assets
 
-The **Branding assets** panel stores the images your build replaces in the product. There are exactly three slots for images:
+The **Branding assets** panel stores the images your build replaces in the product. Three upload fields appear in each of three collapsible sections, **Default**, **Dark**, and **Light**. The three fields are the same in every section:
 
-| Panel label | Asset type | File picker accepts | Used in the product as |
-|-------------|-----------|---------------------|------------------------|
-| App icon (.png/.svg) | Application icon | `.png`, `.svg` | The desktop application icon, plus resized web app icons |
-| Favicon (.ico) | Browser icon | `.ico` | The browser favicon |
-| Logo (.png/.svg) | Company logo | `.png`, `.svg` | The company logo image shipped with the web server |
+| Panel label | File picker accepts | Used in the product as |
+|-------------|---------------------|------------------------|
+| App icon (.png/.svg) | `.png`, `.svg` | The desktop application icon, plus resized web app icons |
+| Shell icon (.ico) | `.ico` | The executable icon and the browser tab icon |
+| Company logo (.png/.svg) | `.png`, `.svg` | The company logo image shipped with the web server |
 
-The rules that apply to all three:
+A current build applies only the three **Default** images. The **Dark** and **Light** variants are stored on the slot and handed to the builder like the others, but nothing in a current build applies the theme-specific files, so uploading them changes nothing in the shipped product yet.
+
+The rules that apply to all nine fields:
 
 - One file per type. Uploading again replaces what was there. The button reads **Upload asset** when empty and **Replace asset** after that.
 - The file must be non-empty, at most 3 MiB (3,145,728 bytes), and its content type must be one of `image/png`, `image/svg+xml`, or `image/x-icon`. The panel shows the stored file's name, content type, size, and a small preview.

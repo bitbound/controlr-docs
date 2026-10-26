@@ -5,7 +5,7 @@ title: Remote Control
 
 ## Overview
 
-Remote Control streams and controls the screen of a remote desktop session from the browser. Screen capture and input forwarding travel over a WebSocket relay hosted by the ControlR server. The browser holds one end of that relay and the desktop client running in the target session holds the other. The agent does not carry the screen data. It checks the on-device permission, then hands the relay address to the desktop client over the agent's local IPC channel, and the desktop client opens its own connection. The desktop client performs the actual capture and input simulation. The device needs a logged-in graphical session for a desktop client to attach to.
+Remote Control streams and controls the screen of a remote desktop session from the browser. Screen frames and screen region updates travel over a WebSocket relay hosted by the ControlR server, and remote control commands and events travel the SignalR connection. The browser holds one end of that relay and the desktop client running in the target session holds the other. The agent does not carry the screen data. It checks the on-device permission, then hands the relay address to the desktop client over the agent's local IPC channel, and the desktop client opens its own connection. The desktop client performs the actual capture and input simulation. The device needs a logged-in graphical session for a desktop client to attach to.
 
 Access requires the `device.remote-control.connect` permission. It gates the menu entry, the session list, and starting a session.
 
@@ -138,10 +138,11 @@ The **Ctrl+Alt+Del** button sits under "Security" in the **Input** popover. It r
 | `device.remote-control.connect` | Menu entry, session list, and session start |
 | `device.desktop-preview.read` | The **Preview** button on session cards |
 | `device.remote-control.block-input` | The **Block User Input** toggle (Windows only) |
+| `device.remote-control.privacy-screen` | The **Privacy Screen** switch in the **View** popover (Windows only) |
 | `device.ctrl-alt-del.send` | The **Ctrl+Alt+Del** button (Windows only) |
 | `device.clipboard.read` / `device.clipboard.write` | Receiving / sending and typing clipboard content |
 
-`device.remote-control.connect`, `device.desktop-preview.read`, and `device.ctrl-alt-del.send` are enforced by server code. The other three are visibility gates. The server resolves `device.remote-control.block-input`, `device.clipboard.read`, and `device.clipboard.write` into the permission set it hands the browser, and the browser uses that set to decide whether to render the control. Nothing re-checks those three when the action itself crosses the relay. Treat them as interface policy rather than a server boundary.
+The server checks the permission behind every remote control action, so hiding a control in the browser is not the boundary. Each command is gated on the permission its kind implies: mouse, keyboard, wheel, typed-text, and display-change commands require `device.remote-control.interact`; sending clipboard content requires `device.clipboard.write`; requesting it requires `device.clipboard.read`; the block-input toggle requires `device.remote-control.block-input`; the privacy-screen toggle requires `device.remote-control.privacy-screen`; and closing a session, keyframe requests, and capture-setting changes require `device.remote-control.connect`. The **Ctrl+Alt+Del** invocation is checked against `device.ctrl-alt-del.send`. A command whose permission the viewer lacks is denied before it reaches the device, and the denial is written to the server log at critical level.
 
 ## VNC Relay
 

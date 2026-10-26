@@ -204,15 +204,16 @@ The Desktop Client is an [Avalonia UI](https://avaloniaui.net/) cross-platform d
 - **Screen capture & input forwarding**: the actual work of capturing the desktop and injecting mouse/keyboard events during remote control sessions
 - **Live session visibility**: shows the local user when a remote session is active
 - **Session consent & notifications**: prompts the local user before granting remote access
-- **WebSocket relay streaming**: opens the relay socket to send screen frames and receive input from the viewer
+- **WebSocket relay streaming**: opens the relay socket to send screen frames and screen region updates during remote control sessions
 
-The Desktop Client has no SignalR connection. It reaches the server only through the relay socket, and it reaches the agent only through IPC.
+Remote control commands and events do not ride that socket. They travel the SignalR connection between the viewer and the server, then the agent carries them to the Desktop Client over IPC, and desktop events come back the same way. The Desktop Client has no SignalR connection of its own.
 
 ### Communication Paths
 
 ```
 Agent <--- IPC (Named Pipes) ---> Desktop Client
-Desktop Client --- WebSocket Relay ---> Server <--- WebSocket Relay --- Web UI
+Agent --- SignalR (AgentHub) ---> Server <--- SignalR (ViewerHub) --- Web UI
+Desktop Client --- WebSocket Relay (frames) ---> Server <--- WebSocket Relay (frames) --- Web UI
 ```
 
 The viewer's browser builds the relay URI for the responder and hands it to the server over `ViewerHub`. The server forwards it to the agent on `AgentHub`, and the agent passes it to the Desktop Client in the remote control request over IPC. The Desktop Client then opens the socket itself, as the `responder` role. It connects **only during active remote control sessions**.
@@ -268,8 +269,8 @@ For the OTLP destination, `OTEL_EXPORTER_OTLP_ENDPOINT` is read first and wins w
 5. **Desktop Client** prompts the local user for consent (if configured)
 6. On consent, the Desktop Client connects to the server's **WebSocket relay** as the `responder`
 7. The **Viewer** connects to the **WebSocket relay** as the `requester`
-8. The relay bridges WebSocket frames: screen captures from Desktop Client to Viewer, input events from Viewer to Desktop Client
-9. When either socket closes, the relay closes its partner. SignalR remains the channel for device state and for the next command
+8. The relay bridges WebSocket frames carrying screen captures and screen region updates from Desktop Client to Viewer. Remote control commands take the other route: Viewer to Server over `ViewerHub` (SignalR), Server to Agent over `AgentHub` (SignalR), then Agent to Desktop Client over IPC. Desktop events return the same way
+9. When either relay socket closes, the relay closes its partner. SignalR remains the channel for device state and for every remote control command
 
 ## Next
 
