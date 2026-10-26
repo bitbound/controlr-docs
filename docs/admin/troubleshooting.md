@@ -85,7 +85,25 @@ The installer binary is named `ControlR.Agent.Installer` (and `ControlR.Agent.In
 
 ### Agent Self-Update Mechanics
 
-The agent checks for updates once when it starts, then every six hours. Set `DisableAutoUpdate` in the agent's developer options to stop the timer.
+The agent checks for updates once when it starts, then every six hours.
+
+#### Turning Auto-Update Off
+
+Turn the check off before replacing the agent binary with a test build, so the next tick does not put the released bundle back. The flag is `DisableAutoUpdate` in the agent's `Developer` configuration section, and there are two ways to set it.
+
+- The settings-directory `appsettings.json` from [Raise the Agent's Log Level](#raise-the-agents-log-level), adding a `Developer` section. This file is watched and the flag is read at check time, so the change applies without a restart.
+
+  ```json
+  {
+    "Developer": {
+      "DisableAutoUpdate": true
+    }
+  }
+  ```
+
+- The environment variable `Developer__DisableAutoUpdate=true` on the agent service process, set the same way as `Serilog__MinimumLevel__Default` above. A process restart picks it up. If the settings file also sets the flag, the file wins, because it loads after the environment.
+
+An update check forced from the server bypasses the flag and updates the device anyway.
 
 #### Update Process
 
