@@ -30,6 +30,10 @@ const config: Config = {
 
   markdown: {
     mermaid: true,
+    hooks: {
+      // A doc page can ship before its screenshots exist; missing images warn instead of failing the build.
+      onBrokenMarkdownImages: 'warn',
+    },
   },
 
   i18n: {
