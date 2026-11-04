@@ -85,7 +85,7 @@ The **Branding assets** panel stores the images your build replaces in the produ
 |-------------|---------------------|------------------------|
 | App icon (.png/.svg) | `.png`, `.svg` | The desktop application icon, plus resized web app icons |
 | Shell icon (.ico) | `.ico` | The executable icon and the browser tab icon |
-| Company logo (.png/.svg) | `.png`, `.svg` | The company logo image shipped with the web server |
+| Company logo (.png/.svg) | `.png`, `.svg` | The company logo image shipped with the web server and embedded in the emails it sends |
 
 A current build applies only the three **Default** images. The **Dark** and **Light** variants are stored on the slot and handed to the builder like the others, but nothing in a current build applies the theme-specific files, so uploading them changes nothing in the shipped product yet.
 
@@ -105,7 +105,7 @@ When you trigger a build, the portal hands the builder short-lived signed links 
 
 This gives you one practical rule. Replacing an asset affects the next build you trigger. If you replace an asset in the minutes right after starting a build, you can change what that build downloads, because the builder fetches assets by reference rather than from a snapshot. Re-upload assets between builds, not during one.
 
-In the product itself, the app icon file is resized and distributed to the desktop application icon sets and the web app icon files. The favicon becomes the site's `favicon.ico`. The logo is shipped as the company logo image the web server serves. If a build has no icons at all, those files keep ControlR's default artwork.
+In the product itself, the app icon file is resized and distributed to the desktop application icon sets and the web app icon files. The favicon becomes the site's `favicon.ico`. The logo is shipped as the company logo image the web server serves, and the server embeds that file in the emails it sends. If a build has no icons at all, those files keep ControlR's default artwork.
 
 ## What Customization Actually Reaches The Product
 

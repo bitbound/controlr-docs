@@ -793,7 +793,7 @@ The hub class carries no `[Authorize]`, so the connection is anonymous. Device i
 
 The hub carries `[Authorize]`, so a viewer needs an authenticated session. Beyond that, an operation authorizes the caller against the specific device permission it needs, through one shared check. Terminal input needs `device.terminal.use`, a remote-control or VNC request needs `device.remote-control.connect` or `device.vnc-relay.connect`, a refresh needs `device.read`, and so on. A refused check comes back as a `HubResult` failure whose reason is "Forbidden." Holding the connection does not grant access to a device.
 
-**Viewer to server.** This is the `IViewerHub` surface, 46 methods. Most of it was doubled during 2026-09 (v0.28.x). The positional-argument form became `[Obsolete]` in favor of a DTO-based `*2` method, and the device id moved inside the DTO. 21 methods carry the obsolete marker. Call the `*2` form. The obsolete form is still invokable, and several of them return a bare value where the replacement wraps the answer in `HubResult`, so a null or empty answer is ambiguous on the old form and explicit on the new one.
+**Viewer to server.** This is the `IViewerHub` surface, 46 methods. Most of it was doubled during 2026-09 (v0.28.x). The positional-argument form became `[Obsolete]` in favor of a DTO-based `*2` method, and the device id moved inside the DTO. 22 methods carry the obsolete marker. Call the current form. The obsolete form is still invokable, and several of them return a bare value where the replacement wraps the answer in `HubResult`, so a null or empty answer is ambiguous on the old form and explicit on the new one.
 
 | Method | Status | Parameters |
 |---|---|---|
@@ -817,15 +817,15 @@ The hub carries `[Authorize]`, so a viewer needs an authenticated session. Beyon
 | `RefreshDeviceInfo2` | current | `RefreshDeviceInfoRequestDto` |
 | `RequestRemoteControlPermission` | Obsolete, use `RequestRemoteControlPermission2` | `deviceId`, `targetProcessId` |
 | `RequestRemoteControlPermission2` | current | `RequestRemoteControlPermissionRequestDto` |
-| `RequestRemoteControlSession` | Obsolete, use `RequestRemoteControlSession2` | `deviceId`, `RemoteControlSessionRequestDto` |
-| `RequestRemoteControlSession2` | current | `RemoteControlSessionRequestDto` |
+| `RequestRemoteControlSession` | Obsolete, use `RequestRemoteControlSession3` | `deviceId`, `RemoteControlSessionRequestDto` |
+| `RequestRemoteControlSession2` | Obsolete, use `RequestRemoteControlSession3` | `RemoteControlSessionRequestDto` |
+| `RequestRemoteControlSession3` | current | `RemoteControlSessionRequestDto` |
 | `RequestVncSession` | Obsolete, use `RequestVncSession2` | `deviceId`, `VncSessionRequestDto` |
 | `RequestVncSession2` | current | `VncSessionRequestDto` |
 | `SendAgentUpdateTrigger` | Obsolete, use `SendAgentUpdateTrigger2` | `deviceId` |
 | `SendAgentUpdateTrigger2` | current | `SendAgentUpdateTriggerRequestDto` |
 | `SendChatMessage` | Obsolete, use `SendChatMessage2` | `deviceId`, `ChatMessageHubDto` |
 | `SendChatMessage2` | current | `ChatMessageHubDto` |
-| `SendDtoToAgent` | current | `SendDtoToAgentRequestDto` |
 | `SendPowerStateChange` | Obsolete, use `SendPowerStateChange2` | `deviceId`, `PowerStateChangeType` |
 | `SendPowerStateChange2` | current | `SendPowerStateChangeRequestDto` |
 | `SendTerminalInput` | Obsolete, use `SendTerminalInput2` | `deviceId`, `TerminalInputDto` |

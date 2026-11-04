@@ -41,6 +41,8 @@ In the assignment dialog:
 - **Notes (optional)**: free text for other administrators. The grid shows it behind an info icon.
 - **Enabled**: turns the row off without deleting it. A disabled row grants nothing.
 
+A row that repeats an existing assignment, same principal, permission, effect, and scope, is rejected with "An identical permission assignment already exists."
+
 ### Applying Presets
 
 Because raw permission names are hard to reason about, ControlR provides named **presets**: curated bundles of related permissions. Select one or more presets, choose a mode, and apply them to the selected principal:

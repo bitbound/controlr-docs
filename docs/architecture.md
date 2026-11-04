@@ -50,7 +50,7 @@ flowchart TD
 
     Viewer -->|"SignalR"| VHub
     Viewer -->|"REST"| REST
-    VHub -->|"Relay commands"| AHub
+    VHub -->|"Terminal, chat, file commands"| AHub
     AHub -->|"SignalR"| Agent
     Agent -->|"REST (update bundles)"| REST
     Installer -->|"REST (device registration)"| REST
@@ -269,8 +269,8 @@ For the OTLP destination, `OTEL_EXPORTER_OTLP_ENDPOINT` is read first and wins w
 5. **Desktop Client** prompts the local user for consent (if configured)
 6. On consent, the Desktop Client connects to the server's **WebSocket relay** as the `responder`
 7. The **Viewer** connects to the **WebSocket relay** as the `requester`
-8. The relay bridges WebSocket frames carrying screen captures and screen region updates from Desktop Client to Viewer. Remote control commands take the other route: Viewer to Server over `ViewerHub` (SignalR), Server to Agent over `AgentHub` (SignalR), then Agent to Desktop Client over IPC. Desktop events return the same way
-9. When either relay socket closes, the relay closes its partner. SignalR remains the channel for device state and for every remote control command
+8. The relay bridges WebSocket frames in both directions. Screen captures and screen region updates flow from Desktop Client to Viewer, and the remote control commands flow the other way: Viewer to relay to Desktop Client. Mouse, keyboard, clipboard, block-input and privacy-screen toggles, capture-setting changes, and session close all ride this path
+9. When either relay socket closes, the relay closes its partner. SignalR remains the channel for device state and for the operations that travel over the hubs rather than the stream
 
 ## Next
 

@@ -136,13 +136,16 @@ The **Ctrl+Alt+Del** button sits under "Security" in the **Input** popover. It r
 | Permission code | Gates |
 |-----------------|-------|
 | `device.remote-control.connect` | Menu entry, session list, and session start |
+| `device.remote-control.interact` | The mouse, keyboard, wheel, and typed-text controls in the **Input** popover |
 | `device.desktop-preview.read` | The **Preview** button on session cards |
 | `device.remote-control.block-input` | The **Block User Input** toggle (Windows only) |
 | `device.remote-control.privacy-screen` | The **Privacy Screen** switch in the **View** popover (Windows only) |
 | `device.ctrl-alt-del.send` | The **Ctrl+Alt+Del** button (Windows only) |
 | `device.clipboard.read` / `device.clipboard.write` | Receiving / sending and typing clipboard content |
 
-The server checks the permission behind every remote control action, so hiding a control in the browser is not the boundary. Each command is gated on the permission its kind implies: mouse, keyboard, wheel, typed-text, and display-change commands require `device.remote-control.interact`; sending clipboard content requires `device.clipboard.write`; requesting it requires `device.clipboard.read`; the block-input toggle requires `device.remote-control.block-input`; the privacy-screen toggle requires `device.remote-control.privacy-screen`; and closing a session, keyframe requests, and capture-setting changes require `device.remote-control.connect`. The **Ctrl+Alt+Del** invocation is checked against `device.ctrl-alt-del.send`. A command whose permission the viewer lacks is denied before it reaches the device, and the denial is written to the server log at critical level.
+Permission checks run at two layers. The viewer app asks the server for your effective permission set on the device and offers only the controls you hold: the input controls need `device.remote-control.interact`, the clipboard buttons need `device.clipboard.write` and `device.clipboard.read`, the block-input toggle needs `device.remote-control.block-input`, and the privacy-screen toggle needs `device.remote-control.privacy-screen`. The server checks the session itself: opening a session needs `device.remote-control.connect` on the device, and a refused attempt is written to the server log at critical level.
+
+Within a started session, commands that ride the remote-control stream (input, clipboard, block-input and privacy-screen toggles, keyframe requests, capture-setting changes, and session close) travel over the WebSocket relay, which pairs the two sockets and forwards bytes without evaluating permissions per command. The server gates that traffic at session start today, and per-command server-side enforcement is planned. Actions that travel over the SignalR hub instead of the stream are checked on the server on every call: the **Ctrl+Alt+Del** invocation against `device.ctrl-alt-del.send`, and terminal input, chat, and file operations against their own permissions.
 
 ## VNC Relay
 
