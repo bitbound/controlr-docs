@@ -71,4 +71,4 @@ Or configure your CI/CD pipeline to build and deploy automatically.
 
 ## License
 
-MIT License - see the [ControlR repository](https://github.com/bitbound/ControlR) for details.
+MIT License. See the [ControlR repository](https://github.com/bitbound/ControlR) for details.
